@@ -5,6 +5,14 @@ import (
 	"strings"
 )
 
+type ClassroomPageData struct {
+	Title         string
+	HeaderTitle    string
+	HeaderSubtitle string
+	HeaderBadge    string
+	Classrooms     []*Classroom
+}
+
 func teacherView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
@@ -169,4 +177,90 @@ func createClassroomView (w http.ResponseWriter, r *http.Request) {
 	app.Classrooms[id] = classroom
 
 	saveData()
+}
+
+func editClassrooms (w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w, r)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if user.Role != "admin" {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+	
+	
+	classrooms := make([]*Classroom, 0, len(app.Classrooms))
+
+	for _, classroom := range app.Classrooms {
+		classrooms = append(classrooms, classroom)
+	}
+
+	data := ClassroomPageData{
+		Title:         "Classrooms",
+		HeaderTitle:    "Admin Tools",
+		HeaderSubtitle: "Manage classroom settings from here.",
+		HeaderBadge:    "Admin View",
+		Classrooms:     classrooms,
+	}
+
+	renderAdmin(w, "editClassrooms.html", data)
+}
+
+func saveClassrooms(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "could not parse form", http.StatusBadRequest)
+		return
+	}
+
+	originalID := r.FormValue("original_id")
+
+	name := r.FormValue("name")
+	id := r.FormValue("id")
+	teacherID := r.FormValue("teacher_id")
+
+	var studentIDs []string
+
+	for _, line := range strings.Split(
+		r.FormValue("student_ids"),
+		"\n",
+	) {
+		line = strings.TrimSpace(line)
+
+		if line != "" {
+			studentIDs = append(studentIDs, line)
+		}
+	}
+
+	classroom := &Classroom{
+		Name:       name,
+		ID:         id,
+		TeacherID:  teacherID,
+		StudentIDs: studentIDs,
+	}
+
+	// Handle ID changes
+	if originalID != id {
+		delete(app.Classrooms, originalID)
+	}
+
+	app.Classrooms[id] = classroom
+
+	saveData()
+
+	http.Redirect(
+		w,
+		r,
+		"/adminDashboard",
+		http.StatusSeeOther,
+	)
 }
