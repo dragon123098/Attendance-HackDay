@@ -19,9 +19,9 @@ These must be agreed on before either person starts their track. Commit the resu
 ## Track A — Foundation (Person 1)
 
 ### Project Scaffold
-- [ ] `go mod init`
-- [ ] Set up folder structure: `main.go`, `store/`, `handlers/`, `templates/`, `static/`
-- [ ] `main.go` with a basic HTTP server and static file serving
+- [x] `go mod init`
+- [x] Set up folder structure: `main.go`, `store/`, `handlers/`, `templates/`, `static/`
+- [x] `main.go` with a basic HTTP server and static file serving
 
 ### Store Package (`store/`)
 - [ ] Generic read/write helpers for JSON files
