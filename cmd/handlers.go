@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"log"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -12,6 +11,7 @@ type PageData struct {
 	Username    string
 	AvatarImage string
 	Error       string
+	Coins	    int
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -134,11 +134,9 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 
 	data := PageData {
 		Title: "Shop",
-		Title:       "Shop",
 		Username:    user.Name,
 		AvatarImage:  "/static/images/geraldIcon3.png",
 		Coins: 100,
-		Items: []Shop{},
 	}
 
 	renderStudent(w, "shopView.html", data)
@@ -162,7 +160,6 @@ func avatarView(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		Title:       "Avatar",
 		Username:    user.Name,
-		Title:       "Avatar",
 		AvatarImage: "/static/Images/gerald.png",
 		Coins:       42,
 	}
@@ -267,45 +264,4 @@ func adminEditView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-func render(w http.ResponseWriter, page string, data any) {
-	tmpl, err := loadTemplates(page)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := tmpl.ExecuteTemplate(w, "base", data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func loadTemplates(page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "AuthBase.html"),
-		filepath.Join("templates", "partials", "topbar.html"),
-		filepath.Join("templates", "partials", "navbar.html"),
-		filepath.Join("templates", "partials", "footer.html"),
-		filepath.Join("templates", page),
-	)
-}
-
-func loadUnAuthTemplates(page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "UnAuthBase.html"),
-		filepath.Join("templates", page),
-	)
-}
-
-func renderUnAuth(w http.ResponseWriter, page string, data any) {
-	tmpl, err := loadUnAuthTemplates(page)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := tmpl.ExecuteTemplate(w, "base", data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }
