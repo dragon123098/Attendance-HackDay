@@ -22,6 +22,9 @@ type PageData struct {
 	UpcomingDoubleDays []DoubleDayView
 	ActiveNav         string
 	UseStudentCSS bool
+	ShopItems       []ShopItemView
+	OwnedShopItems  []ShopItemView
+	ShopMessage     string
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {

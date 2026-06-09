@@ -24,3 +24,76 @@
     font-size: 12px;
     font-weight: 600;
 }
+
+.shop-message {
+    background: #fff;
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin: 16px 0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.shop-section {
+    margin-top: 24px;
+}
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.shop-item-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.shop-item-name {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.shop-item-desc {
+    font-size: 0.95rem;
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+
+.shop-item-cost {
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.shop-owned-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.shop-owned-item {
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.section-header h2 {
+    color: #222;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.section-header p {
+    color: #555;
+    font-size: 0.95rem;
+    opacity: 1;
+}
+
+.shop-section {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}

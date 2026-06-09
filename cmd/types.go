@@ -2,13 +2,14 @@ package main
 
 // AppState holds the application state, including users and schedules.
 type AppState struct {
-    Users           map[string]*User           `json:"users"`
-    Classrooms      map[string]*Classroom      `json:"classrooms"`
-    ShopItems       map[string]*ShopItem       `json:"shop_items"`
-    AvatarConfigs   map[string]*AvatarConfig   `json:"avatar_configs"`   // keyed by userID
-    Transactions    []CoinTransaction          `json:"transactions"`
-    Attendance      []AttendanceRecord         `json:"attendance"`
-    Schedule        []Schedule                 `json:"schedule"`
+	Users            map[string]*User         `json:"users"`
+	Classrooms       map[string]*Classroom    `json:"classrooms"`
+	ShopItems        map[string]*ShopItem     `json:"shop_items"`
+	OwnedShopItems   map[string][]string      `json:"owned_shop_items"` // userID -> item IDs
+	AvatarConfigs    map[string]*AvatarConfig `json:"avatar_configs"`
+	Transactions     []CoinTransaction        `json:"transactions"`
+	Attendance       []AttendanceRecord      `json:"attendance"`
+	Schedule         []Schedule               `json:"schedule"`
 }
 
 type User struct {

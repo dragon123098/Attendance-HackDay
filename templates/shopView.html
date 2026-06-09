@@ -1,10 +1,13 @@
 {{define "content"}}
-
 <div class="shop-page">
     <div class="hero-card">
         <h1>Shop</h1>
         <p>Spend your coins on fun rewards and upgrades.</p>
     </div>
+
+    {{if .ShopMessage}}
+    <div class="shop-message">{{.ShopMessage}}</div>
+    {{end}}
 
     <div class="shop-coin-card">
         <div class="coin-icon">🪙</div>
@@ -21,14 +24,20 @@
         </div>
 
         <div class="shop-grid">
-            {{range .Items}}
+            {{range .ShopItems}}
             <div class="shop-item-card">
-                <div class="shop-item-image">
-                    <img src="{{.Image}}" alt="{{.Name}}">
-                </div>
                 <div class="shop-item-name">{{.Name}}</div>
-                <div class="shop-item-cost">{{.Cost}} coins</div>
-                <button class="shop-buy-btn" type="button">Buy</button>
+                <div class="shop-item-desc">{{.Description}}</div>
+                <div class="shop-item-cost">{{.Price}} coins</div>
+
+                {{if .Owned}}
+                <button class="shop-buy-btn" type="button" disabled>Owned</button>
+                {{else}}
+                <form method="POST" action="/shop/buy">
+                    <input type="hidden" name="item_id" value="{{.ID}}">
+                    <button class="shop-buy-btn" type="submit">Buy</button>
+                </form>
+                {{end}}
             </div>
             {{else}}
             <div class="shop-empty-state">
@@ -38,8 +47,27 @@
             {{end}}
         </div>
     </div>
-</div>
 
+    <div class="shop-section">
+        <div class="section-header">
+            <h2>Owned Items</h2>
+            <p>What the student already owns</p>
+        </div>
+
+        {{if .OwnedShopItems}}
+        <div class="shop-owned-list">
+            {{range .OwnedShopItems}}
+            <div class="shop-owned-item">{{.Name}}</div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="shop-empty-state">
+            <h3>No owned items yet</h3>
+            <p>Buy something from the shop to see it here.</p>
+        </div>
+        {{end}}
+    </div>
+</div>
 {{end}}
 
 {{template "base" .}}

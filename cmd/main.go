@@ -22,7 +22,7 @@ func main() {
 	// student routes
 	mux.Handle("GET /studentDashboard", RequireRole("student", http.HandlerFunc(studentView)))
 	mux.Handle("GET /shop", RequireRole("student", http.HandlerFunc(shopView)))
-	mux.Handle("GET /shop/buy", RequireRole("student", http.HandlerFunc(shopBuyView)))
+	mux.Handle("POST /shop/buy", RequireRole("student", http.HandlerFunc(shopBuyView)))
 	mux.Handle("GET /avatar", RequireRole("student", http.HandlerFunc(avatarView)))
 	mux.Handle("POST /attendance", RequireRole("student", http.HandlerFunc(attendanceView)))
 

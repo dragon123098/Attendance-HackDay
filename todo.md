@@ -112,14 +112,14 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Show upcoming double days
 
 ### Shop
-- [ ] Seed shop items
-- [ ] `GET /shop`
-- [ ] Render shop items
-- [ ] `POST /shop/buy`
-- [ ] Validate sufficient coins
-- [ ] Persist purchases
-- [ ] Show owned items
-- [ ] Update balance after purchases
+- [x] Seed shop items
+- [x] `GET /shop`
+- [x] Render shop items
+- [x] `POST /shop/buy`
+- [x] Validate sufficient coins
+- [x] Persist purchases
+- [x] Show owned items
+- [x] Update balance after purchases
 
 ### Avatar System
 - [ ] Persist avatar selections
