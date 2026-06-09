@@ -142,10 +142,10 @@ These must be agreed on before either person starts their track. Commit the resu
 ## Track B — Teacher / Admin Management
 
 ### Classroom Management
-- [ ] `POST /classrooms`
-- [ ] `GET /classrooms`
-- [ ] `POST /classrooms/:id/assign-teacher`
-- [ ] `POST /classrooms/:id/assign-student`
+- [x] `POST /classrooms`
+- [x] `GET /classrooms`
+- [x] `POST /classrooms/:id/assign-teacher`
+- [x] `POST /classrooms/:id/assign-student`
 - [ ] Validate assignments
 
 ### Teacher Management
