@@ -1,0 +1,32 @@
+{{define "content"}}
+<section class="hero-card">
+  <h1>Welcome, Math Explorer!</h1>
+  <p>
+    Practice facts, earn stars, and have fun while you learn.
+  </p>
+
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="/practice">Start Practice</a>
+    <a class="btn btn-secondary" href="/games">Play a Game</a>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h2>Quick Practice</h2>
+    <p>Short rounds that build speed and confidence.</p>
+  </article>
+
+  <article class="card">
+    <h2>Fun Rewards</h2>
+    <p>Collect badges and celebrate progress.</p>
+  </article>
+
+  <article class="card">
+    <h2>Friendly Design</h2>
+    <p>Big buttons, soft colors, and easy navigation.</p>
+  </article>
+</section>
+{{end}}
+
+{{template "base" .}}

@@ -1,0 +1,25 @@
+{{define "base"}}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{if .Title}}{{.Title}}{{else}}Kid Math App{{end}}</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+  <div class="app-shell">
+    {{template "topbar" .}}
+    {{template "navbar" .}}
+
+    <main class="page-wrap">
+      <div class="page-frame">
+        {{block "content" .}}{{end}}
+      </div>
+    </main>
+
+    {{template "footer" .}}
+  </div>
+</body>
+</html>
+{{end}}
