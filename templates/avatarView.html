@@ -1,0 +1,40 @@
+{{define "content"}}
+
+<div class="avatar-page">
+    <div class="hero-card">
+        <h1>Choose Your Avatar</h1>
+        <p>Pick a character to represent you in Attendance Quest.</p>
+    </div>
+
+    <div class="avatar-current-card">
+        <div class="avatar-current-image">
+            <img src="{{.AvatarImage}}" alt="Current Avatar">
+        </div>
+
+        <div class="avatar-current-info">
+            <h2>Your Current Avatar</h2>
+            <p>Looks good! You can change it later when you unlock more choices.</p>
+        </div>
+    </div>
+
+    <div class="avatar-grid">
+        <div class="avatar-option">
+            <img src="/static/Images/gerald.png" alt="Avatar option 1">
+            <button type="button" class="avatar-select-btn">Select</button>
+        </div>
+
+        <div class="avatar-option">
+            <img src="/static/Images/gerald.png" alt="Avatar option 2">
+            <button type="button" class="avatar-select-btn">Select</button>
+        </div>
+
+        <div class="avatar-option">
+            <img src="/static/Images/gerald.png" alt="Avatar option 3">
+            <button type="button" class="avatar-select-btn">Select</button>
+        </div>
+    </div>
+</div>
+
+{{end}}
+
+{{template "base" .}}

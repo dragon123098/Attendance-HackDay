@@ -1,10 +1,8 @@
 package main
 
 import (
-	"html/template"
 	"net/http"
-	"path/filepath"
-
+	"log"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -114,9 +112,10 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 		Title:       "Student Dashboard",
 		Username:    user.Name,
 		AvatarImage: "/static/images/geraldIcon3.png",
+		Coins: 100,
 	}
 
-	render(w, "studentDash.html", data)
+	renderStudent(w, "studentDash.html", data)
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
@@ -133,14 +132,18 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := PageData{
+	data := PageData {
+		Title: "Shop",
 		Title:       "Shop",
 		Username:    user.Name,
 		AvatarImage:  "/static/images/geraldIcon3.png",
+		Coins: 100,
+		Items: []Shop{},
 	}
 
-	render(w, "shopView.html", data)
+	renderStudent(w, "shopView.html", data)
 }
+
 
 func avatarView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
@@ -159,10 +162,13 @@ func avatarView(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		Title:       "Avatar",
 		Username:    user.Name,
-		AvatarImage: "/static/images/geraldIcon3.png",
+		Title:       "Avatar",
+		AvatarImage: "/static/Images/gerald.png",
+		Coins:       42,
 	}
 
-	render(w, "avatarView.html", data)
+
+	renderStudent(w, "avatarView.html", data)
 }
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +190,7 @@ func teacherView(w http.ResponseWriter, r *http.Request) {
 		Username: user.Name,
 	}
 
-	render(w, "teacherDash.html", data)
+	renderTeacher(w, "teacherDash.html", data)
 }
 
 func teacherEditView(w http.ResponseWriter, r *http.Request) {
@@ -233,7 +239,7 @@ func adminView(w http.ResponseWriter, r *http.Request) {
 		Username: user.Name,
 	}
 
-	render(w, "adminDash.html", data)
+	renderAdmin(w, "adminDash.html", data)
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {

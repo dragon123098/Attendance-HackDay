@@ -107,12 +107,12 @@ These must be agreed on before either person starts their track. Commit the resu
 
 ### Stub Pages — All Roles
 - [x] `/login` — login form page (full page)
-- [ ] Logout — popup/modal component
+- [x] Logout — popup/modal component
 
 ### Stub Pages — Student
-- [ ] `/student/coins` — receive coins popup
-- [ ] `/student/shop` — shop full page
-- [ ] `/student/avatar` — avatar customization full page
+- [x] `/student/coins` — receive coins popup
+- [x] `/student/shop` — shop full page
+- [x] `/student/avatar` — avatar customization full page
 
 ### Stub Pages — Teacher
 - [ ] `/teacher/attendance` — attendance full page
