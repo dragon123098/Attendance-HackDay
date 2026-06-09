@@ -105,11 +105,11 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Double day multiplier support
 
 ### Student Dashboard
-- [ ] Display current coin balance
-- [ ] Display weekly schedule / week view
-- [ ] Display attendance status
-- [ ] Display avatar
-- [ ] Show upcoming double days
+- [x] Display current coin balance
+- [x] Display weekly schedule / week view
+- [x] Display attendance status
+- [x] Display avatar
+- [x] Show upcoming double days
 
 ### Shop
 - [ ] Seed shop items
@@ -130,9 +130,9 @@ These must be agreed on before either person starts their track. Commit the resu
 - [ ] Show avatar on dashboard/navbar
 
 ### Student Navbar Integration
-- [ ] Display avatar
-- [ ] Display username
-- [ ] Display coin balance
+- [x] Display avatar
+- [x] Display username
+- [x] Display coin balance
 - [ ] Use real user data
 
 **Track A Deliverable:** Student can log in, mark attendance, earn coins, view schedule, buy items, customize avatar, and see all data reflected throughout the UI.

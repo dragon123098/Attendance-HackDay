@@ -2,24 +2,41 @@
 <div class="dashboard-container">
 
     <div class="hero-card">
-        <h1>Welcome Back!</h1>
+        <h1>Welcome Back, {{.Username}}!</h1>
         <p>Ready to earn today's attendance coins?</p>
     </div>
 
-    <div class="coin-card">
-        <div class="coin-icon">🪙</div>
-        <div>
-            <div class="coin-label">Current Coins</div>
-            <div class="coin-count">{{.Coins}}</div>
-        </div>
+    <div class="schedule-banner">
+        <h3>📅 Weekly Schedule</h3>
+
+        {{if .WeeklySchedule}}
+            {{range .WeeklySchedule}}
+            <div class="schedule-row">
+                <strong>{{.DayOfWeek}}</strong>
+                <span>{{.StartTime}} - {{.EndTime}}</span>
+
+                {{if .DoubleDay}}
+                <span class="double-day-badge">Double Day</span>
+                {{end}}
+            </div>
+            {{end}}
+        {{else}}
+            <p>No schedule has been added yet.</p>
+        {{end}}
     </div>
 
     <div class="attendance-section">
+        {{if .CanMarkAttendance}}
         <form method="POST" action="/attendance">
             <button type="submit" class="attendance-btn">
                 Mark Attendance
             </button>
         </form>
+        {{else}}
+        <button type="button" class="attendance-btn attendance-btn-disabled" disabled>
+            Attendance Already Marked
+        </button>
+        {{end}}
     </div>
 
 </div>

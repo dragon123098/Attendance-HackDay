@@ -1,8 +1,7 @@
 {{define "navbar"}}
 <nav class="navbar" aria-label="Main navigation">
-  <a href="/studentDashboard" class="nav-link active">Home</a>
-  <a href="/shop" class="nav-link">Shop</a>
-  <a href="/avatar" class="nav-link">Avatar</a>
-
+  <a href="/studentDashboard" class="nav-link {{if eq .ActiveNav "home"}}active{{end}}">Home</a>
+  <a href="/shop" class="nav-link {{if eq .ActiveNav "shop"}}active{{end}}">Shop</a>
+  <a href="/avatar" class="nav-link {{if eq .ActiveNav "avatar"}}active{{end}}">Avatar</a>
 </nav>
 {{end}}

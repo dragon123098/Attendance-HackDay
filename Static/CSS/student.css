@@ -1,0 +1,26 @@
+.schedule-banner {
+    background: white;
+    border-radius: 20px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.schedule-banner h3 {
+    margin-bottom: 12px;
+}
+
+.schedule-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.double-day-badge {
+    background: #ffd54f;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
