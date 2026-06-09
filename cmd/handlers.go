@@ -63,7 +63,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		setSessionUser(w, user.UserID)
+		if err := createSession(w, user.UserID); err != nil {
+			http.Error(w, "failed to create session", http.StatusInternalServerError)
+			return
+		}
 
 		switch user.Role {
 		case "student":
@@ -89,7 +92,7 @@ func logoutView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clearSessionUser(w)
+	clearSessionUser(w, r)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
@@ -102,7 +105,7 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := app.Users[username]
 	if !ok {
-		clearSessionUser(w)
+		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -125,7 +128,7 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := app.Users[username]
 	if !ok {
-		clearSessionUser(w)
+		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -148,7 +151,7 @@ func avatarView(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := app.Users[username]
 	if !ok {
-		clearSessionUser(w)
+		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -171,7 +174,7 @@ func teacherView(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := app.Users[username]
 	if !ok {
-		clearSessionUser(w)
+		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -198,7 +201,7 @@ func teacherEditView(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := app.Users[username]
 	if !ok {
-		clearSessionUser(w)
+		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -220,7 +223,7 @@ func adminView(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := app.Users[username]
 	if !ok {
-		clearSessionUser(w)
+		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -247,7 +250,7 @@ func adminEditView(w http.ResponseWriter, r *http.Request) {
 
 	user, ok := app.Users[username]
 	if !ok {
-		clearSessionUser(w)
+		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}

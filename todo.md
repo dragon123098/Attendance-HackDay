@@ -42,9 +42,9 @@ These must be agreed on before either person starts their track. Commit the resu
 
 ### Session Management
 - [x] Cookie-based session helpers
-- [ ] In-memory session store
-- [ ] Secure session IDs
-- [ ] Session expiration
+- [x] In-memory session store
+- [x] Secure session IDs
+- [x] Session expiration
 
 ### Auth Middleware
 - [x] `requireLogin` middleware — redirects to `/login` if no valid session
