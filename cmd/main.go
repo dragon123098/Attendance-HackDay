@@ -1,11 +1,8 @@
 package main
 
 import (
-	// native Go packages
 	"log"
 	"net/http"
-	// internal packages
-	// 3rd party packages
 )
 
 var app AppState
@@ -21,7 +18,7 @@ func main() {
     Transactions:  []CoinTransaction{},
     Attendance:    []AttendanceRecord{},
     Schedule:      []Schedule{},
-}
+	}
 
 	mux := http.NewServeMux()
 

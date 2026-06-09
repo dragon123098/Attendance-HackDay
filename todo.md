@@ -49,7 +49,6 @@ These must be agreed on before either person starts their track. Commit the resu
 ### Auth Middleware
 - [x] `requireLogin` middleware — redirects to `/login` if no valid session
 - [x] `requireRole(role string)` middleware — returns 403 if role doesn't match
-- [ ] Export both so Person 2 can wire them in
 
 **Track A Deliverable:** Running server where you can log in, get a session cookie, and log out. Middleware functions exported and ready.
 
