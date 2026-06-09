@@ -1,0 +1,45 @@
+{{define "content"}}
+
+<div class="shop-page">
+    <div class="hero-card">
+        <h1>Shop</h1>
+        <p>Spend your coins on fun rewards and upgrades.</p>
+    </div>
+
+    <div class="shop-coin-card">
+        <div class="coin-icon">🪙</div>
+        <div>
+            <div class="coin-label">Your Coins</div>
+            <div class="coin-count">{{.Coins}}</div>
+        </div>
+    </div>
+
+    <div class="shop-section">
+        <div class="section-header">
+            <h2>Items</h2>
+            <p>More rewards coming soon!</p>
+        </div>
+
+        <div class="shop-grid">
+            {{range .Items}}
+            <div class="shop-item-card">
+                <div class="shop-item-image">
+                    <img src="{{.Image}}" alt="{{.Name}}">
+                </div>
+                <div class="shop-item-name">{{.Name}}</div>
+                <div class="shop-item-cost">{{.Cost}} coins</div>
+                <button class="shop-buy-btn" type="button">Buy</button>
+            </div>
+            {{else}}
+            <div class="shop-empty-state">
+                <h3>No items yet</h3>
+                <p>Add shop items here when you are ready.</p>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+{{end}}
+
+{{template "base" .}}

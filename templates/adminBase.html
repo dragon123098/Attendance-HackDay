@@ -1,0 +1,32 @@
+{{define "base"}}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>
+    {{if .Title}}
+      {{.Title}}
+    {{else}}
+      Attendance Quest Admin
+    {{end}}
+  </title>
+
+  <link rel="stylesheet" href="/static/CSS/main.css">
+</head>
+
+<body class="admin-shell">
+
+{{template "teacher-header" .}}
+{{template "admin-navbar" .}}
+
+
+  <main class="admin-main">
+    <div class="admin-page-frame">
+      {{block "content" .}}{{end}}
+    </div>
+  </main>
+
+</body>
+</html>
+{{end}}

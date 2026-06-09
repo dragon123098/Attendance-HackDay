@@ -26,7 +26,8 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 	//all roles
 	mux.HandleFunc("GET /login", loginView)              			// Returns full page, login view (initial page)    			
-	mux.HandleFunc("POST /logout", logoutView)       				// Returns HTML fragment (HTMX), logout view
+	mux.HandleFunc("GET /logout", logoutView)       				// Returns HTML fragment (HTMX), logout view
+	mux.HandleFunc("POST /login", loginPostView)       			// Returns HTML fragment (HTMX), login view
 
 	//student role
 	mux.Handle("GET /studentDashboard", requireRole("student", http.HandlerFunc(studentView)))			// Returns full page, student dashboard view
@@ -35,10 +36,10 @@ func main() {
 	
 	//teacher role
 	mux.Handle("GET /teacherDashboard", requireRole("teacher", http.HandlerFunc(teacherView)))			// Returns full page, teacher dashboard view
-	mux.HandleFunc("POST /teacherDashboard/edit", teacherEditView) 	// Returns HTML fragment (HTMX), edit view
+	mux.HandleFunc("GET /teacherDashboard/edit", teacherEditView) 	// Returns HTML fragment (HTMX), edit view
 	//admin role
 	mux.Handle("GET /adminDashboard", requireRole("admin", http.HandlerFunc(adminView)))				// Returns full page, admin dashboard view
-	mux.HandleFunc("POST /adminDashboard/edit", adminEditView)   	// Returns HTML fragment (HTMX), edit view
+	mux.HandleFunc("GET /adminDashboard/edit", adminEditView)   	// Returns HTML fragment (HTMX), edit view
 
 	log.Print("starting server on http://localhost:4000")
 

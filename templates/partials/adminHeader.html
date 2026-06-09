@@ -1,0 +1,18 @@
+{{define "teacher-header"}}
+<section class="teacher-header">
+  <div class="teacher-header-left">
+    <h1 class="teacher-header-title">{{if .HeaderTitle}}{{.HeaderTitle}}{{else}}Admin Tools{{end}}</h1>
+    <p class="teacher-header-subtitle">
+      {{if .HeaderSubtitle}}{{.HeaderSubtitle}}{{else}}Manage attendance and classroom settings from here.{{end}}
+    </p>
+  </div>
+
+  <div class="teacher-header-right">
+    {{if .HeaderBadge}}
+      <div class="teacher-header-badge">{{.HeaderBadge}}</div>
+    {{else}}
+      <div class="teacher-header-badge">Teacher View</div>
+    {{end}}
+  </div>
+</section>
+{{end}}

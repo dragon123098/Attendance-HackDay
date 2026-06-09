@@ -3,7 +3,7 @@
   <div class="brand">
 
     <div class="brand-mark">
-      <img src="{{.AvatarImage}}" alt="Logo">
+      <img src="{{.AvatarImage}}" alt="Avatar">
     </div>
 
     <div>
@@ -13,9 +13,11 @@
 
   </div>
 
-  <div class="topbar-badge">
-    <span class="badge-dot"></span>
-    Ready to practice!
-  </div>
+  <form method="POST" action="/logout">
+    <button type="submit" class="logout-btn">
+      Logout
+    </button>
+  </form>
+
 </header>
 {{end}}

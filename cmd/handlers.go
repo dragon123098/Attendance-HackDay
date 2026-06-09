@@ -1,10 +1,8 @@
 package main
 
 import (
-	"html/template"
 	"net/http"
-	"path/filepath"
-
+	"log"
 )
 
 //idk if this is the right place to this, but I'm putting it here
@@ -15,17 +13,18 @@ type PageData struct {
 	Title       string
 	Username    string
 	AvatarImage string
+	Coins int
+	Items []Shop
+}
+
+//This is just for testing, we can keep it and populate it form the database, or just put the DB directly to the page
+type Shop struct {
+	Name string
+	Cost int
+	Image string
 }
 
 
-
-// func shopView(w http.ResponseWriter, r *http.Request) {
-// 	data := PageData{
-// 		AvatarImage: "/static/images/geraldIcon3.png",
-// 	}
-
-// 	render(w, "studentDash.html", data)
-// }
 
 func loginView(w http.ResponseWriter, r *http.Request) {
 		data := PageData{
@@ -34,7 +33,15 @@ func loginView(w http.ResponseWriter, r *http.Request) {
 	renderUnAuth(w, "login.html", data)
 }
 
+func loginPostView(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 
+	log.Printf("Username: %s", username)
+	log.Printf("Password: %s", password)
+
+	http.Redirect(w, r, "/shop", http.StatusSeeOther)
+}
 
 func logoutView(w http.ResponseWriter, r *http.Request) {
 	renderUnAuth(w, "logout.html", nil)
@@ -43,88 +50,49 @@ func logoutView(w http.ResponseWriter, r *http.Request) {
 func studentView(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		AvatarImage: "/static/images/geraldIcon3.png",
+		Coins: 100,
 	}
-	render(w, "studentDash.html", data)
+	renderStudent(w, "studentDash.html", data)
 
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
-	data := PageData{
+	data := PageData {
+		Title: "Shop",
 		AvatarImage: "/static/images/geraldIcon3.png",
+		Coins: 100,
+		Items: []Shop{},
 	}
-	render(w, "shopView.html", data)
+	renderStudent(w, "shopView.html", data)
 }
+
 
 func avatarView(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
-		AvatarImage: "/static/images/geraldIcon3.png",
+		Title:       "Avatar",
+		AvatarImage: "/static/Images/gerald.png",
+		Coins:       42,
 	}
-	render(w, "avatarView.html", data)
+
+	renderStudent(w, "avatarView.html", data)
 }
 
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
-	render(w, "teacherDash.html", nil)
+	renderTeacher(w, "teacherDash.html", nil)
 }
 
 func teacherEditView(w http.ResponseWriter, r *http.Request) {
-	render(w, "teacherEdit.html", nil)
+	renderTeacher(w, "teacherEdit.html", nil)
 }
 
 func adminView(w http.ResponseWriter, r *http.Request) {
-	render(w, "adminDash.html", nil)
+	renderAdmin(w, "adminDash.html", nil)
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {
-	render(w, "adminEdit.html", nil)
+	renderAdmin(w, "adminEdit.html", nil)
 }
 
 
-//idk if this is the right place for this, but it makes sense to me
-// render is a helper function to render templates with a base layout
-func render(w http.ResponseWriter, page string, data any) {
-	tmpl, err := loadTemplates(page)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 
-	err = tmpl.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-
-//This will load the templates needed. Just pass in what page you want and it will render it will all the correct stuff
-func loadTemplates(page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "AuthBase.html"),
-		filepath.Join("templates", "partials", "topbar.html"),
-		filepath.Join("templates", "partials", "navbar.html"),
-		filepath.Join("templates", "partials", "footer.html"),
-		filepath.Join("templates", page),
-	)
-}
-
-
-//These two functions load pages for unauthenticated users.
-func loadUnAuthTemplates(page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "UnAuthBase.html"),
-		filepath.Join("templates", page),
-	)
-}
-
-func renderUnAuth(w http.ResponseWriter, page string, data any) {
-	tmpl, err := loadUnAuthTemplates(page)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = tmpl.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}

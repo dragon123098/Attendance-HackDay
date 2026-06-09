@@ -1,0 +1,30 @@
+{{define "content"}}
+
+<div class="dashboard-container">
+
+    <div class="hero-card">
+        <h1>Welcome Back!</h1>
+        <p>Ready to earn today's attendance coins?</p>
+    </div>
+
+    <div class="coin-card">
+        <div class="coin-icon">🪙</div>
+        <div>
+            <div class="coin-label">Current Coins</div>
+            <div class="coin-count">{{.Coins}}</div>
+        </div>
+    </div>
+
+    <div class="attendance-section">
+        <form method="POST" action="/studentDashboard/coin">
+            <button type="submit" class="attendance-btn">
+                Mark Attendance
+            </button>
+        </form>
+    </div>
+
+</div>
+
+{{end}}
+
+{{template "base" .}}
