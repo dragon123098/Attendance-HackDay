@@ -7,19 +7,17 @@
 
     <div>
       <div class="brand-title">Attendance Quest</div>
-      <div class="brand-subtitle">Earn coins for great attendance and collect cool avatars!</div>
+      <div class="brand-subtitle">Show up. Earn coins. Unlock avatars.</div>
     </div>
   </div>
 
   <div class="user-meta">
-    <div class="user-name">{{if .Username}}{{.Username}}{{else}}Student{{end}}</div>
+    <div class="user-name">{{.Username}}</div>
     <div class="coin-badge">🪙 {{.Coins}}</div>
   </div>
 
   <form method="POST" action="/logout">
-    <button type="submit" class="logout-btn">
-      Logout
-    </button>
+    <button type="submit" class="logout-btn">Logout</button>
   </form>
 </header>
 {{end}}

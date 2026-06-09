@@ -1,43 +1,59 @@
 {
-  "users": {
-    "student1": {
-      "name": "Test Student",
-      "role": "student",
-      "email": "student@example.com",
-      "password_hash": "$2a$10$j7TaLACJVyfoNgoiimtyy.b/PR.75ri.RZeEVoU.EBdyFHwjDwWxS",
-      "classroom_id": "classroom1",
-      "user_id": "student1"
+    "users": {
+        "admin1": {
+            "name": "Test Admin",
+            "role": "admin",
+            "email": "admin@example.com",
+            "password_hash": "$2a$10$j7TaLACJVyfoNgoiimtyy.b/PR.75ri.RZeEVoU.EBdyFHwjDwWxS",
+            "classroom_id": "",
+            "user_id": "admin1"
+        },
+        "student1": {
+            "name": "Test Student",
+            "role": "student",
+            "email": "student@example.com",
+            "password_hash": "$2a$10$j7TaLACJVyfoNgoiimtyy.b/PR.75ri.RZeEVoU.EBdyFHwjDwWxS",
+            "classroom_id": "classroom1",
+            "user_id": "student1"
+        },
+        "teacher1": {
+            "name": "Test Teacher",
+            "role": "teacher",
+            "email": "teacher@example.com",
+            "password_hash": "$2a$10$j7TaLACJVyfoNgoiimtyy.b/PR.75ri.RZeEVoU.EBdyFHwjDwWxS",
+            "classroom_id": "",
+            "user_id": "teacher1"
+        }
     },
-    "teacher1": {
-      "name": "Test Teacher",
-      "role": "teacher",
-      "email": "teacher@example.com",
-      "password_hash": "$2a$10$j7TaLACJVyfoNgoiimtyy.b/PR.75ri.RZeEVoU.EBdyFHwjDwWxS",
-      "classroom_id": "",
-      "user_id": "teacher1"
+    "classrooms": {
+        "classroom1": {
+            "name": "Period 1",
+            "id": "classroom1",
+            "teacher_id": "teacher1",
+            "student_ids": [
+                "student1"
+            ]
+        }
     },
-    "admin1": {
-      "name": "Test Admin",
-      "role": "admin",
-      "email": "admin@example.com",
-      "password_hash": "$2a$10$j7TaLACJVyfoNgoiimtyy.b/PR.75ri.RZeEVoU.EBdyFHwjDwWxS",
-      "classroom_id": "",
-      "user_id": "admin1"
-    }
-  },
-  "classrooms": {
-    "classroom1": {
-      "name": "Period 1",
-      "id": "classroom1",
-      "teacher_id": "teacher1",
-      "student_ids": [
-        "student1"
-      ]
-    }
-  },
-  "shop_items": {},
-  "avatar_configs": {},
-  "transactions": [],
-  "attendance": [],
-  "schedule": []
+    "shop_items": {},
+    "avatar_configs": {},
+    "transactions": [
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-06-09T15:33:47-06:00",
+            "description": "Attendance reward"
+        }
+    ],
+    "attendance": [
+        {
+            "user_id": "student1",
+            "classroom_id": "classroom1",
+            "present": [
+                "2026-06-09"
+            ],
+            "absent": null
+        }
+    ],
+    "schedule": []
 }

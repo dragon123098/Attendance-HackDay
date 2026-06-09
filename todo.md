@@ -97,12 +97,12 @@ These must be agreed on before either person starts their track. Commit the resu
 ## Track A — Student Experience
 
 ### Coins / Attendance
-- [ ] Wire "Mark Attendance" button to backend
-- [ ] `POST /attendance`
-- [ ] Award coins when attendance is submitted
-- [ ] Persist coin awards as `CoinTransaction` entries
-- [ ] Compute coin balance from transaction history
-- [ ] Double day multiplier support
+- [x] Wire "Mark Attendance" button to backend
+- [x] `POST /attendance`
+- [x] Award coins when attendance is submitted
+- [x] Persist coin awards as `CoinTransaction` entries
+- [x] Compute coin balance from transaction history
+- [x] Double day multiplier support
 
 ### Student Dashboard
 - [ ] Display current coin balance

@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-const attendanceRewardCoins = 10
+const startingStudentCoins = 10
+const attendanceRewardCoins = 1
 
 func studentView(w http.ResponseWriter, r *http.Request) {
 	user, ok := currentSessionUser(w, r)
@@ -71,25 +72,19 @@ func attendanceView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Role != "student" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
-	if user.ClassroomID == "" {
-		http.Error(w, "student is not assigned to a classroom", http.StatusBadRequest)
-		return
-	}
-
 	today := time.Now().Format("2006-01-02")
+	reward := attendanceRewardCoins
+	if isDoubleDay(user.ClassroomID, time.Now()) {
+		reward *= 2
+	}
 
-	recorded, err := markAttendanceAndAwardCoins(user, today)
+	awarded, err := markAttendanceAndAwardCoins(user, today, reward)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if recorded {
+	if awarded {
 		saveData()
 	}
 
@@ -114,7 +109,7 @@ func currentSessionUser(w http.ResponseWriter, r *http.Request) (*User, bool) {
 }
 
 func getCoinBalance(userID string) int {
-	total := 0
+	total := startingStudentCoins
 	for _, tx := range app.Transactions {
 		if tx.UserID == userID {
 			total += tx.Amount
@@ -123,7 +118,7 @@ func getCoinBalance(userID string) int {
 	return total
 }
 
-func markAttendanceAndAwardCoins(user *User, date string) (bool, error) {
+func markAttendanceAndAwardCoins(user *User, date string, reward int) (bool, error) {
 	for i := range app.Attendance {
 		rec := &app.Attendance[i]
 		if rec.UserID == user.UserID && rec.ClassroomID == user.ClassroomID {
@@ -136,7 +131,7 @@ func markAttendanceAndAwardCoins(user *User, date string) (bool, error) {
 			rec.Present = append(rec.Present, date)
 			app.Transactions = append(app.Transactions, CoinTransaction{
 				UserID:      user.UserID,
-				Amount:      attendanceRewardCoins,
+				Amount:      reward,
 				Timestamp:   time.Now().Format(time.RFC3339),
 				Description: fmt.Sprintf("Attendance reward for %s", date),
 			})
@@ -153,10 +148,22 @@ func markAttendanceAndAwardCoins(user *User, date string) (bool, error) {
 
 	app.Transactions = append(app.Transactions, CoinTransaction{
 		UserID:      user.UserID,
-		Amount:      attendanceRewardCoins,
+		Amount:      reward,
 		Timestamp:   time.Now().Format(time.RFC3339),
 		Description: fmt.Sprintf("Attendance reward for %s", date),
 	})
 
 	return true, nil
+}
+
+func isDoubleDay(classroomID string, now time.Time) bool {
+	weekday := now.Weekday().String()
+
+	for _, sched := range app.Schedule {
+		if sched.ClassroomID == classroomID && sched.DoubleDay && sched.DayOfWeek == weekday {
+			return true
+		}
+	}
+
+	return false
 }
