@@ -12,6 +12,7 @@ var app AppState
 
 
 func main() {
+	loadData()
 	app = AppState{
     Users:         make(map[string]*User),
     Classrooms:    make(map[string]*Classroom),
