@@ -19,18 +19,21 @@ These must be agreed on before either person starts their track. Commit the resu
 ## Track A — Foundation (Person 1)
 
 ### Project Scaffold
-- [ ] `go mod init`
-- [ ] Set up folder structure: `main.go`, `store/`, `handlers/`, `templates/`, `static/`
-- [ ] `main.go` with a basic HTTP server and static file serving
+- [x] `go mod init`
+- [x] Set up folder structure: `main.go`, `store/`, `handlers/`, `templates/`, `static/`
+- [x] `main.go` with a basic HTTP server and static file serving
 
-### Store Package (`store/`)
-- [ ] Generic read/write helpers for JSON files
-- [ ] No business logic here — just `ReadJSON(filename, &target)` and `WriteJSON(filename, data)`
+### Persistence
+- [x] Load application state from `data/data.json`
+- [x] Save application state to `data/data.json`
+- [x] Initialize nil maps after loading
+- [ ] Ensure `saveData()` is called after state changes
+- [x] Create `data/` directory automatically if missing
 
 ### User Storage
-- [ ] `users.json` schema and seed file (at least one user per role for testing)
-- [ ] Load/save users via the store package
-- [ ] Password hashing (use `bcrypt`)
+- [ ] Seed test users (student, teacher, admin)
+- [ ] Password hashing (`bcrypt`)
+- [ ] Password verification during login
 
 ### Auth Routes
 - [ ] `POST /login` — validate credentials, create session
@@ -38,14 +41,14 @@ These must be agreed on before either person starts their track. Commit the resu
 - [ ] `POST /register` — if needed for admin setup
 
 ### Session Management
-- [ ] Cookie-based sessions
-- [ ] In-memory session store (can persist to file later if needed)
+- [x] Cookie-based session helpers
+- [ ] In-memory session store
+- [ ] Secure session IDs
+- [ ] Session expiration
 
 ### Auth Middleware
-- [ ] `requireLogin` middleware — redirects to `/login` if no valid session
-- [ ] `requireRole(role string)` middleware — returns 403 if role doesn't match
-- [ ] Export both so Person 2 can wire them in
-- [ ] Add shop structs
+- [x] `requireLogin` middleware — redirects to `/login` if no valid session
+- [x] `requireRole(role string)` middleware — returns 403 if role doesn't match
 
 **Track A Deliverable:** Running server where you can log in, get a session cookie, and log out. Middleware functions exported and ready.
 
@@ -54,29 +57,33 @@ These must be agreed on before either person starts their track. Commit the resu
 ### Feature Work (start after deliverable is done)
 
 #### Coins
-- [ ] `POST /coins/award` — teacher awards coins to a student (write to `transactions.json`)
+- [ ] `POST /coins/award` — teacher awards coins to a student
 - [ ] `GET /coins/balance/:userID` — return a student's current coin balance
-- [ ] Double Day logic — check if today is marked as a double day before calculating award
+- [ ] Double Day logic
 
 #### Shop
-- [ ] Seed `shop.json` with some items
+- [x] Add shop structs
+- [ ] Seed shop items
 - [ ] `POST /shop/buy` — deduct coins, record purchase
 - [ ] Validate student has enough coins before allowing purchase
 
 #### Attendance
+- [x] Add attendance structs
 - [ ] `POST /attendance` — teacher submits attendance for a day
 - [ ] `GET /attendance/:classroomID` — return attendance records for a classroom
 - [ ] `GET /attendance/export/:classroomID` — CSV export for reports
 
 #### Admin / Classrooms
+- [x] Add classroom structs
 - [ ] `POST /classrooms` — create a classroom
 - [ ] `POST /classrooms/:id/assign` — assign a teacher or student to a classroom
-- [ ] `GET /classrooms` — list all classrooms (admin only)
+- [ ] `GET /classrooms` — list all classrooms
 
 #### Schedule / Double Days
-- [ ] Storage for marked double-day dates (can live in a `schedule.json`)
+- [x] Add schedule structs
 - [ ] `POST /schedule/doubleday` — teacher marks a date
 - [ ] `GET /schedule` — return upcoming marked days
+- [ ] Integrate double-day logic with coin awards
 
 ---
 
