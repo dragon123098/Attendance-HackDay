@@ -58,32 +58,42 @@ These must be agreed on before either person starts their track. Commit the resu
 
 #### Coins
 - [ ] `POST /coins/award` — teacher awards coins to a student
+- [ ] Validate teacher is assigned to the student's classroom
+- [ ] Record awards as `CoinTransaction` entries
 - [ ] `GET /coins/balance/:userID` — return a student's current coin balance
-- [ ] Double Day logic
+- [ ] Compute balance from transaction history
+- [ ] Double Day multiplier support
 
 #### Shop
 - [x] Add shop structs
 - [ ] Seed shop items
-- [ ] `POST /shop/buy` — deduct coins, record purchase
-- [ ] Validate student has enough coins before allowing purchase
+- [ ] `GET /shop` — return available shop items
+- [ ] `POST /shop/buy` — deduct coins and record purchase transaction
+- [ ] Validate student has enough coins before purchase
+- [ ] Persist purchases through transaction history
 
 #### Attendance
 - [x] Add attendance structs
-- [ ] `POST /attendance` — teacher submits attendance for a day
+- [ ] `POST /attendance` — teacher submits attendance for a classroom and date
+- [ ] Validate teacher owns the classroom
+- [ ] Prevent duplicate attendance submissions for the same day
 - [ ] `GET /attendance/:classroomID` — return attendance records for a classroom
 - [ ] `GET /attendance/export/:classroomID` — CSV export for reports
 
 #### Admin / Classrooms
 - [x] Add classroom structs
 - [ ] `POST /classrooms` — create a classroom
-- [ ] `POST /classrooms/:id/assign` — assign a teacher or student to a classroom
+- [ ] `POST /classrooms/:id/assign-teacher` — assign a teacher to a classroom
+- [ ] `POST /classrooms/:id/assign-student` — assign a student to a classroom
 - [ ] `GET /classrooms` — list all classrooms
+- [ ] Validate users exist before assignment
 
 #### Schedule / Double Days
 - [x] Add schedule structs
-- [ ] `POST /schedule/doubleday` — teacher marks a date
-- [ ] `GET /schedule` — return upcoming marked days
-- [ ] Integrate double-day logic with coin awards
+- [ ] `POST /schedule/doubleday` — mark a date as a double day
+- [ ] `GET /schedule` — return upcoming double days
+- [ ] Prevent duplicate double-day entries
+- [ ] Integrate double-day multiplier with coin awards
 
 ---
 

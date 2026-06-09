@@ -7,7 +7,6 @@ import (
 
 var app AppState
 
-
 func main() {
 	loadData()
 
@@ -15,18 +14,22 @@ func main() {
 
 	fileServer := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
+
 	// auth routes
 	mux.HandleFunc("/login", loginHandler)
 	mux.HandleFunc("POST /logout", logoutView)
+
 	// student routes
-	mux.Handle("GET /studentDashboard", requireRole("student", http.HandlerFunc(studentView)))
-	mux.Handle("GET /shop", requireRole("student", http.HandlerFunc(shopView)))
-	mux.Handle("GET /avatar", requireRole("student", http.HandlerFunc(avatarView)))
+	mux.Handle("GET /studentDashboard", RequireRole("student", http.HandlerFunc(studentView)))
+	mux.Handle("GET /shop", RequireRole("student", http.HandlerFunc(shopView)))
+	mux.Handle("GET /avatar", RequireRole("student", http.HandlerFunc(avatarView)))
+
 	// teacher routes
-	mux.Handle("GET /teacherDashboard", requireRole("teacher", http.HandlerFunc(teacherView)))
+	mux.Handle("GET /teacherDashboard", RequireRole("teacher", http.HandlerFunc(teacherView)))
 	mux.HandleFunc("POST /teacherDashboard/edit", teacherEditView)
+
 	// admin routes
-	mux.Handle("GET /adminDashboard", requireRole("admin", http.HandlerFunc(adminView)))
+	mux.Handle("GET /adminDashboard", RequireRole("admin", http.HandlerFunc(adminView)))
 	mux.HandleFunc("POST /adminDashboard/edit", adminEditView)
 
 	log.Print("starting server on http://localhost:4000")

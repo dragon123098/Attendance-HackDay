@@ -8,7 +8,7 @@ import (
 
 func loadData() {
 	if _, err := os.Stat("data/data.json"); err != nil {
-		return // file doesn't exist yet, start fresh
+		return
 	}
 
 	file, err := os.Open("data/data.json")
@@ -46,14 +46,18 @@ func loadData() {
 }
 
 func saveData() {
+	if err := os.MkdirAll("data", 0755); err != nil {
+		log.Printf("Error creating data directory: %v", err)
+		return
+	}
+
 	data, err := json.MarshalIndent(app, "", "    ")
 	if err != nil {
 		log.Printf("Error marshaling data: %v", err)
 		return
 	}
 
-	err = os.WriteFile("data/data.json", data, 0644)
-	if err != nil {
+	if err := os.WriteFile("data/data.json", data, 0644); err != nil {
 		log.Printf("Error writing data file: %v", err)
 	}
 }
