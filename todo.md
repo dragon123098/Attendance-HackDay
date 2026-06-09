@@ -54,49 +54,6 @@ These must be agreed on before either person starts their track. Commit the resu
 
 ---
 
-### Feature Work (start after deliverable is done)
-
-#### Coins
-- [ ] `POST /coins/award` — teacher awards coins to a student
-- [ ] Validate teacher is assigned to the student's classroom
-- [ ] Record awards as `CoinTransaction` entries
-- [ ] `GET /coins/balance/:userID` — return a student's current coin balance
-- [ ] Compute balance from transaction history
-- [ ] Double Day multiplier support
-
-#### Shop
-- [x] Add shop structs
-- [ ] Seed shop items
-- [ ] `GET /shop` — return available shop items
-- [ ] `POST /shop/buy` — deduct coins and record purchase transaction
-- [ ] Validate student has enough coins before purchase
-- [ ] Persist purchases through transaction history
-
-#### Attendance
-- [x] Add attendance structs
-- [ ] `POST /attendance` — teacher submits attendance for a classroom and date
-- [ ] Validate teacher owns the classroom
-- [ ] Prevent duplicate attendance submissions for the same day
-- [ ] `GET /attendance/:classroomID` — return attendance records for a classroom
-- [ ] `GET /attendance/export/:classroomID` — CSV export for reports
-
-#### Admin / Classrooms
-- [x] Add classroom structs
-- [ ] `POST /classrooms` — create a classroom
-- [ ] `POST /classrooms/:id/assign-teacher` — assign a teacher to a classroom
-- [ ] `POST /classrooms/:id/assign-student` — assign a student to a classroom
-- [ ] `GET /classrooms` — list all classrooms
-- [ ] Validate users exist before assignment
-
-#### Schedule / Double Days
-- [x] Add schedule structs
-- [ ] `POST /schedule/doubleday` — mark a date as a double day
-- [ ] `GET /schedule` — return upcoming double days
-- [ ] Prevent duplicate double-day entries
-- [ ] Integrate double-day multiplier with coin awards
-
----
-
 ## Track B — UI Shell (Person 2)
 
 ### Setup
@@ -137,31 +94,99 @@ These must be agreed on before either person starts their track. Commit the resu
 
 ---
 
-### Feature Work (start after deliverable is done)
+## Track A — Student Experience
 
-#### Student Pages
-- [ ] Shop page: fetch items from `/shop`, render item cards with buy buttons
-- [ ] Coins popup: HTMX swap to show current balance and trigger award
-- [ ] Avatar page: render avatar options, POST selection on change
+### Coins / Attendance
+- [ ] Wire "Mark Attendance" button to backend
+- [ ] `POST /attendance`
+- [ ] Award coins when attendance is submitted
+- [ ] Persist coin awards as `CoinTransaction` entries
+- [ ] Compute coin balance from transaction history
+- [ ] Double day multiplier support
 
-#### Teacher Pages
-- [ ] Attendance page: student list with checkboxes, POST on submit, HTMX swap for confirmation
-- [ ] Reports page: table of student data, "Export CSV" button that hits the export route
-- [ ] Schedule page: calendar or date list, button to mark a double day
+### Student Dashboard
+- [ ] Display current coin balance
+- [ ] Display weekly schedule / week view
+- [ ] Display attendance status
+- [ ] Display avatar
+- [ ] Show upcoming double days
 
-#### Admin Pages
-- [ ] Classrooms page: list of classrooms, form to create one, assign teacher/students UI
-- [ ] All reports page: aggregate view across all classrooms
+### Shop
+- [ ] Seed shop items
+- [ ] `GET /shop`
+- [ ] Render shop items
+- [ ] `POST /shop/buy`
+- [ ] Validate sufficient coins
+- [ ] Persist purchases
+- [ ] Show owned items
+- [ ] Update balance after purchases
+
+### Avatar System
+- [ ] Persist avatar selections
+- [ ] Display available avatar options
+- [ ] Display owned/unlocked cosmetics
+- [ ] Preview avatar changes
+- [ ] Save avatar changes
+- [ ] Show avatar on dashboard/navbar
+
+### Student Navbar Integration
+- [ ] Display avatar
+- [ ] Display username
+- [ ] Display coin balance
+- [ ] Use real user data
+
+**Track A Deliverable:** Student can log in, mark attendance, earn coins, view schedule, buy items, customize avatar, and see all data reflected throughout the UI.
 
 ---
 
-## Where the Tracks Merge
+## Track B — Teacher / Admin Management
 
-Once Track A has working middleware and Track B has all stub pages:
+### Classroom Management
+- [ ] `POST /classrooms`
+- [ ] `GET /classrooms`
+- [ ] `POST /classrooms/:id/assign-teacher`
+- [ ] `POST /classrooms/:id/assign-student`
+- [ ] Validate assignments
 
-- [ ] Person 2 removes `fakeUser` and replaces with real session lookup from context
-- [ ] Person 2 wraps every route with `requireLogin` and `requireRole` as appropriate
-- [ ] Smoke test: log in as each role and confirm the right pages are accessible
+### Teacher Management
+- [ ] Admin creates teachers
+- [ ] Teachers create students in assigned classroom
+- [ ] Admin inherits teacher permissions
+
+### Schedule / Double Days
+- [ ] `POST /schedule/doubleday`
+- [ ] `GET /schedule`
+- [ ] Persist schedule changes
+- [ ] Prevent duplicate entries
+- [ ] Teacher schedule management UI
+
+### Reports
+- [ ] Teacher dashboard class reports
+- [ ] Attendance reporting endpoints
+- [ ] CSV export endpoint
+- [ ] Admin reports across all classrooms
+- [ ] Admin reports grouped by teacher
+
+### Teacher Dashboard
+- [ ] Attendance management UI
+- [ ] Student roster UI
+- [ ] Create student UI
+- [ ] Class reports UI
+- [ ] Schedule management UI
+
+### Admin Dashboard
+- [ ] Create classroom UI
+- [ ] Create teacher UI
+- [ ] Assign teacher UI
+- [ ] Assign student UI
+- [ ] School-wide reports UI
+
+### Shared Navigation
+- [ ] Role-aware navbar behavior
+- [ ] Teacher navigation
+- [ ] Admin navigation
+
+**Track B Deliverable:** Teachers and admins can manage classes, students, schedules, attendance, and reports entirely from their dashboards.
 
 ---
 
