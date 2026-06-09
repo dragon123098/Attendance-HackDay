@@ -1,5 +1,13 @@
 {
     "users": {
+        "JRGRUNIG": {
+            "name": "Jed Grunig",
+            "role": "teacher",
+            "email": "jed@example.com",
+            "password_hash": "$2a$10$6UrOXFFL21c4JL69WKqC1ukxFGi0xCOcUY9PoZDbeCMJZY9PaYwre",
+            "classroom_id": "",
+            "user_id": "JRGRUNIG"
+        },
         "admin1": {
             "name": "Test Admin",
             "role": "admin",

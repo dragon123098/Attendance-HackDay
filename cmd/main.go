@@ -40,7 +40,8 @@ func main() {
 	mux.HandleFunc("GET /classrooms", listClassroomsView)
 	mux.HandleFunc("GET /classrooms/edit", editClassrooms)
 	mux.HandleFunc("POST /classrooms/edit", saveClassrooms)
-
+	mux.HandleFunc("GET /addTeacher", createTeacher)
+	mux.HandleFunc("POST /addTeacher", teacherCreateSubmitView)
 
 	log.Print("starting server on http://localhost:4000")
 	log.Fatal(http.ListenAndServe(":4000", mux))
