@@ -12,6 +12,9 @@ type PageData struct {
 	AvatarImage string
 	Error       string
 	Coins	    int
+	HeaderTitle   string
+	HeaderSubtitle string
+	HeaderBadge   string
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
