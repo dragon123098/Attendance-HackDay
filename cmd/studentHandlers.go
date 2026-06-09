@@ -13,29 +13,6 @@ const startingStudentCoins = 10
 const attendanceRewardCoins = 1
 const defaultAvatarImage = "/static/images/geraldIcon3.png"
 
-type ScheduleItemView struct {
-	DayOfWeek string
-	StartTime string
-	EndTime   string
-	DoubleDay bool
-	IsToday   bool
-}
-
-type DoubleDayView struct {
-	DayOfWeek string
-	StartTime string
-	EndTime   string
-}
-
-type ShopItemView struct {
-	ID          string
-	Name        string
-	Description string
-	Price       int
-	Owned       bool
-	Image       string `json:"image"`
-}
-
 func studentView(w http.ResponseWriter, r *http.Request) {
 	user, ok := currentSessionUser(w, r)
 	if !ok {

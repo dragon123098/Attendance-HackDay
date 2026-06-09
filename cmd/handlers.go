@@ -6,26 +6,6 @@ import (
 )
 
 // PageData holds transient page-only values.
-type PageData struct {
-	Title             string
-	Username          string
-	AvatarImage       string
-	Error             string
-	Coins             int
-	HeaderTitle       string
-	HeaderSubtitle    string
-	HeaderBadge       string
-	AttendanceStatus  string
-	AttendanceMessage string
-	CanMarkAttendance bool
-	WeeklySchedule    []ScheduleItemView
-	UpcomingDoubleDays []DoubleDayView
-	ActiveNav         string
-	UseStudentCSS bool
-	ShopItems       []ShopItemView
-	OwnedShopItems  []ShopItemView
-	ShopMessage     string
-}
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
