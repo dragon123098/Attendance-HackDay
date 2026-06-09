@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+
 )
 
 //idk if this is the right place to this, but I'm putting it here
@@ -16,15 +17,28 @@ type PageData struct {
 	AvatarImage string
 }
 
-func loginView(w http.ResponseWriter, r *http.Request) {
-	data := PageData{
-		Title: "Login",
-	}
+//Example way to use this
+// func loginView(w http.ResponseWriter, r *http.Request) {
+// 	data := PageData{
+// 		Title: "Login",
+// 	}
+// 	renderUnAuth(w, "login.html", data)
+// }
 
-	renderUnAuth(w, "login.html", data)
+// func shopView(w http.ResponseWriter, r *http.Request) {
+// 	data := PageData{
+// 		AvatarImage: "/static/images/geraldIcon3.png",
+// 	}
+
+// 	render(w, "studentDash.html", data)
+// }
+
+func loginView(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func loginSubmitView(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func logoutView(w http.ResponseWriter, r *http.Request) {
@@ -34,11 +48,7 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
-	data := PageData{
-		AvatarImage: "/static/images/geraldIcon2.png",
-	}
 
-	render(w, "home.html", data)
 }
 
 func avatarView(w http.ResponseWriter, r *http.Request) {
