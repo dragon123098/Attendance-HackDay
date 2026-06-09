@@ -10,10 +10,17 @@ import (
 
 var app AppState
 
+
 func main() {
 	app = AppState{
-		Users: make(map[string]*User),
-	}
+    Users:         make(map[string]*User),
+    Classrooms:    make(map[string]*Classroom),
+    ShopItems:     make(map[string]*ShopItem),
+    AvatarConfigs: make(map[string]*AvatarConfig),
+    Transactions:  []CoinTransaction{},
+    Attendance:    []AttendanceRecord{},
+    Schedule:      []Schedule{},
+}
 
 	mux := http.NewServeMux()
 
