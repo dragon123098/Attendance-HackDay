@@ -8,14 +8,20 @@ import (
 	// 3rd party packages
 )
 
+var app AppState
+
 func main() {
+	app = AppState{
+		Users: make(map[string]*User),
+	}
+
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 	//all roles
-mux.HandleFunc("GET /login", loginView)              				// Returns full page, login view (initial page)
-mux.HandleFunc("POST /login", loginSubmitView)       				// Returns HTML fragment (HTMX), login submission view
+	mux.HandleFunc("GET /login", loginView)              			// Returns full page, login view (initial page)
+	mux.HandleFunc("POST /login", loginSubmitView)       			// Returns HTML fragment (HTMX), login submission view
 	mux.HandleFunc("POST /logout", logoutView)       				// Returns HTML fragment (HTMX), logout view
 
 	//student role
