@@ -72,23 +72,23 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] `/student/avatar` — avatar customization full page
 
 ### Stub Pages — Teacher
-- [ ] `/teacher/attendance` — attendance full page
-- [ ] `/teacher/reports` — reports full page
-- [ ] `/teacher/schedule` — schedule / double days full page
+- [x] `/teacher/attendance` — attendance full page
+- [x] `/teacher/reports` — reports full page
+- [x] `/teacher/schedule` — schedule / double days full page
 
 ### Stub Pages — Admin
-- [ ] `/admin/reports` — all reports full page
-- [ ] `/admin/classrooms` — classrooms full page
+- [x] `/admin/reports` — all reports full page
+- [x] `/admin/classrooms` — classrooms full page
 
 ### Navigation
-- [ ] Header component with role-aware nav links (use `fakeUser.Role` to show/hide links)
-- [ ] Make sure nav links match the agreed route list
+- [x] Header component with role-aware nav links (use `fakeUser.Role` to show/hide links)
+- [x] Make sure nav links match the agreed route list
 
 ### Shared Components
-- [ ] Form styles and button styles
-- [ ] Table component (used in attendance, reports, classrooms)
-- [ ] Popup/modal component (used for logout, receive coins)
-- [ ] Flash/error message display for form feedback
+- [x] Form styles and button styles
+- [x] Table component (used in attendance, reports, classrooms)
+- [x] Popup/modal component (used for logout, receive coins)
+- [x] Flash/error message display for form feedback
 
 **Track B Deliverable:** Every page reachable, looks roughly right, using the hardcoded fake user.
 
