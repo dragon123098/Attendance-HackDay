@@ -845,3 +845,36 @@ a {
 
     font-weight: 800;
 }
+
+.classroom-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.classroom-row {
+    padding: 1rem;
+    border-radius: 16px;
+    background: #fbfcf8;
+    border: 1px solid rgba(36, 48, 31, 0.08);
+}
+
+.classroom-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.classroom-students {
+    grid-column: 1 / -1;
+}
+
+.classroom-students textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.classroom-info input {
+    width: 100%;
+}

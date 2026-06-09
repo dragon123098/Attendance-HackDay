@@ -1,0 +1,59 @@
+{{define "content"}}
+
+<div class="admin-page-header">
+    <h1>Create Classroom</h1>
+    <p>Add a new classroom to your system.</p>
+</div>
+
+<div class="admin-form-card">
+    <form method="POST" action="/classrooms">
+
+        <div class="form-group">
+            <label for="name">Classroom Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Period 1"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="id">Classroom ID</label>
+            <input
+                type="text"
+                id="id"
+                name="id"
+                placeholder="classroom1"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="teacher_id">Teacher ID</label>
+            <input
+                type="text"
+                id="teacher_id"
+                name="teacher_id"
+                placeholder="teacher1"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="student_ids">Student IDs</label>
+            <textarea
+                id="student_ids"
+                name="student_ids"
+                rows="5"
+                placeholder="student1&#10;student2&#10;student3"></textarea>
+            <small>Enter one student ID per line.</small>
+        </div>
+
+        <button type="submit" class="admin-submit-btn">
+            Save Classroom
+        </button>
+    </form>
+</div>
+
+{{end}}
+
+{{template "base" .}}

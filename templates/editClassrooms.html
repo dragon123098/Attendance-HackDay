@@ -1,0 +1,89 @@
+{{define "content"}}
+
+<div class="admin-page-header">
+    <h1>Classrooms</h1>
+    <p>Edit classroom information directly.</p>
+</div>
+
+<div class="admin-form-card">
+
+    {{if .Classrooms}}
+
+        <div class="classroom-list">
+
+            {{range .Classrooms}}
+
+<form method="POST" action="/classrooms/edit">
+
+    <input type="hidden" name="original_id" value="{{.ID}}">
+
+    <div class="classroom-row">
+
+        <div class="classroom-info">
+
+            <div class="form-group">
+                <label>Classroom Name</label>
+                <input
+                    type="text"
+                    name="name"
+                    value="{{.Name}}">
+            </div>
+
+            <div class="form-group">
+                <label>Classroom ID</label>
+                <input
+                    type="text"
+                    name="id"
+                    value="{{.ID}}">
+            </div>
+
+            <div class="form-group">
+                <label>Teacher ID</label>
+                <input
+                    type="text"
+                    name="teacher_id"
+                    value="{{.TeacherID}}">
+            </div>
+
+            <div class="form-group classroom-students">
+                <label>Student IDs</label>
+
+                <textarea
+                    name="student_ids"
+                    rows="5">{{range .StudentIDs}}{{.}}
+{{end}}</textarea>
+
+            </div>
+
+        </div>
+
+        <div class="classroom-actions">
+            <button
+                type="submit"
+                class="admin-submit-btn">
+                Save Changes
+            </button>
+        </div>
+
+    </div>
+
+</form>
+
+{{end}}
+
+        </div>
+
+    {{else}}
+
+        <div class="shop-empty-state">
+            <h3>No classrooms found</h3>
+            <p>Create a classroom to get started.</p>
+        </div>
+
+    {{end}}
+
+</div>
+
+{{end}}
+
+{{template "base" .}}
