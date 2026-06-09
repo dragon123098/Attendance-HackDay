@@ -56,7 +56,10 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 }
 
 func avatarView(w http.ResponseWriter, r *http.Request) {
-	render(w, "avatar.html", nil)
+	data := PageData{
+		AvatarImage: "/static/images/geraldIcon3.png",
+	}
+	render(w, "avatarView.html", data)
 }
 
 
