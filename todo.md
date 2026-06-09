@@ -8,11 +8,11 @@ Two-person workflow. **Do the "Do Together First" section before splitting.**
 
 These must be agreed on before either person starts their track. Commit the results immediately so both people are unblocked.
 
-- [ ] Define all shared structs in `types.go` — `User` (with role field), `Classroom`, `CoinTransaction`, `ShopItem`, `AvatarConfig`, `AttendanceRecord`
+- [x] Define all shared structs in `types.go` — `User` (with role field), `Classroom`, `CoinTransaction`, `ShopItem`, `AvatarConfig`
 - [x] Decide on roles as constants: `student`, `teacher`, `admin`
-- [ ] Agree on JSON filenames: `users.json`, `classrooms.json`, `shop.json`, `attendance.json`, `transactions.json`
+- [x] Agree on JSON filenames: `users.json`, `classrooms.json`, `shop.json`, `attendance.json`, `transactions.json`
 - [x] Sketch and write down every route, the HTTP method, and which role(s) can access it
-- [ ] Commit `types.go` and the agreed route list so both people can reference them
+- [x] Commit `types.go` and the agreed route list so both people can reference them
 
 ---
 
@@ -45,6 +45,7 @@ These must be agreed on before either person starts their track. Commit the resu
 - [ ] `requireLogin` middleware — redirects to `/login` if no valid session
 - [ ] `requireRole(role string)` middleware — returns 403 if role doesn't match
 - [ ] Export both so Person 2 can wire them in
+- [ ] Add shop structs
 
 **Track A Deliverable:** Running server where you can log in, get a session cookie, and log out. Middleware functions exported and ready.
 
