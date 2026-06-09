@@ -37,7 +37,7 @@ These must be agreed on before either person starts their track. Commit the resu
 
 ### Auth Routes
 - [x] `POST /login` — validate credentials, create session
-- [ ] `POST /logout` — destroy session
+- [x] `POST /logout` — destroy session
 - [x] `POST /register` — if needed for admin setup
 
 ### Session Management

@@ -16,14 +16,10 @@ type PageData struct {
 	Error       string
 }
 
-func loginView(w http.ResponseWriter, r *http.Request) {
+func loginHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-
 	case http.MethodGet:
-		data := PageData{
-			Title: "Login",
-		}
-		renderUnAuth(w, "login.html", data)
+		renderUnAuth(w, "login.html", PageData{Title: "Login"})
 		return
 
 	case http.MethodPost:
@@ -44,7 +40,6 @@ func loginView(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var user *User
-
 		for _, u := range app.Users {
 			if u.Email == email {
 				user = u
@@ -60,12 +55,7 @@ func loginView(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err := bcrypt.CompareHashAndPassword(
-			[]byte(user.PasswordHash),
-			[]byte(password),
-		)
-
-		if err != nil {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 			renderUnAuth(w, "login.html", PageData{
 				Title: "Login",
 				Error: "Invalid email or password.",
@@ -78,15 +68,11 @@ func loginView(w http.ResponseWriter, r *http.Request) {
 		switch user.Role {
 		case "student":
 			http.Redirect(w, r, "/studentDashboard", http.StatusSeeOther)
-
 		case "teacher":
 			http.Redirect(w, r, "/teacherDashboard", http.StatusSeeOther)
-
 		case "admin":
 			http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
-
 		default:
-			clearSessionUser(w)
 			http.Error(w, "invalid user role", http.StatusForbidden)
 		}
 
@@ -104,39 +90,52 @@ func logoutView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clearSessionUser(w)
-
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func studentView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	user := app.Users[username]
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	data := PageData{
 		Title:       "Student Dashboard",
 		Username:    user.Name,
 		AvatarImage: "/static/images/geraldIcon3.png",
 	}
+
 	render(w, "studentDash.html", data)
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	user := app.Users[username]
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	data := PageData{
 		Title:       "Shop",
 		Username:    user.Name,
-		AvatarImage: "/static/images/geraldIcon3.png",
+		AvatarImage:  "/static/images/geraldIcon3.png",
 	}
+
 	render(w, "shopView.html", data)
 }
 
