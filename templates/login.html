@@ -1,21 +1,21 @@
 {{define "content"}}
 <div class="login-container">
-
     <div class="login-card">
         <h1>Attendance Quest</h1>
-        <p class="login-subtitle">
-            Sign in to start your adventure!
-        </p>
+        <p class="login-subtitle">Sign in to start your adventure!</p>
+
+        {{if .Error}}
+        <p class="error-message">{{.Error}}</p>
+        {{end}}
 
         <form method="POST" action="/login">
-
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="email">Email</label>
                 <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Enter your username"
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
                     required>
             </div>
 
@@ -29,16 +29,11 @@
                     required>
             </div>
 
-            <button
-                type="submit"
-                class="btn btn-primary login-btn">
+            <button type="submit" class="btn btn-primary login-btn">
                 Login
             </button>
-
         </form>
-
     </div>
-
 </div>
 {{end}}
 

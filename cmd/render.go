@@ -50,7 +50,7 @@ func loadStudentTemplates(page string) (*template.Template, error) {
 	return template.ParseFiles(
 		filepath.Join("templates", "Studentbase.html"),
 		filepath.Join("templates", "partials", "topbar.html"),
-		filepath.Join("templates", "partials", "navbar.html"),
+		filepath.Join("templates", "partials", "StudentNavbar.html"),
 		filepath.Join("templates", "partials", "footer.html"),
 		filepath.Join("templates", page),
 	)
@@ -66,10 +66,11 @@ func loadTeacherTemplates(page string) (*template.Template, error) {
 	)
 }
 
-func renderTeacher(w http.ResponseWriter, page string, data any){
+func renderTeacher(w http.ResponseWriter, page string, data any) {
 	tmpl, err := loadTeacherTemplates(page)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	err = tmpl.ExecuteTemplate(w, "base", data)
@@ -88,10 +89,11 @@ func loadAdminTemplates (page string) (*template.Template, error) {
 	)
 }
 
-func renderAdmin(w http.ResponseWriter, page string, data any){
+func renderAdmin(w http.ResponseWriter, page string, data any) {
 	tmpl, err := loadAdminTemplates(page)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	err = tmpl.ExecuteTemplate(w, "base", data)
@@ -99,4 +101,3 @@ func renderAdmin(w http.ResponseWriter, page string, data any){
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
-
