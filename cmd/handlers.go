@@ -5,54 +5,148 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"golang.org/x/crypto/bcrypt"
 )
 
-//Any pagedata we ned to add to the page, we populate this struct with data from the database
-//This is basically a non persistable entity
+// PageData holds transient page-only values.
 type PageData struct {
 	Title       string
 	Username    string
 	AvatarImage string
+	Error       string
 }
 
 func loginView(w http.ResponseWriter, r *http.Request) {
-		data := PageData{
-		Title: "Login",
-	}
+	data := PageData{Title: "Login"}
 	renderUnAuth(w, "login.html", data)
 }
 
+func loginSubmitView(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "invalid form submission", http.StatusBadRequest)
+		return
+	}
 
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	if email == "" || password == "" {
+		renderUnAuth(w, "login.html", PageData{Title: "Login", Error: "Email and password are required."})
+		return
+	}
+
+	var user *User
+	for _, u := range app.Users {
+		if u.Email == email {
+			user = u
+			break
+		}
+	}
+	if user == nil {
+		renderUnAuth(w, "login.html", PageData{Title: "Login", Error: "Invalid email or password."})
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		renderUnAuth(w, "login.html", PageData{Title: "Login", Error: "Invalid email or password."})
+		return
+	}
+
+	setSessionUser(w, user.UserID)
+	saveData()
+
+	switch user.Role {
+	case "student":
+		http.Redirect(w, r, "/studentDashboard", http.StatusFound)
+	case "teacher":
+		http.Redirect(w, r, "/teacherDashboard", http.StatusFound)
+	case "admin":
+		http.Redirect(w, r, "/adminDashboard", http.StatusFound)
+	default:
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
+}
 
 func logoutView(w http.ResponseWriter, r *http.Request) {
-	renderUnAuth(w, "logout.html", nil)
+	clearSessionUser(w)
+	http.Redirect(w, r, "/login", http.StatusFound)
 }
 
 func studentView(w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	user := app.Users[username]
 	data := PageData{
+		Title:       "Student Dashboard",
+		Username:    user.Name,
 		AvatarImage: "/static/images/geraldIcon3.png",
 	}
 	render(w, "studentDash.html", data)
-
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	user := app.Users[username]
 	data := PageData{
+		Title:       "Shop",
+		Username:    user.Name,
 		AvatarImage: "/static/images/geraldIcon3.png",
 	}
 	render(w, "shopView.html", data)
 }
 
 func avatarView(w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	user := app.Users[username]
 	data := PageData{
+		Title:       "Avatar",
+		Username:    user.Name,
 		AvatarImage: "/static/images/geraldIcon3.png",
 	}
 	render(w, "avatarView.html", data)
 }
 
+func coinView(w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	user := app.Users[username]
+	data := PageData{
+		Title:    "Coins",
+		Username: user.Name,
+	}
+	render(w, "coinView.html", data)
+}
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
-	render(w, "teacherDash.html", nil)
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	user := app.Users[username]
+	data := PageData{
+		Title:    "Teacher Dashboard",
+		Username: user.Name,
+	}
+	render(w, "teacherDash.html", data)
 }
 
 func teacherEditView(w http.ResponseWriter, r *http.Request) {
@@ -60,16 +154,24 @@ func teacherEditView(w http.ResponseWriter, r *http.Request) {
 }
 
 func adminView(w http.ResponseWriter, r *http.Request) {
-	render(w, "adminDash.html", nil)
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+
+	user := app.Users[username]
+	data := PageData{
+		Title:    "Admin Dashboard",
+		Username: user.Name,
+	}
+	render(w, "adminDash.html", data)
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {
 	render(w, "adminEdit.html", nil)
 }
 
-// Helpers
-
-// render is a helper function to render templates with a base layout
 func render(w http.ResponseWriter, page string, data any) {
 	tmpl, err := loadTemplates(page)
 	if err != nil {
@@ -77,13 +179,11 @@ func render(w http.ResponseWriter, page string, data any) {
 		return
 	}
 
-	err = tmpl.ExecuteTemplate(w, "base", data)
-	if err != nil {
+	if err := tmpl.ExecuteTemplate(w, "base", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-//This will load the templates needed. Just pass in what page you want and it will render it will all the correct stuff
 func loadTemplates(page string) (*template.Template, error) {
 	return template.ParseFiles(
 		filepath.Join("templates", "AuthBase.html"),
@@ -94,7 +194,6 @@ func loadTemplates(page string) (*template.Template, error) {
 	)
 }
 
-//These two functions load pages for unauthenticated users.
 func loadUnAuthTemplates(page string) (*template.Template, error) {
 	return template.ParseFiles(
 		filepath.Join("templates", "UnAuthBase.html"),
@@ -109,8 +208,7 @@ func renderUnAuth(w http.ResponseWriter, page string, data any) {
 		return
 	}
 
-	err = tmpl.ExecuteTemplate(w, "base", data)
-	if err != nil {
+	if err := tmpl.ExecuteTemplate(w, "base", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

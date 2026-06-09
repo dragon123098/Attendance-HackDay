@@ -27,18 +27,18 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Load application state from `data/data.json`
 - [x] Save application state to `data/data.json`
 - [x] Initialize nil maps after loading
-- [ ] Ensure `saveData()` is called after state changes
+- [x] Ensure `saveData()` is called after state changes
 - [x] Create `data/` directory automatically if missing
 
 ### User Storage
-- [ ] Seed test users (student, teacher, admin)
-- [ ] Password hashing (`bcrypt`)
-- [ ] Password verification during login
+- [x] Seed test users (student, teacher, admin)
+- [x] Password hashing (`bcrypt`)
+- [x] Password verification during login
 
 ### Auth Routes
-- [ ] `POST /login` — validate credentials, create session
+- [x] `POST /login` — validate credentials, create session
 - [ ] `POST /logout` — destroy session
-- [ ] `POST /register` — if needed for admin setup
+- [x] `POST /register` — if needed for admin setup
 
 ### Session Management
 - [x] Cookie-based session helpers
