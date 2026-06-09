@@ -1,5 +1,13 @@
 {
     "users": {
+        "JRGRUNIG": {
+            "name": "Jed Grunig",
+            "role": "teacher",
+            "email": "jed@example.com",
+            "password_hash": "$2a$10$89jnZG5yC7yjXyJEae/8xOiQ3PEP4HAtVc0gxKX6lqw6DCO7KNQqO",
+            "classroom_id": "",
+            "user_id": "JRGRUNIG"
+        },
         "admin1": {
             "name": "Test Admin",
             "role": "admin",
@@ -32,6 +40,15 @@
             "teacher_id": "teacher1",
             "student_ids": [
                 "student1"
+            ]
+        },
+        "classroom2": {
+            "name": "Period 2",
+            "id": "classroom2",
+            "teacher_id": "JRGRUNIG",
+            "student_ids": [
+                "student3",
+                "student4"
             ]
         }
     },
