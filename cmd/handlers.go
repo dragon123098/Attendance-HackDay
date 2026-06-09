@@ -17,52 +17,83 @@ type PageData struct {
 }
 
 func loginView(w http.ResponseWriter, r *http.Request) {
-	data := PageData{Title: "Login"}
-	renderUnAuth(w, "login.html", data)
-}
+	switch r.Method {
 
-func loginSubmitView(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "invalid form submission", http.StatusBadRequest)
-		return
-	}
-
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	if email == "" || password == "" {
-		renderUnAuth(w, "login.html", PageData{Title: "Login", Error: "Email and password are required."})
-		return
-	}
-
-	var user *User
-	for _, u := range app.Users {
-		if u.Email == email {
-			user = u
-			break
+	case http.MethodGet:
+		data := PageData{
+			Title: "Login",
 		}
-	}
-	if user == nil {
-		renderUnAuth(w, "login.html", PageData{Title: "Login", Error: "Invalid email or password."})
+		renderUnAuth(w, "login.html", data)
 		return
-	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		renderUnAuth(w, "login.html", PageData{Title: "Login", Error: "Invalid email or password."})
+	case http.MethodPost:
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "invalid form submission", http.StatusBadRequest)
+			return
+		}
+
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		if email == "" || password == "" {
+			renderUnAuth(w, "login.html", PageData{
+				Title: "Login",
+				Error: "Email and password are required.",
+			})
+			return
+		}
+
+		var user *User
+
+		for _, u := range app.Users {
+			if u.Email == email {
+				user = u
+				break
+			}
+		}
+
+		if user == nil {
+			renderUnAuth(w, "login.html", PageData{
+				Title: "Login",
+				Error: "Invalid email or password.",
+			})
+			return
+		}
+
+		err := bcrypt.CompareHashAndPassword(
+			[]byte(user.PasswordHash),
+			[]byte(password),
+		)
+
+		if err != nil {
+			renderUnAuth(w, "login.html", PageData{
+				Title: "Login",
+				Error: "Invalid email or password.",
+			})
+			return
+		}
+
+		setSessionUser(w, user.UserID)
+
+		switch user.Role {
+		case "student":
+			http.Redirect(w, r, "/studentDashboard", http.StatusSeeOther)
+
+		case "teacher":
+			http.Redirect(w, r, "/teacherDashboard", http.StatusSeeOther)
+
+		case "admin":
+			http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
+
+		default:
+			clearSessionUser(w)
+			http.Error(w, "invalid user role", http.StatusForbidden)
+		}
+
 		return
-	}
 
-	setSessionUser(w, user.UserID)
-	saveData()
-
-	switch user.Role {
-	case "student":
-		http.Redirect(w, r, "/studentDashboard", http.StatusFound)
-	case "teacher":
-		http.Redirect(w, r, "/teacherDashboard", http.StatusFound)
-	case "admin":
-		http.Redirect(w, r, "/adminDashboard", http.StatusFound)
 	default:
-		http.Redirect(w, r, "/login", http.StatusFound)
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 

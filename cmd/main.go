@@ -16,7 +16,7 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 	//all roles
-	mux.HandleFunc("GET /login", loginView)              			// Returns full page, login view (initial page)    			
+	mux.HandleFunc("/login", loginView)              			// Returns full page, login view (initial page)    			
 	mux.HandleFunc("POST /logout", logoutView)       				// Returns HTML fragment (HTMX), logout view
 
 	//student role
