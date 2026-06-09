@@ -142,70 +142,122 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 func avatarView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	user := app.Users[username]
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	data := PageData{
 		Title:       "Avatar",
 		Username:    user.Name,
 		AvatarImage: "/static/images/geraldIcon3.png",
 	}
+
 	render(w, "avatarView.html", data)
-}
-
-func coinView(w http.ResponseWriter, r *http.Request) {
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-
-	user := app.Users[username]
-	data := PageData{
-		Title:    "Coins",
-		Username: user.Name,
-	}
-	render(w, "coinView.html", data)
 }
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	user := app.Users[username]
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	data := PageData{
 		Title:    "Teacher Dashboard",
 		Username: user.Name,
 	}
+
 	render(w, "teacherDash.html", data)
 }
 
 func teacherEditView(w http.ResponseWriter, r *http.Request) {
-	render(w, "teacherEdit.html", nil)
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if user.Role != "teacher" {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func adminView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	user := app.Users[username]
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	data := PageData{
 		Title:    "Admin Dashboard",
 		Username: user.Name,
 	}
+
 	render(w, "adminDash.html", data)
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {
-	render(w, "adminEdit.html", nil)
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if user.Role != "admin" {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func render(w http.ResponseWriter, page string, data any) {

@@ -15,17 +15,17 @@ func main() {
 
 	fileServer := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
-	//all roles
+	// auth routes
 	mux.HandleFunc("/login", loginHandler)
 	mux.HandleFunc("POST /logout", logoutView)
-	//student role
+	// student routes
 	mux.Handle("GET /studentDashboard", requireRole("student", http.HandlerFunc(studentView)))
-	mux.HandleFunc("GET /shop", shopView)
-	mux.HandleFunc("GET /avatar", avatarView)
-	//teacher role
+	mux.Handle("GET /shop", requireRole("student", http.HandlerFunc(shopView)))
+	mux.Handle("GET /avatar", requireRole("student", http.HandlerFunc(avatarView)))
+	// teacher routes
 	mux.Handle("GET /teacherDashboard", requireRole("teacher", http.HandlerFunc(teacherView)))
 	mux.HandleFunc("POST /teacherDashboard/edit", teacherEditView)
-	//admin role
+	// admin routes
 	mux.Handle("GET /adminDashboard", requireRole("admin", http.HandlerFunc(adminView)))
 	mux.HandleFunc("POST /adminDashboard/edit", adminEditView)
 
