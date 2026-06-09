@@ -98,8 +98,14 @@ func loginView(w http.ResponseWriter, r *http.Request) {
 }
 
 func logoutView(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	clearSessionUser(w)
-	http.Redirect(w, r, "/login", http.StatusFound)
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func studentView(w http.ResponseWriter, r *http.Request) {
