@@ -90,13 +90,13 @@ These must be agreed on before either person starts their track. Commit the resu
 ## Track B — UI Shell (Person 2)
 
 ### Setup
-- [ ] Static file serving confirmed working
-- [ ] `html/template` base layout with a `{{template "content" .}}` slot
-- [ ] CSS scaffold (can use a small utility CSS or write from scratch)
+- [x] Static file serving confirmed working
+- [x] `html/template` base layout with a `{{template "content" .}}` slot
+- [x] CSS scaffold (can use a small utility CSS or write from scratch)
 - [ ] Add a `fakeUser` variable at the top of the handlers file so you can swap it for a real session lookup in one line later
 
 ### Stub Pages — All Roles
-- [ ] `/login` — login form page (full page)
+- [x] `/login` — login form page (full page)
 - [ ] Logout — popup/modal component
 
 ### Stub Pages — Student

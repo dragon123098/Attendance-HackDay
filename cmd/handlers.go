@@ -17,13 +17,7 @@ type PageData struct {
 	AvatarImage string
 }
 
-//Example way to use this
-// func loginView(w http.ResponseWriter, r *http.Request) {
-// 	data := PageData{
-// 		Title: "Login",
-// 	}
-// 	renderUnAuth(w, "login.html", data)
-// }
+
 
 // func shopView(w http.ResponseWriter, r *http.Request) {
 // 	data := PageData{
@@ -34,39 +28,52 @@ type PageData struct {
 // }
 
 func loginView(w http.ResponseWriter, r *http.Request) {
-
+		data := PageData{
+		Title: "Login",
+	}
+	renderUnAuth(w, "login.html", data)
 }
 
-func loginSubmitView(w http.ResponseWriter, r *http.Request) {
 
-}
 
 func logoutView(w http.ResponseWriter, r *http.Request) {
+	renderUnAuth(w, "logout.html", nil)
 }
 
 func studentView(w http.ResponseWriter, r *http.Request) {
+	data := PageData{
+		AvatarImage: "/static/images/geraldIcon3.png",
+	}
+	render(w, "studentDash.html", data)
+
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
-
+	data := PageData{
+		AvatarImage: "/static/images/geraldIcon3.png",
+	}
+	render(w, "shopView.html", data)
 }
 
 func avatarView(w http.ResponseWriter, r *http.Request) {
+	render(w, "avatar.html", nil)
 }
 
-func coinView(w http.ResponseWriter, r *http.Request) {
-}
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
+	render(w, "teacherDash.html", nil)
 }
 
 func teacherEditView(w http.ResponseWriter, r *http.Request) {
+	render(w, "teacherEdit.html", nil)
 }
 
 func adminView(w http.ResponseWriter, r *http.Request) {
+	render(w, "adminDash.html", nil)
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {
+	render(w, "adminEdit.html", nil)
 }
 
 
