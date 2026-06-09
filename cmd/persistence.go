@@ -23,7 +23,7 @@ func loadData() {
 	}
 
 	if app.Users == nil {
-    app.Users = make(map[string]*User)
+		app.Users = make(map[string]*User)
 	}
 	if app.Classrooms == nil {
 		app.Classrooms = make(map[string]*Classroom)
@@ -33,6 +33,15 @@ func loadData() {
 	}
 	if app.AvatarConfigs == nil {
 		app.AvatarConfigs = make(map[string]*AvatarConfig)
+	}
+	if app.Transactions == nil {
+		app.Transactions = []CoinTransaction{}
+	}
+	if app.Attendance == nil {
+		app.Attendance = []AttendanceRecord{}
+	}
+	if app.Schedule == nil {
+		app.Schedule = []Schedule{}
 	}
 }
 

@@ -7,25 +7,13 @@ import (
 
 )
 
-//idk if this is the right place to this, but I'm putting it here
 //Any pagedata we ned to add to the page, we populate this struct with data from the database
 //This is basically a non persistable entity
-
 type PageData struct {
 	Title       string
 	Username    string
 	AvatarImage string
 }
-
-
-
-// func shopView(w http.ResponseWriter, r *http.Request) {
-// 	data := PageData{
-// 		AvatarImage: "/static/images/geraldIcon3.png",
-// 	}
-
-// 	render(w, "studentDash.html", data)
-// }
 
 func loginView(w http.ResponseWriter, r *http.Request) {
 		data := PageData{
@@ -79,8 +67,8 @@ func adminEditView(w http.ResponseWriter, r *http.Request) {
 	render(w, "adminEdit.html", nil)
 }
 
+// Helpers
 
-//idk if this is the right place for this, but it makes sense to me
 // render is a helper function to render templates with a base layout
 func render(w http.ResponseWriter, page string, data any) {
 	tmpl, err := loadTemplates(page)
@@ -95,7 +83,6 @@ func render(w http.ResponseWriter, page string, data any) {
 	}
 }
 
-
 //This will load the templates needed. Just pass in what page you want and it will render it will all the correct stuff
 func loadTemplates(page string) (*template.Template, error) {
 	return template.ParseFiles(
@@ -106,7 +93,6 @@ func loadTemplates(page string) (*template.Template, error) {
 		filepath.Join("templates", page),
 	)
 }
-
 
 //These two functions load pages for unauthenticated users.
 func loadUnAuthTemplates(page string) (*template.Template, error) {
