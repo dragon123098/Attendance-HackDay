@@ -79,6 +79,12 @@
             "amount": -5,
             "timestamp": "2026-06-09T16:29:38-06:00",
             "description": "Purchased Star Hat"
+        },
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-06-10T16:44:15-06:00",
+            "description": "Attendance reward for 2026-06-10"
         }
     ],
     "attendance": [
@@ -86,7 +92,8 @@
             "user_id": "student1",
             "classroom_id": "classroom1",
             "present": [
-                "2026-06-09"
+                "2026-06-09",
+                "2026-06-10"
             ],
             "absent": null
         }
