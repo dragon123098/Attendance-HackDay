@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Commenting"
+  short_description: "Document core code intent"
+  default_prompt: "Use $code-commenting to add or preserve clear comments for larger functions, core workflows, churn hotspots, and critical constants in non-test files while editing code."

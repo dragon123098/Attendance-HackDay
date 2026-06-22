@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Documentation"
+  short_description: "Keep project README and architecture docs accurate"
+  default_prompt: "Use $project-documentation to update README, onboarding docs, or Mermaid architecture docs for this repo."
