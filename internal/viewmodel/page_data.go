@@ -1,7 +1,7 @@
 package viewmodel
- 
+
 import "github.com/dragon123098/Attendance-HackDay.git/internal/domain"
- 
+
 type TemplateData struct {
 	User           *domain.User
 	ErrorMessage   string
@@ -9,7 +9,7 @@ type TemplateData struct {
 	Schedule       *domain.Schedule
 	Schedules      map[string]*domain.Schedule
 }
- 
+
 type ScheduleItemView struct {
 	DayOfWeek string
 	StartTime string
@@ -17,13 +17,13 @@ type ScheduleItemView struct {
 	DoubleDay bool
 	IsToday   bool
 }
- 
+
 type DoubleDayView struct {
 	DayOfWeek string
 	StartTime string
 	EndTime   string
 }
- 
+
 type ShopItemView struct {
 	ID          string
 	Name        string
@@ -32,7 +32,7 @@ type ShopItemView struct {
 	Owned       bool
 	Image       string `json:"image"`
 }
- 
+
 type PageData struct {
 	Title              string
 	Username           string

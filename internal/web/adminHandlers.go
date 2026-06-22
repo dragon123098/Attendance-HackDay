@@ -1,13 +1,13 @@
 package web
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strings"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type ClassroomPageData struct {
-	Title         string
+	Title          string
 	HeaderTitle    string
 	HeaderSubtitle string
 	HeaderBadge    string
@@ -112,8 +112,8 @@ func adminEditView(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func listClassroomsView (w http.ResponseWriter, r *http.Request){
-		if r.Method != http.MethodGet {
+func listClassroomsView(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -140,7 +140,7 @@ func listClassroomsView (w http.ResponseWriter, r *http.Request){
 
 }
 
-func createClassroomView (w http.ResponseWriter, r *http.Request) {
+func createClassroomView(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -180,7 +180,7 @@ func createClassroomView (w http.ResponseWriter, r *http.Request) {
 	saveData()
 }
 
-func editClassrooms (w http.ResponseWriter, r *http.Request) {
+func editClassrooms(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -198,8 +198,7 @@ func editClassrooms (w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	
-	
+
 	classrooms := make([]*Classroom, 0, len(app.Classrooms))
 
 	for _, classroom := range app.Classrooms {
@@ -207,7 +206,7 @@ func editClassrooms (w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ClassroomPageData{
-		Title:         "Classrooms",
+		Title:          "Classrooms",
 		HeaderTitle:    "Admin Tools",
 		HeaderSubtitle: "Manage classroom settings from here.",
 		HeaderBadge:    "Admin View",
@@ -352,4 +351,3 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 
 	//http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
 }
-

@@ -2,16 +2,28 @@ package web
 
 import (
 	"html/template"
+	"io/fs"
 	"net/http"
-	"path/filepath"
+	"path"
 
+	"github.com/dragon123098/Attendance-HackDay.git/internal/view"
 )
 
-//These two functions load pages for unauthenticated users.
+func pageTemplate(page string) string {
+	candidate := path.Join("pages", page)
+	if _, err := fs.Stat(view.FS, candidate); err == nil {
+		return candidate
+	}
+
+	return path.Join("pages", "popups", page)
+}
+
+// These two functions load pages for unauthenticated users.
 func loadUnAuthTemplates(page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "UnAuthBase.html"),
-		filepath.Join("templates", page),
+	return template.ParseFS(
+		view.FS,
+		"components/UnAuthBase.html",
+		pageTemplate(page),
 	)
 }
 
@@ -28,8 +40,7 @@ func renderUnAuth(w http.ResponseWriter, page string, data any) {
 	}
 }
 
-
-//Load Student Templates
+// Load Student Templates
 
 func renderStudent(w http.ResponseWriter, page string, data any) {
 	tmpl, err := loadStudentTemplates(page)
@@ -44,25 +55,24 @@ func renderStudent(w http.ResponseWriter, page string, data any) {
 	}
 }
 
-
-
 func loadStudentTemplates(page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "Studentbase.html"),
-		filepath.Join("templates", "partials", "topbar.html"),
-		filepath.Join("templates", "partials", "StudentNavbar.html"),
-		filepath.Join("templates", "partials", "footer.html"),
-		filepath.Join("templates", page),
+	return template.ParseFS(
+		view.FS,
+		"components/Studentbase.html",
+		"components/topbar.html",
+		"components/StudentNavbar.html",
+		"components/footer.html",
+		pageTemplate(page),
 	)
 }
 
 func loadTeacherTemplates(page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "adminBase.html"),
-		filepath.Join("templates", "partials", "teacherNavBar.html"),
-		filepath.Join("templates", "partials", "teacherHeader.html"),
-		
-		filepath.Join("templates", page),
+	return template.ParseFS(
+		view.FS,
+		"components/adminBase.html",
+		"components/teacherNavBar.html",
+		"components/teacherHeader.html",
+		pageTemplate(page),
 	)
 }
 
@@ -79,13 +89,13 @@ func renderTeacher(w http.ResponseWriter, page string, data any) {
 	}
 }
 
-func loadAdminTemplates (page string) (*template.Template, error) {
-	return template.ParseFiles(
-		filepath.Join("templates", "adminBase.html"),
-		filepath.Join("templates", "partials", "adminHeader.html"),
-		filepath.Join("templates", "partials", "adminNavBar.html"),
-		
-		filepath.Join("templates", page),
+func loadAdminTemplates(page string) (*template.Template, error) {
+	return template.ParseFS(
+		view.FS,
+		"components/adminBase.html",
+		"components/adminHeader.html",
+		"components/adminNavBar.html",
+		pageTemplate(page),
 	)
 }
 

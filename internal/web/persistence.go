@@ -1,19 +1,25 @@
-package main
+package web
 
 import (
 	"encoding/json"
 	"log"
 	"os"
+
+	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
 )
 
-func loadData() {
+var app domain.AppState
+
+func LoadData() {
 	if _, err := os.Stat("data/data.json"); err != nil {
+		ensureAppState()
 		return
 	}
 
 	file, err := os.Open("data/data.json")
 	if err != nil {
 		log.Printf("Error opening data file: %v", err)
+		ensureAppState()
 		return
 	}
 	defer file.Close()
@@ -22,26 +28,33 @@ func loadData() {
 		log.Printf("Error decoding data file: %v", err)
 	}
 
+	ensureAppState()
+}
+
+func ensureAppState() {
 	if app.Users == nil {
-		app.Users = make(map[string]*User)
+		app.Users = make(map[string]*domain.User)
 	}
 	if app.Classrooms == nil {
-		app.Classrooms = make(map[string]*Classroom)
+		app.Classrooms = make(map[string]*domain.Classroom)
 	}
 	if app.ShopItems == nil {
-		app.ShopItems = make(map[string]*ShopItem)
+		app.ShopItems = make(map[string]*domain.ShopItem)
+	}
+	if app.OwnedShopItems == nil {
+		app.OwnedShopItems = make(map[string][]string)
 	}
 	if app.AvatarConfigs == nil {
-		app.AvatarConfigs = make(map[string]*AvatarConfig)
+		app.AvatarConfigs = make(map[string]*domain.AvatarConfig)
 	}
 	if app.Transactions == nil {
-		app.Transactions = []CoinTransaction{}
+		app.Transactions = []domain.CoinTransaction{}
 	}
 	if app.Attendance == nil {
-		app.Attendance = []AttendanceRecord{}
+		app.Attendance = []domain.AttendanceRecord{}
 	}
 	if app.Schedule == nil {
-		app.Schedule = []Schedule{}
+		app.Schedule = []domain.Schedule{}
 	}
 }
 

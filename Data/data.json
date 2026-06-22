@@ -85,6 +85,12 @@
             "amount": 1,
             "timestamp": "2026-06-10T16:44:15-06:00",
             "description": "Attendance reward for 2026-06-10"
+        },
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-06-22T16:25:50-06:00",
+            "description": "Attendance reward for 2026-06-22"
         }
     ],
     "attendance": [
@@ -93,7 +99,8 @@
             "classroom_id": "classroom1",
             "present": [
                 "2026-06-09",
-                "2026-06-10"
+                "2026-06-10",
+                "2026-06-22"
             ],
             "absent": null
         }

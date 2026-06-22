@@ -34,7 +34,7 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 		WeeklySchedule:     weeklySchedule,
 		UpcomingDoubleDays: upcomingDoubleDays,
 		ActiveNav:          "home",
-		UseStudentCSS: 		true,
+		UseStudentCSS:      true,
 	}
 
 	renderStudent(w, "studentDash.html", data)
@@ -47,11 +47,11 @@ func avatarView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := PageData{
-		Title:       "Avatar",
-		Username:    user.Name,
-		AvatarImage: getAvatarImage(user),
-		Coins:       getCoinBalance(user.UserID),
-		ActiveNav:   "avatar",
+		Title:         "Avatar",
+		Username:      user.Name,
+		AvatarImage:   getAvatarImage(user),
+		Coins:         getCoinBalance(user.UserID),
+		ActiveNav:     "avatar",
 		UseStudentCSS: true,
 	}
 
@@ -273,8 +273,8 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 		ShopItems:      allItems,
 		OwnedShopItems: ownedItems,
 		ShopMessage:    r.URL.Query().Get("msg"),
-		ActiveNav: "shop",
-		UseStudentCSS: true,
+		ActiveNav:      "shop",
+		UseStudentCSS:  true,
 	}
 
 	renderStudent(w, "shopView.html", data)

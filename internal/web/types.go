@@ -1,0 +1,20 @@
+package web
+
+import (
+	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	"github.com/dragon123098/Attendance-HackDay.git/internal/viewmodel"
+)
+
+type AppState = domain.AppState
+type User = domain.User
+type Classroom = domain.Classroom
+type Schedule = domain.Schedule
+type ShopItem = domain.ShopItem
+type AvatarConfig = domain.AvatarConfig
+type CoinTransaction = domain.CoinTransaction
+type AttendanceRecord = domain.AttendanceRecord
+
+type PageData = viewmodel.PageData
+type ScheduleItemView = viewmodel.ScheduleItemView
+type DoubleDayView = viewmodel.DoubleDayView
+type ShopItemView = viewmodel.ShopItemView

@@ -1,8 +1,8 @@
 package web
 
 import (
-	"net/http"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
 )
 
 // PageData holds transient page-only values.
