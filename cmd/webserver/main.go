@@ -3,9 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/dragon123098/Attendance-HackDay.git/internal/web"
+	"github.com/dragon123098/Attendance-HackDay.git/internal/viewmodel"
+	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
 )
 
-var app AppState
+var app domain.AppState
 
 func main() {
 	loadData()
