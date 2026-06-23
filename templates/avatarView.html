@@ -3,37 +3,138 @@
 <div class="avatar-page">
     <div class="hero-card">
         <h1>Choose Your Avatar</h1>
-        <p>Pick a character to represent you in Attendance Quest.</p>
+        <p>Build the look that shows up on your dashboard and nav bar.</p>
     </div>
 
-    <div class="avatar-current-card">
-        <div class="avatar-current-image">
-            <img src="{{.AvatarImage}}" alt="Current Avatar">
-        </div>
+    {{if .AvatarMessage}}
+    <div class="shop-message">{{.AvatarMessage}}</div>
+    {{end}}
 
-        <div class="avatar-current-info">
-            <h2>Your Current Avatar</h2>
-            <p>Looks good! You can change it later when you unlock more choices.</p>
-        </div>
-    </div>
+    <form method="POST" action="/avatar" class="avatar-form" data-avatar-form>
+        <div class="avatar-editor">
+            <aside class="avatar-preview-card">
+                <div class="avatar-current-image avatar-preview-image">
+                    <img src="{{.AvatarImage}}" alt="Current Avatar" data-avatar-preview-image>
+                </div>
 
-    <div class="avatar-grid">
-        <div class="avatar-option">
-            <img src="/static/Images/gerald.png" alt="Avatar option 1">
-            <button type="button" class="avatar-select-btn">Select</button>
-        </div>
+                <div class="avatar-current-info">
+                    <h2>Your Current Avatar</h2>
+                    <div class="avatar-preview-badges" data-avatar-preview-badges>
+                        {{if .AvatarBadges}}
+                            {{range .AvatarBadges}}
+                            <span class="avatar-badge">{{.Name}}</span>
+                            {{end}}
+                        {{else}}
+                            <span class="avatar-empty-text">No cosmetics equipped</span>
+                        {{end}}
+                    </div>
+                </div>
+            </aside>
 
-        <div class="avatar-option">
-            <img src="/static/Images/gerald.png" alt="Avatar option 2">
-            <button type="button" class="avatar-select-btn">Select</button>
-        </div>
+            <section class="avatar-panel">
+                <div class="section-header">
+                    <h2>Base Avatar</h2>
+                </div>
 
-        <div class="avatar-option">
-            <img src="/static/Images/gerald.png" alt="Avatar option 3">
-            <button type="button" class="avatar-select-btn">Select</button>
+                <div class="avatar-grid">
+                    {{range .AvatarBases}}
+                    <label class="avatar-option avatar-radio-card {{if .Selected}}selected{{end}}">
+                        <input type="radio" name="base" value="{{.ID}}" data-avatar-image="{{.Image}}" {{if .Selected}}checked{{end}}>
+                        <img src="{{.Image}}" alt="{{.Name}}">
+                        <span>{{.Name}}</span>
+                    </label>
+                    {{end}}
+                </div>
+            </section>
+
+            <section class="avatar-panel">
+                <div class="section-header">
+                    <h2>Cosmetics</h2>
+                </div>
+
+                <div class="avatar-cosmetic-groups">
+                    {{range .AvatarCosmetics}}
+                    <div class="avatar-cosmetic-group">
+                        <h3>{{.SlotLabel}}</h3>
+
+                        <label class="avatar-cosmetic-card {{if eq .SelectedID ""}}selected{{end}}">
+                            <input type="radio" name="{{.FormName}}" value="" data-cosmetic-name="" {{if eq .SelectedID ""}}checked{{end}}>
+                            <span class="avatar-cosmetic-name">None</span>
+                            <span class="avatar-cosmetic-status">Equipped</span>
+                        </label>
+
+                        {{range .Options}}
+                        <label class="avatar-cosmetic-card {{if .Selected}}selected{{end}} {{if .Owned}}{{else}}locked{{end}}">
+                            <input type="radio" name="{{.FormName}}" value="{{.ID}}" data-cosmetic-name="{{.Name}}" {{if .Selected}}checked{{end}} {{if .Owned}}{{else}}disabled{{end}}>
+                            <span class="avatar-cosmetic-name">{{.Name}}</span>
+                            <span class="avatar-cosmetic-desc">{{.Description}}</span>
+                            {{if .Owned}}
+                            <span class="avatar-cosmetic-status">Owned</span>
+                            {{else}}
+                            <span class="avatar-cosmetic-status">Locked</span>
+                            {{end}}
+                        </label>
+                        {{end}}
+                    </div>
+                    {{end}}
+                </div>
+
+                <button type="submit" class="avatar-save-btn">Save Avatar</button>
+            </section>
         </div>
-    </div>
+    </form>
 </div>
+
+<script>
+(function () {
+    const form = document.querySelector("[data-avatar-form]");
+    if (!form) {
+        return;
+    }
+
+    const previewImage = document.querySelector("[data-avatar-preview-image]");
+    const previewBadges = document.querySelector("[data-avatar-preview-badges]");
+
+    function updateBasePreview() {
+        const selectedBase = form.querySelector("input[name='base']:checked");
+        if (selectedBase && previewImage) {
+            previewImage.src = selectedBase.dataset.avatarImage;
+        }
+    }
+
+    function updateCosmeticPreview() {
+        if (!previewBadges) {
+            return;
+        }
+
+        previewBadges.textContent = "";
+        const selectedCosmetics = form.querySelectorAll("input[data-cosmetic-name]:checked");
+
+        selectedCosmetics.forEach(function (input) {
+            if (!input.value) {
+                return;
+            }
+
+            const badge = document.createElement("span");
+            badge.className = "avatar-badge";
+            badge.textContent = input.dataset.cosmeticName;
+            previewBadges.appendChild(badge);
+        });
+
+        if (!previewBadges.children.length) {
+            const empty = document.createElement("span");
+            empty.className = "avatar-empty-text";
+            empty.textContent = "No cosmetics equipped";
+            previewBadges.appendChild(empty);
+        }
+    }
+
+    form.addEventListener("change", function () {
+        updateBasePreview();
+        updateCosmeticPreview();
+    });
+})();
+</script>
 
 {{end}}
 

@@ -11,7 +11,34 @@ import (
 
 const startingStudentCoins = 10
 const attendanceRewardCoins = 1
+const defaultAvatarBase = "gerald_icon"
 const defaultAvatarImage = "/static/images/geraldIcon3.png"
+
+type avatarBaseOption struct {
+	ID    string
+	Name  string
+	Image string
+}
+
+type avatarCosmeticOption struct {
+	ID        string
+	SlotLabel string
+	FormName  string
+}
+
+var avatarBaseOptions = []avatarBaseOption{
+	{ID: "gerald_icon", Name: "Gerald Badge", Image: "/static/images/geraldIcon3.png"},
+	{ID: "gerald_classic", Name: "Gerald Classic", Image: "/static/images/gerald.png"},
+	{ID: "gerald_focus", Name: "Gerald Focus", Image: "/static/images/geraldIcon2.png"},
+	{ID: "gerald_hero", Name: "Gerald Hero", Image: "/static/images/geraldIcon.png"},
+}
+
+var avatarCosmeticOptions = []avatarCosmeticOption{
+	{ID: "hat_star", SlotLabel: "Headwear", FormName: "hair_style"},
+	{ID: "cape_gold", SlotLabel: "Clothing", FormName: "clothing"},
+	{ID: "glasses_rocket", SlotLabel: "Accessory", FormName: "accessory"},
+	{ID: "trail_rainbow", SlotLabel: "Effect", FormName: "effect"},
+}
 
 func studentView(w http.ResponseWriter, r *http.Request) {
 	user, ok := currentSessionUser(w, r)
@@ -33,29 +60,91 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 		CanMarkAttendance:  canMark,
 		WeeklySchedule:     weeklySchedule,
 		UpcomingDoubleDays: upcomingDoubleDays,
+		AvatarBadges:       getAvatarBadges(user.UserID),
 		ActiveNav:          "home",
-		UseStudentCSS: 		true,
+		UseStudentCSS:      true,
 	}
 
 	renderStudent(w, "studentDash.html", data)
 }
 
 func avatarView(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet && r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	user, ok := currentSessionUser(w, r)
 	if !ok {
 		return
 	}
 
-	data := PageData{
-		Title:       "Avatar",
-		Username:    user.Name,
-		AvatarImage: getAvatarImage(user),
-		Coins:       getCoinBalance(user.UserID),
-		ActiveNav:   "avatar",
-		UseStudentCSS: true,
+	ensureShopState()
+	seedShopItems()
+	ensureAvatarState()
+
+	if r.Method == http.MethodPost {
+		saveAvatarView(w, r, user)
+		return
 	}
 
-	renderStudent(w, "avatarView.html", data)
+	renderStudent(w, "avatarView.html", avatarPageData(user, r.URL.Query().Get("msg")))
+}
+
+func saveAvatarView(w http.ResponseWriter, r *http.Request, user *User) {
+	if err := r.ParseForm(); err != nil {
+		http.Redirect(w, r, "/avatar?msg="+url.QueryEscape("Invalid form submission."), http.StatusSeeOther)
+		return
+	}
+
+	config := getAvatarConfig(user.UserID)
+	base := strings.TrimSpace(r.FormValue("base"))
+	if base == "" {
+		base = defaultAvatarBase
+	}
+	if !avatarBaseExists(base) {
+		http.Redirect(w, r, "/avatar?msg="+url.QueryEscape("That avatar base does not exist."), http.StatusSeeOther)
+		return
+	}
+
+	config.Base = base
+
+	handledSlots := map[string]bool{}
+	for _, option := range avatarCosmeticOptions {
+		if handledSlots[option.FormName] {
+			continue
+		}
+		handledSlots[option.FormName] = true
+
+		selectedID := strings.TrimSpace(r.FormValue(option.FormName))
+		if err := validateAvatarCosmeticSelection(user.UserID, option.FormName, selectedID); err != nil {
+			http.Redirect(w, r, "/avatar?msg="+url.QueryEscape(err.Error()), http.StatusSeeOther)
+			return
+		}
+		setAvatarSlot(&config, option.FormName, selectedID)
+	}
+
+	app.AvatarConfigs[user.UserID] = &config
+	saveData()
+
+	http.Redirect(w, r, "/avatar?msg="+url.QueryEscape("Avatar saved."), http.StatusSeeOther)
+}
+
+func avatarPageData(user *User, message string) PageData {
+	data := PageData{
+		Title:           "Avatar",
+		Username:        user.Name,
+		AvatarImage:     getAvatarImage(user),
+		Coins:           getCoinBalance(user.UserID),
+		AvatarBases:     getAvatarBaseViews(user.UserID),
+		AvatarCosmetics: getAvatarCosmeticGroups(user.UserID),
+		AvatarBadges:    getAvatarBadges(user.UserID),
+		AvatarMessage:   message,
+		ActiveNav:       "avatar",
+		UseStudentCSS:   true,
+	}
+
+	return data
 }
 
 func attendanceView(w http.ResponseWriter, r *http.Request) {
@@ -168,7 +257,8 @@ func isDoubleDay(classroomID string, now time.Time) bool {
 }
 
 func getAvatarImage(user *User) string {
-	return defaultAvatarImage
+	config := getAvatarConfig(user.UserID)
+	return avatarImageForBase(config.Base)
 }
 
 func getTodayAttendanceState(user *User) (status string, message string, canMark bool) {
@@ -272,9 +362,10 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 		Coins:          getCoinBalance(user.UserID),
 		ShopItems:      allItems,
 		OwnedShopItems: ownedItems,
+		AvatarBadges:   getAvatarBadges(user.UserID),
 		ShopMessage:    r.URL.Query().Get("msg"),
-		ActiveNav: "shop",
-		UseStudentCSS: true,
+		ActiveNav:      "shop",
+		UseStudentCSS:  true,
 	}
 
 	renderStudent(w, "shopView.html", data)
@@ -339,37 +430,56 @@ func ensureShopState() {
 	}
 }
 
+func ensureAvatarState() {
+	if app.AvatarConfigs == nil {
+		app.AvatarConfigs = map[string]*AvatarConfig{}
+	}
+}
+
 func seedShopItems() {
-	if len(app.ShopItems) > 0 {
-		return
+	changed := false
+	for _, item := range defaultShopItems() {
+		if _, exists := app.ShopItems[item.ID]; exists {
+			continue
+		}
+
+		itemCopy := item
+		app.ShopItems[item.ID] = &itemCopy
+		changed = true
 	}
 
-	app.ShopItems["hat_star"] = &ShopItem{
-		ID:          "hat_star",
-		Name:        "Star Hat",
-		Price:       5,
-		Description: "A bright hat for a standout student.",
+	if changed {
+		saveData()
 	}
-	app.ShopItems["trail_rainbow"] = &ShopItem{
-		ID:          "trail_rainbow",
-		Name:        "Rainbow Trail",
-		Price:       8,
-		Description: "A colorful trail effect for your avatar.",
-	}
-	app.ShopItems["cape_gold"] = &ShopItem{
-		ID:          "cape_gold",
-		Name:        "Golden Cape",
-		Price:       12,
-		Description: "A shiny cape for extra style.",
-	}
-	app.ShopItems["glasses_rocket"] = &ShopItem{
-		ID:          "glasses_rocket",
-		Name:        "Rocket Glasses",
-		Price:       10,
-		Description: "A bold accessory for your avatar.",
-	}
+}
 
-	saveData()
+func defaultShopItems() []ShopItem {
+	return []ShopItem{
+		{
+			ID:          "hat_star",
+			Name:        "Star Hat",
+			Price:       5,
+			Description: "A bright hat for a standout student.",
+		},
+		{
+			ID:          "trail_rainbow",
+			Name:        "Rainbow Trail",
+			Price:       8,
+			Description: "A colorful trail effect for your avatar.",
+		},
+		{
+			ID:          "cape_gold",
+			Name:        "Golden Cape",
+			Price:       12,
+			Description: "A shiny cape for extra style.",
+		},
+		{
+			ID:          "glasses_rocket",
+			Name:        "Rocket Glasses",
+			Price:       10,
+			Description: "A bold accessory for your avatar.",
+		},
+	}
 }
 
 func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView) {
@@ -416,4 +526,166 @@ func appendUniqueString(values []string, value string) []string {
 		}
 	}
 	return append(values, value)
+}
+
+func getAvatarConfig(userID string) AvatarConfig {
+	ensureAvatarState()
+
+	config := AvatarConfig{Base: defaultAvatarBase}
+	if saved, ok := app.AvatarConfigs[userID]; ok && saved != nil {
+		config = *saved
+	}
+	if config.Base == "" || !avatarBaseExists(config.Base) {
+		config.Base = defaultAvatarBase
+	}
+
+	return config
+}
+
+func avatarBaseExists(baseID string) bool {
+	for _, option := range avatarBaseOptions {
+		if option.ID == baseID {
+			return true
+		}
+	}
+	return false
+}
+
+func avatarImageForBase(baseID string) string {
+	for _, option := range avatarBaseOptions {
+		if option.ID == baseID {
+			return option.Image
+		}
+	}
+	return defaultAvatarImage
+}
+
+func getAvatarBaseViews(userID string) []AvatarBaseView {
+	config := getAvatarConfig(userID)
+	views := make([]AvatarBaseView, 0, len(avatarBaseOptions))
+
+	for _, option := range avatarBaseOptions {
+		views = append(views, AvatarBaseView{
+			ID:       option.ID,
+			Name:     option.Name,
+			Image:    option.Image,
+			Selected: option.ID == config.Base,
+		})
+	}
+
+	return views
+}
+
+func getAvatarCosmeticGroups(userID string) []AvatarCosmeticGroupView {
+	config := getAvatarConfig(userID)
+	groupIndexByForm := map[string]int{}
+	groups := make([]AvatarCosmeticGroupView, 0)
+
+	for _, option := range avatarCosmeticOptions {
+		groupIndex, exists := groupIndexByForm[option.FormName]
+		if !exists {
+			groups = append(groups, AvatarCosmeticGroupView{
+				SlotLabel:  option.SlotLabel,
+				FormName:   option.FormName,
+				SelectedID: selectedAvatarSlot(config, option.FormName),
+			})
+			groupIndex = len(groups) - 1
+			groupIndexByForm[option.FormName] = groupIndex
+		}
+
+		item := shopItemForID(option.ID)
+		groups[groupIndex].Options = append(groups[groupIndex].Options, AvatarCosmeticView{
+			ID:          option.ID,
+			Name:        item.Name,
+			Description: item.Description,
+			SlotLabel:   option.SlotLabel,
+			FormName:    option.FormName,
+			Owned:       userOwnsShopItem(userID, option.ID),
+			Selected:    selectedAvatarSlot(config, option.FormName) == option.ID,
+		})
+	}
+
+	return groups
+}
+
+func validateAvatarCosmeticSelection(userID, formName, selectedID string) error {
+	if selectedID == "" {
+		return nil
+	}
+
+	for _, option := range avatarCosmeticOptions {
+		if option.FormName == formName && option.ID == selectedID {
+			if !userOwnsShopItem(userID, selectedID) {
+				return fmt.Errorf("Buy %s in the shop before equipping it.", shopItemForID(selectedID).Name)
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("That avatar cosmetic does not exist.")
+}
+
+func selectedAvatarSlot(config AvatarConfig, formName string) string {
+	switch formName {
+	case "hair_style":
+		return config.HairStyle
+	case "clothing":
+		return config.Clothing
+	case "accessory":
+		return config.Accessory
+	case "effect":
+		return config.Effect
+	default:
+		return ""
+	}
+}
+
+func setAvatarSlot(config *AvatarConfig, formName, selectedID string) {
+	switch formName {
+	case "hair_style":
+		config.HairStyle = selectedID
+	case "clothing":
+		config.Clothing = selectedID
+	case "accessory":
+		config.Accessory = selectedID
+	case "effect":
+		config.Effect = selectedID
+	}
+}
+
+func shopItemForID(itemID string) ShopItem {
+	if item, ok := app.ShopItems[itemID]; ok && item != nil {
+		return *item
+	}
+
+	for _, item := range defaultShopItems() {
+		if item.ID == itemID {
+			return item
+		}
+	}
+
+	return ShopItem{
+		ID:          itemID,
+		Name:        itemID,
+		Description: "Avatar cosmetic.",
+	}
+}
+
+func getAvatarBadges(userID string) []AvatarBadgeView {
+	config := getAvatarConfig(userID)
+	badges := make([]AvatarBadgeView, 0)
+
+	for _, option := range avatarCosmeticOptions {
+		if selectedAvatarSlot(config, option.FormName) != option.ID {
+			continue
+		}
+
+		item := shopItemForID(option.ID)
+		badges = append(badges, AvatarBadgeView{
+			Name:      item.Name,
+			SlotLabel: option.SlotLabel,
+		})
+	}
+
+	return badges
 }

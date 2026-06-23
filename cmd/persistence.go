@@ -31,6 +31,9 @@ func loadData() {
 	if app.ShopItems == nil {
 		app.ShopItems = make(map[string]*ShopItem)
 	}
+	if app.OwnedShopItems == nil {
+		app.OwnedShopItems = make(map[string][]string)
+	}
 	if app.AvatarConfigs == nil {
 		app.AvatarConfigs = make(map[string]*AvatarConfig)
 	}

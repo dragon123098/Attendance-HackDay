@@ -14,6 +14,13 @@
   <div class="user-meta">
     <div class="user-name">{{.Username}}</div>
     <div class="coin-badge">🪙 {{.Coins}}</div>
+    {{if .AvatarBadges}}
+    <div class="avatar-mini-badges">
+      {{range .AvatarBadges}}
+      <span>{{.Name}}</span>
+      {{end}}
+    </div>
+    {{end}}
   </div>
 
   <form method="POST" action="/logout">

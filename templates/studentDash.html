@@ -6,6 +6,25 @@
         <p>Ready to earn today's attendance coins?</p>
     </div>
 
+    <div class="dashboard-avatar-card">
+        <div class="avatar-current-image">
+            <img src="{{.AvatarImage}}" alt="Current Avatar">
+        </div>
+
+        <div class="avatar-current-info">
+            <h2>Your Avatar</h2>
+            <div class="avatar-preview-badges">
+                {{if .AvatarBadges}}
+                    {{range .AvatarBadges}}
+                    <span class="avatar-badge">{{.Name}}</span>
+                    {{end}}
+                {{else}}
+                    <span class="avatar-empty-text">No cosmetics equipped</span>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
     <div class="schedule-banner">
         <h3>📅 Weekly Schedule</h3>
 
