@@ -1,9 +1,11 @@
 package web
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"sort"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type ClassroomPageData struct {
@@ -12,6 +14,27 @@ type ClassroomPageData struct {
 	HeaderSubtitle string
 	HeaderBadge    string
 	Classrooms     []*Classroom
+}
+
+type AdminDashboardPageData struct {
+	Title          string
+	Username       string
+	HeaderTitle    string
+	HeaderSubtitle string
+	HeaderBadge    string
+	Classrooms     []AdminClassroomView
+}
+
+type AdminClassroomView struct {
+	Name     string
+	ID       string
+	Teacher  AdminClassroomPerson
+	Students []AdminClassroomPerson
+}
+
+type AdminClassroomPerson struct {
+	Name   string
+	UserID string
 }
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
@@ -77,12 +100,88 @@ func adminView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := PageData{
-		Title:    "Admin Dashboard",
-		Username: user.Name,
+	data := AdminDashboardPageData{
+		Title:          "Admin Dashboard",
+		Username:       user.Name,
+		HeaderTitle:    "Admin Dashboard",
+		HeaderSubtitle: "Review classroom assignments and roster details.",
+		HeaderBadge:    "Admin View",
+		Classrooms:     buildAdminClassroomViews(),
 	}
 
 	renderAdmin(w, "adminDash.html", data)
+}
+
+func buildAdminClassroomViews() []AdminClassroomView {
+	classroomIDs := make([]string, 0, len(app.Classrooms))
+	for id := range app.Classrooms {
+		classroomIDs = append(classroomIDs, id)
+	}
+	sort.Strings(classroomIDs)
+
+	classrooms := make([]AdminClassroomView, 0, len(classroomIDs))
+	for _, id := range classroomIDs {
+		classroom := app.Classrooms[id]
+		studentIDs := assignedStudentIDs(classroom)
+		students := make([]AdminClassroomPerson, 0, len(studentIDs))
+
+		for _, studentID := range studentIDs {
+			students = append(students, adminClassroomPerson(studentID))
+		}
+
+		classrooms = append(classrooms, AdminClassroomView{
+			Name:     classroom.Name,
+			ID:       classroom.ID,
+			Teacher:  adminClassroomPerson(classroom.TeacherID),
+			Students: students,
+		})
+	}
+
+	return classrooms
+}
+
+func assignedStudentIDs(classroom *Classroom) []string {
+	seen := make(map[string]bool)
+	for _, studentID := range classroom.StudentIDs {
+		studentID = strings.TrimSpace(studentID)
+		if studentID != "" {
+			seen[studentID] = true
+		}
+	}
+
+	for userID, user := range app.Users {
+		if user.Role == "student" && user.ClassroomID == classroom.ID {
+			seen[userID] = true
+		}
+	}
+
+	studentIDs := make([]string, 0, len(seen))
+	for studentID := range seen {
+		studentIDs = append(studentIDs, studentID)
+	}
+	sort.Strings(studentIDs)
+
+	return studentIDs
+}
+
+func adminClassroomPerson(userID string) AdminClassroomPerson {
+	userID = strings.TrimSpace(userID)
+	if userID == "" {
+		return AdminClassroomPerson{Name: "Unassigned"}
+	}
+
+	user, ok := app.Users[userID]
+	if !ok {
+		return AdminClassroomPerson{
+			Name:   "Unknown user",
+			UserID: userID,
+		}
+	}
+
+	return AdminClassroomPerson{
+		Name:   user.Name,
+		UserID: user.UserID,
+	}
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {
@@ -265,7 +364,7 @@ func saveClassrooms(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-//MetaData for teacher information
+// MetaData for teacher information
 type TeacherCreatePageData struct {
 	Title          string
 	HeaderTitle    string

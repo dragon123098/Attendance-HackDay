@@ -846,6 +846,20 @@ a {
     font-weight: 800;
 }
 
+.admin-page-header {
+    margin-bottom: 1rem;
+}
+
+.admin-page-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.admin-page-header p {
+    margin: .35rem 0 0;
+    color: #5f6b57;
+}
+
 .classroom-list {
     display: flex;
     flex-direction: column;
