@@ -1,0 +1,113 @@
+package web
+
+import (
+	"bytes"
+	"html/template"
+	"io/fs"
+	"regexp"
+	"strings"
+	"testing"
+
+	"github.com/dragon123098/Attendance-HackDay.git/internal/view"
+)
+
+func TestRenderedPagesReferenceExistingCSS(t *testing.T) {
+	cases := []struct {
+		name string
+		load func() (*template.Template, error)
+	}{
+		{
+			name: "login",
+			load: func() (*template.Template, error) {
+				return loadUnAuthTemplates("login.html")
+			},
+		},
+		{
+			name: "student dashboard",
+			load: func() (*template.Template, error) {
+				return loadStudentTemplates("studentDash.html")
+			},
+		},
+		{
+			name: "student shop",
+			load: func() (*template.Template, error) {
+				return loadStudentTemplates("shopView.html")
+			},
+		},
+		{
+			name: "student avatar",
+			load: func() (*template.Template, error) {
+				return loadStudentTemplates("avatarView.html")
+			},
+		},
+		{
+			name: "teacher dashboard",
+			load: func() (*template.Template, error) {
+				return loadTeacherTemplates("teacherDash.html")
+			},
+		},
+		{
+			name: "admin dashboard",
+			load: func() (*template.Template, error) {
+				return loadAdminTemplates("adminDash.html")
+			},
+		},
+		{
+			name: "create classroom",
+			load: func() (*template.Template, error) {
+				return loadAdminTemplates("classrooms.html")
+			},
+		},
+		{
+			name: "edit classrooms",
+			load: func() (*template.Template, error) {
+				return loadAdminTemplates("editClassrooms.html")
+			},
+		},
+		{
+			name: "add teacher",
+			load: func() (*template.Template, error) {
+				return loadAdminTemplates("createTeacher.html")
+			},
+		},
+		{
+			name: "add student",
+			load: func() (*template.Template, error) {
+				return loadAdminTemplates("createStudent.html")
+			},
+		},
+	}
+
+	cssLink := regexp.MustCompile(`<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"`)
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tmpl, err := tc.load()
+			if err != nil {
+				t.Fatalf("load template: %v", err)
+			}
+
+			var rendered bytes.Buffer
+			if err := tmpl.ExecuteTemplate(&rendered, "base", nil); err != nil {
+				t.Fatalf("render template: %v", err)
+			}
+
+			matches := cssLink.FindAllStringSubmatch(rendered.String(), -1)
+			if len(matches) == 0 {
+				t.Fatal("expected at least one stylesheet link")
+			}
+
+			for _, match := range matches {
+				href := match[1]
+				if !strings.HasPrefix(href, "/static/") {
+					t.Fatalf("stylesheet %q is not served from /static", href)
+				}
+
+				assetPath := strings.TrimPrefix(href, "/")
+				if _, err := fs.Stat(view.FS, assetPath); err != nil {
+					t.Fatalf("stylesheet %q does not exist in embedded FS: %v", href, err)
+				}
+			}
+		})
+	}
+}
