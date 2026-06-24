@@ -37,6 +37,19 @@ type AdminClassroomPerson struct {
 	UserID string
 }
 
+type StudentCreatePageData struct {
+	Title          string
+	HeaderTitle    string
+	HeaderSubtitle string
+	HeaderBadge    string
+	Classrooms     []ClassroomOption
+}
+
+type ClassroomOption struct {
+	ID   string
+	Name string
+}
+
 func teacherView(w http.ResponseWriter, r *http.Request) {
 	username, err := getSessionUser(r)
 	if err != nil {
@@ -182,6 +195,25 @@ func adminClassroomPerson(userID string) AdminClassroomPerson {
 		Name:   user.Name,
 		UserID: user.UserID,
 	}
+}
+
+func classroomOptions() []ClassroomOption {
+	classroomIDs := make([]string, 0, len(app.Classrooms))
+	for id := range app.Classrooms {
+		classroomIDs = append(classroomIDs, id)
+	}
+	sort.Strings(classroomIDs)
+
+	options := make([]ClassroomOption, 0, len(classroomIDs))
+	for _, id := range classroomIDs {
+		classroom := app.Classrooms[id]
+		options = append(options, ClassroomOption{
+			ID:   classroom.ID,
+			Name: classroom.Name,
+		})
+	}
+
+	return options
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {
@@ -449,4 +481,93 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 	saveData()
 
 	//http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
+}
+
+func createStudent(w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w, r)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if user.Role != "admin" {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	data := StudentCreatePageData{
+		Title:          "Add Student",
+		HeaderTitle:    "Admin Tools",
+		HeaderSubtitle: "Create a new student account.",
+		HeaderBadge:    "Admin View",
+		Classrooms:     classroomOptions(),
+	}
+
+	renderAdmin(w, "createStudent.html", data)
+}
+
+func studentCreateSubmitView(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "could not parse form", http.StatusBadRequest)
+		return
+	}
+
+	userID := strings.TrimSpace(r.FormValue("user_id"))
+	name := strings.TrimSpace(r.FormValue("name"))
+	email := strings.TrimSpace(r.FormValue("email"))
+	classroomID := strings.TrimSpace(r.FormValue("classroom_id"))
+	password := r.FormValue("password")
+
+	if userID == "" || name == "" || email == "" || password == "" || classroomID == "" {
+		http.Error(w, "all fields are required", http.StatusBadRequest)
+		return
+	}
+
+	classroom, ok := app.Classrooms[classroomID]
+	if !ok {
+		http.Error(w, "classroom does not exist", http.StatusBadRequest)
+		return
+	}
+
+	if app.Users == nil {
+		app.Users = make(map[string]*User)
+	}
+
+	if _, exists := app.Users[userID]; exists {
+		http.Error(w, "student id already exists", http.StatusConflict)
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "could not hash password", http.StatusInternalServerError)
+		return
+	}
+
+	student := &User{
+		Name:         name,
+		Role:         "student",
+		Email:        email,
+		PasswordHash: string(hash),
+		ClassroomID:  classroomID,
+		UserID:       userID,
+	}
+
+	app.Users[userID] = student
+	classroom.StudentIDs = appendUniqueString(classroom.StudentIDs, userID)
+	saveData()
+
+	http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
 }

@@ -42,6 +42,8 @@ func NewRouter() http.Handler {
 	mux.HandleFunc("POST /classrooms/edit", saveClassrooms)
 	mux.HandleFunc("GET /addTeacher", createTeacher)
 	mux.HandleFunc("POST /addTeacher", teacherCreateSubmitView)
+	mux.HandleFunc("GET /addStudent", createStudent)
+	mux.HandleFunc("POST /addStudent", studentCreateSubmitView)
 
 	return mux
 }

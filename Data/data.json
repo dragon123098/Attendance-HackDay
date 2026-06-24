@@ -1,5 +1,13 @@
 {
     "users": {
+        "DHoney": {
+            "name": "Dylan Steenhoek",
+            "role": "teacher",
+            "email": "DHoney@example.com",
+            "password_hash": "$2a$10$lSkGtrwXNpsriRUxhgGor.nLddrL0hiCjGtW/TEQ.NGC99j6xN5DW",
+            "classroom_id": "",
+            "user_id": "DHoney"
+        },
         "JRGRUNIG": {
             "name": "Jed Grunig",
             "role": "teacher",
@@ -15,6 +23,22 @@
             "password_hash": "$2a$10$j7TaLACJVyfoNgoiimtyy.b/PR.75ri.RZeEVoU.EBdyFHwjDwWxS",
             "classroom_id": "",
             "user_id": "admin1"
+        },
+        "jb": {
+            "name": "Joey",
+            "role": "student",
+            "email": "jb@example.com",
+            "password_hash": "$2a$10$3fBFhi5ZfE4v7u/yehwR8uNqbqSY35PrYsnXxrYSV35ePJr5MunnC",
+            "classroom_id": "classroom1",
+            "user_id": "jb"
+        },
+        "sconner1": {
+            "name": "Seth Conner",
+            "role": "teacher",
+            "email": "sconner1@example.com",
+            "password_hash": "$2a$10$ExSwVRKGZf99Q571Qe30Uuh/ecKQyupGFSqWfus2GiE0c8dejGXty",
+            "classroom_id": "",
+            "user_id": "sconner1"
         },
         "student1": {
             "name": "Test Student",
@@ -35,21 +59,28 @@
     },
     "classrooms": {
         "classroom1": {
-            "name": "Period 1",
+            "name": "1st Grade",
             "id": "classroom1",
-            "teacher_id": "teacher1",
+            "teacher_id": "sconner1",
             "student_ids": [
-                "student1"
+                "student1",
+                "jb"
             ]
         },
         "classroom2": {
-            "name": "Period 2",
+            "name": "5th Grade",
             "id": "classroom2",
             "teacher_id": "JRGRUNIG",
             "student_ids": [
                 "student3",
                 "student4"
             ]
+        },
+        "classroom3": {
+            "name": "2nd Grade",
+            "id": "classroom3",
+            "teacher_id": "DHoney",
+            "student_ids": null
         }
     },
     "shop_items": {
