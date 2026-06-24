@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 
@@ -48,6 +49,28 @@ type StudentCreatePageData struct {
 type ClassroomOption struct {
 	ID   string
 	Name string
+}
+
+type UserSettingsPageData struct {
+	Title          string
+	HeaderTitle    string
+	HeaderSubtitle string
+	HeaderBadge    string
+	Query          string
+	Users          []UserSettingsRow
+	RoleOptions    []RoleOption
+}
+
+type UserSettingsRow struct {
+	Name   string
+	UserID string
+	Email  string
+	Role   string
+}
+
+type RoleOption struct {
+	Value string
+	Label string
 }
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
@@ -216,6 +239,80 @@ func classroomOptions() []ClassroomOption {
 	return options
 }
 
+func userRoleOptions() []RoleOption {
+	return []RoleOption{
+		{Value: "student", Label: "Student"},
+		{Value: "teacher", Label: "Teacher"},
+		{Value: "admin", Label: "Admin"},
+	}
+}
+
+func buildUserSettingsRows(query string) []UserSettingsRow {
+	query = strings.ToLower(strings.TrimSpace(query))
+	rows := make([]UserSettingsRow, 0, len(app.Users))
+
+	for _, user := range app.Users {
+		if query != "" && !userMatchesSearch(user, query) {
+			continue
+		}
+
+		rows = append(rows, UserSettingsRow{
+			Name:   user.Name,
+			UserID: user.UserID,
+			Email:  user.Email,
+			Role:   user.Role,
+		})
+	}
+
+	sort.Slice(rows, func(i, j int) bool {
+		leftName := strings.ToLower(rows[i].Name)
+		rightName := strings.ToLower(rows[j].Name)
+		if leftName == rightName {
+			return strings.ToLower(rows[i].UserID) < strings.ToLower(rows[j].UserID)
+		}
+		return leftName < rightName
+	})
+
+	return rows
+}
+
+func userMatchesSearch(user *User, query string) bool {
+	values := []string{
+		user.Name,
+		user.Email,
+		user.UserID,
+		user.Role,
+	}
+
+	for _, value := range values {
+		if strings.Contains(strings.ToLower(value), query) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isValidUserRole(role string) bool {
+	for _, option := range userRoleOptions() {
+		if role == option.Value {
+			return true
+		}
+	}
+
+	return false
+}
+
+func adminUserCount() int {
+	count := 0
+	for _, user := range app.Users {
+		if user.Role == "admin" {
+			count++
+		}
+	}
+	return count
+}
+
 func adminEditView(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -241,6 +338,104 @@ func adminEditView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func userSettingsView(w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	user, ok := app.Users[username]
+	if !ok {
+		clearSessionUser(w, r)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if user.Role != "admin" {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	data := UserSettingsPageData{
+		Title:          "User Settings",
+		HeaderTitle:    "User Settings",
+		HeaderSubtitle: "Search users and manage their roles.",
+		HeaderBadge:    "Admin View",
+		Query:          query,
+		Users:          buildUserSettingsRows(query),
+		RoleOptions:    userRoleOptions(),
+	}
+
+	renderAdmin(w, "userSettings.html", data)
+}
+
+func updateUserRoleView(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	currentUserID, err := getSessionUser(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	currentUser, ok := app.Users[currentUserID]
+	if !ok {
+		clearSessionUser(w, r)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if currentUser.Role != "admin" {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "could not parse form", http.StatusBadRequest)
+		return
+	}
+
+	targetUserID := strings.TrimSpace(r.FormValue("user_id"))
+	role := strings.TrimSpace(r.FormValue("role"))
+	query := strings.TrimSpace(r.FormValue("q"))
+
+	targetUser, ok := app.Users[targetUserID]
+	if !ok {
+		http.Error(w, "user does not exist", http.StatusBadRequest)
+		return
+	}
+
+	if !isValidUserRole(role) {
+		http.Error(w, "invalid role", http.StatusBadRequest)
+		return
+	}
+
+	// Keep at least one reachable admin account after every role update.
+	if targetUserID == currentUserID && role != "admin" {
+		http.Error(w, "you cannot remove your own admin role", http.StatusBadRequest)
+		return
+	}
+
+	if targetUser.Role == "admin" && role != "admin" && adminUserCount() <= 1 {
+		http.Error(w, "cannot remove the last admin role", http.StatusBadRequest)
+		return
+	}
+
+	targetUser.Role = role
+	saveData()
+
+	redirectTo := "/userSettings"
+	if query != "" {
+		redirectTo += "?q=" + url.QueryEscape(query)
+	}
+	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
 }
 
 func listClassroomsView(w http.ResponseWriter, r *http.Request) {
@@ -480,7 +675,7 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 	app.Users[userID] = teacher
 	saveData()
 
-	//http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
+	http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
 }
 
 func createStudent(w http.ResponseWriter, r *http.Request) {
