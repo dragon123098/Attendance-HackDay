@@ -1,10 +1,18 @@
 .admin-shell {
+  --admin-red-900: #5f1717;
+  --admin-red-800: #7f1d1d;
+  --admin-red-700: #9f2424;
+  --admin-red-600: #c63c3c;
+  --admin-red-300: #e7b0b0;
+  --admin-red-100: #fff0f0;
+  --admin-red-50: #fffafa;
+
   min-height: 100vh;
   margin: 0;
   font-family: "Trebuchet MS", "Verdana", "Segoe UI", sans-serif;
-  color: #24301f;
+  color: #3a1616;
   background:
-    linear-gradient(180deg, #eef3e6 0%, #e2ead6 100%);
+    linear-gradient(180deg, var(--admin-red-100) 0%, #f8dada 100%);
 }
 
 .admin-main {
@@ -27,9 +35,9 @@
   border-radius: 14px;
   text-decoration: none;
   font-weight: 800;
-  color: #24301f;
-  background: rgba(255,255,255,.7);
-  border: 1px solid rgba(0,0,0,.05);
+  color: var(--admin-red-900);
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(137, 31, 31, .12);
   transition: all .15s ease;
 }
 
@@ -37,7 +45,7 @@
   background: white;
   transform: translateY(-2px);
   box-shadow:
-    0 6px 14px rgba(0,0,0,.08);
+    0 6px 14px rgba(137,31,31,.12);
 }
 
 .teacher-header {
@@ -49,12 +57,12 @@
   border-radius: 20px;
   background: linear-gradient(
     135deg,
-    #6f8451 0%,
-    #5f7340 100%
+    var(--admin-red-600) 0%,
+    var(--admin-red-800) 100%
   );
   color: white;
   box-shadow:
-    0 10px 30px rgba(0,0,0,.12);
+    0 10px 30px rgba(137,31,31,.22);
 }
 
 .teacher-header-title {
@@ -88,7 +96,69 @@
 
 .admin-page-header p {
   margin: .35rem 0 0;
-  color: #5f6b57;
+  color: #8f3a3a;
+}
+
+.admin-form-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background: var(--admin-red-50);
+  border: 1px solid rgba(137, 31, 31, .12);
+  box-shadow: 0 8px 22px rgba(137, 31, 31, .08);
+}
+
+.admin-shell .form-group input,
+.admin-shell .form-group select,
+.admin-shell .form-group textarea {
+  width: 100%;
+  padding: .75rem;
+  border: 2px solid var(--admin-red-300);
+  border-radius: 12px;
+  background: white;
+  color: #3a1616;
+  font-size: 1rem;
+}
+
+.admin-shell .form-group input:focus,
+.admin-shell .form-group select:focus,
+.admin-shell .form-group textarea:focus {
+  outline: none;
+  border-color: var(--admin-red-600);
+}
+
+.admin-submit-btn {
+  border: none;
+  border-radius: 999px;
+  padding: .75rem 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(145deg, #d94b4b, var(--admin-red-700));
+}
+
+.admin-submit-btn:hover {
+  background: linear-gradient(145deg, #e15858, var(--admin-red-800));
+}
+
+.admin-shell table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.admin-shell th,
+.admin-shell td {
+  padding: .85rem;
+  border-bottom: 1px solid rgba(137, 31, 31, .14);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-shell th {
+  color: var(--admin-red-900);
+  background: var(--admin-red-100);
+  font-weight: 900;
 }
 
 .classroom-list {
@@ -100,8 +170,8 @@
 .classroom-row {
   padding: 1rem;
   border-radius: 16px;
-  background: #fbfcf8;
-  border: 1px solid rgba(36, 48, 31, 0.08);
+  background: var(--admin-red-50);
+  border: 1px solid rgba(137, 31, 31, 0.12);
 }
 
 .classroom-info {
