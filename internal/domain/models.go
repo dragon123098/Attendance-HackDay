@@ -47,6 +47,7 @@ type AvatarConfig struct {
 	HairStyle string `json:"hair_style"`
 	Clothing  string `json:"clothing"`
 	Accessory string `json:"accessory"`
+	Effect    string `json:"effect"`
 }
 
 type CoinTransaction struct {

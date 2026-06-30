@@ -122,12 +122,12 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Update balance after purchases
 
 ### Avatar System
-- [ ] Persist avatar selections
-- [ ] Display available avatar options
-- [ ] Display owned/unlocked cosmetics
-- [ ] Preview avatar changes
-- [ ] Save avatar changes
-- [ ] Show avatar on dashboard/navbar
+- [x] Persist avatar selections
+- [x] Display available avatar options
+- [x] Display owned/unlocked cosmetics
+- [x] Preview avatar changes
+- [x] Save avatar changes
+- [x] Show avatar on dashboard/navbar
 
 ### Student Navbar Integration
 - [x] Display avatar

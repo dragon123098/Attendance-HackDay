@@ -33,23 +33,57 @@ type ShopItemView struct {
 	Image       string `json:"image"`
 }
 
+type AvatarBaseOptionView struct {
+	ID       string
+	Label    string
+	Image    string
+	Selected bool
+}
+
+type AvatarCosmeticOptionView struct {
+	ID       string
+	Label    string
+	Slot     string
+	Owned    bool
+	Selected bool
+}
+
+type AvatarPreviewView struct {
+	BaseLabel      string
+	BaseImage      string
+	HairStyleLabel string
+	ClothingLabel  string
+	AccessoryLabel string
+	EffectLabel    string
+	HasCosmetics   bool
+}
+
 type PageData struct {
-	Title              string
-	Username           string
-	AvatarImage        string
-	Error              string
-	Coins              int
-	HeaderTitle        string
-	HeaderSubtitle     string
-	HeaderBadge        string
-	AttendanceStatus   string
-	AttendanceMessage  string
-	CanMarkAttendance  bool
-	WeeklySchedule     []ScheduleItemView
-	UpcomingDoubleDays []DoubleDayView
-	ActiveNav          string
-	UseStudentCSS      bool
-	ShopItems          []ShopItemView
-	OwnedShopItems     []ShopItemView
-	ShopMessage        string
+	Title               string
+	Username            string
+	AvatarImage         string
+	AvatarSummary       []string
+	Error               string
+	Coins               int
+	HeaderTitle         string
+	HeaderSubtitle      string
+	HeaderBadge         string
+	AttendanceStatus    string
+	AttendanceMessage   string
+	CanMarkAttendance   bool
+	WeeklySchedule      []ScheduleItemView
+	UpcomingDoubleDays  []DoubleDayView
+	ActiveNav           string
+	UseStudentCSS       bool
+	ShopItems           []ShopItemView
+	OwnedShopItems      []ShopItemView
+	ShopMessage         string
+	AvatarBaseOptions   []AvatarBaseOptionView
+	AvatarHairOptions   []AvatarCosmeticOptionView
+	AvatarClothOptions  []AvatarCosmeticOptionView
+	AvatarAccessOptions []AvatarCosmeticOptionView
+	AvatarEffectOptions []AvatarCosmeticOptionView
+	AvatarPreview       AvatarPreviewView
+	AvatarMessage       string
+	AvatarError         string
 }

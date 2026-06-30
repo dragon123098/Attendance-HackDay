@@ -6,33 +6,110 @@
         <p>Pick a character to represent you in Attendance Quest.</p>
     </div>
 
+    {{if .AvatarMessage}}
+    <div class="shop-message">{{.AvatarMessage}}</div>
+    {{end}}
+
+    {{if .AvatarError}}
+    <div class="shop-message avatar-error">{{.AvatarError}}</div>
+    {{end}}
+
     <div class="avatar-current-card">
         <div class="avatar-current-image">
-            <img src="{{.AvatarImage}}" alt="Current Avatar">
+            <img src="{{.AvatarPreview.BaseImage}}" alt="Current Avatar">
         </div>
 
         <div class="avatar-current-info">
-            <h2>Your Current Avatar</h2>
-            <p>Looks good! You can change it later when you unlock more choices.</p>
+            <h2>{{.AvatarPreview.BaseLabel}}</h2>
+            {{if .AvatarPreview.HasCosmetics}}
+            <div class="avatar-summary-list">
+                {{if .AvatarPreview.HairStyleLabel}}<span>{{.AvatarPreview.HairStyleLabel}}</span>{{end}}
+                {{if .AvatarPreview.ClothingLabel}}<span>{{.AvatarPreview.ClothingLabel}}</span>{{end}}
+                {{if .AvatarPreview.AccessoryLabel}}<span>{{.AvatarPreview.AccessoryLabel}}</span>{{end}}
+                {{if .AvatarPreview.EffectLabel}}<span>{{.AvatarPreview.EffectLabel}}</span>{{end}}
+            </div>
+            {{else}}
+            <p>No cosmetics equipped yet.</p>
+            {{end}}
         </div>
     </div>
 
-    <div class="avatar-grid">
-        <div class="avatar-option">
-            <img src="/static/Images/gerald.png" alt="Avatar option 1">
-            <button type="button" class="avatar-select-btn">Select</button>
+    <form method="POST" class="avatar-form">
+        <div class="avatar-section">
+            <div class="section-header">
+                <h2>Base Avatar</h2>
+                <p>Base avatars are available to every student.</p>
+            </div>
+
+            <div class="avatar-grid">
+                {{range .AvatarBaseOptions}}
+                <label class="avatar-option">
+                    <input type="radio" name="base" value="{{.ID}}" {{if .Selected}}checked{{end}}>
+                    <img src="{{.Image}}" alt="{{.Label}}">
+                    <span>{{.Label}}</span>
+                </label>
+                {{end}}
+            </div>
         </div>
 
-        <div class="avatar-option">
-            <img src="/static/Images/gerald.png" alt="Avatar option 2">
-            <button type="button" class="avatar-select-btn">Select</button>
+        <div class="avatar-section">
+            <div class="section-header">
+                <h2>Owned Cosmetics</h2>
+                <p>Buy cosmetics in the shop to unlock more options.</p>
+            </div>
+
+            <div class="avatar-cosmetic-groups">
+                <fieldset class="avatar-cosmetic-group">
+                    <legend>Hair</legend>
+                    {{range .AvatarHairOptions}}
+                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
+                        <input type="radio" name="hair_style" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        <span>{{.Label}}</span>
+                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
+                    </label>
+                    {{end}}
+                </fieldset>
+
+                <fieldset class="avatar-cosmetic-group">
+                    <legend>Clothing</legend>
+                    {{range .AvatarClothOptions}}
+                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
+                        <input type="radio" name="clothing" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        <span>{{.Label}}</span>
+                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
+                    </label>
+                    {{end}}
+                </fieldset>
+
+                <fieldset class="avatar-cosmetic-group">
+                    <legend>Accessory</legend>
+                    {{range .AvatarAccessOptions}}
+                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
+                        <input type="radio" name="accessory" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        <span>{{.Label}}</span>
+                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
+                    </label>
+                    {{end}}
+                </fieldset>
+
+                <fieldset class="avatar-cosmetic-group">
+                    <legend>Effect</legend>
+                    {{range .AvatarEffectOptions}}
+                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
+                        <input type="radio" name="effect" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        <span>{{.Label}}</span>
+                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
+                    </label>
+                    {{end}}
+                </fieldset>
+            </div>
         </div>
 
-        <div class="avatar-option">
-            <img src="/static/Images/gerald.png" alt="Avatar option 3">
-            <button type="button" class="avatar-select-btn">Select</button>
+        <div class="avatar-actions">
+            <button type="submit" formaction="/avatar/preview" class="avatar-select-btn">Preview</button>
+            <button type="submit" formaction="/avatar" class="avatar-save-btn">Save Avatar</button>
         </div>
-    </div>
+    </form>
 </div>
 
 {{end}}

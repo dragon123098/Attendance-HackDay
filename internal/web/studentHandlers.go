@@ -11,7 +11,6 @@ import (
 
 const startingStudentCoins = 10
 const attendanceRewardCoins = 1
-const defaultAvatarImage = "/static/images/geraldIcon3.png"
 
 func studentView(w http.ResponseWriter, r *http.Request) {
 	user, ok := currentSessionUser(w, r)
@@ -27,6 +26,7 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 		Title:              "Student Dashboard",
 		Username:           user.Name,
 		AvatarImage:        getAvatarImage(user),
+		AvatarSummary:      avatarSummary(savedAvatarConfig(user.UserID)),
 		Coins:              getCoinBalance(user.UserID),
 		AttendanceStatus:   attendanceStatus,
 		AttendanceMessage:  attendanceMessage,
@@ -38,24 +38,6 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderStudent(w, "studentDash.html", data)
-}
-
-func avatarView(w http.ResponseWriter, r *http.Request) {
-	user, ok := currentSessionUser(w, r)
-	if !ok {
-		return
-	}
-
-	data := PageData{
-		Title:         "Avatar",
-		Username:      user.Name,
-		AvatarImage:   getAvatarImage(user),
-		Coins:         getCoinBalance(user.UserID),
-		ActiveNav:     "avatar",
-		UseStudentCSS: true,
-	}
-
-	renderStudent(w, "avatarView.html", data)
 }
 
 func attendanceView(w http.ResponseWriter, r *http.Request) {
@@ -165,10 +147,6 @@ func isDoubleDay(classroomID string, now time.Time) bool {
 	}
 
 	return false
-}
-
-func getAvatarImage(user *User) string {
-	return defaultAvatarImage
 }
 
 func getTodayAttendanceState(user *User) (status string, message string, canMark bool) {

@@ -6,6 +6,20 @@
         <p>Ready to earn today's attendance coins?</p>
     </div>
 
+    <section class="dashboard-avatar-card" aria-label="Current avatar">
+        <img src="{{.AvatarImage}}" alt="Current Avatar">
+        <div>
+            <h2>Your Avatar</h2>
+            {{if .AvatarSummary}}
+            <div class="avatar-summary-list">
+                {{range .AvatarSummary}}<span>{{.}}</span>{{end}}
+            </div>
+            {{else}}
+            <p>No avatar selected yet.</p>
+            {{end}}
+        </div>
+    </section>
+
     <div class="schedule-banner">
         <h3>📅 Weekly Schedule</h3>
 

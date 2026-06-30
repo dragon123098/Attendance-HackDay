@@ -111,10 +111,19 @@
     },
     "owned_shop_items": {
         "student1": [
-            "hat_star"
+            "hat_star",
+            "glasses_rocket"
         ]
     },
-    "avatar_configs": {},
+    "avatar_configs": {
+        "student1": {
+            "base": "gerald",
+            "hair_style": "hat_star",
+            "clothing": "",
+            "accessory": "glasses_rocket",
+            "effect": ""
+        }
+    },
     "transactions": [
         {
             "user_id": "student1",
@@ -151,6 +160,18 @@
             "amount": 1,
             "timestamp": "2026-06-24T16:51:42-06:00",
             "description": "Attendance reward for 2026-06-24"
+        },
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-06-30T15:35:29-06:00",
+            "description": "Attendance reward for 2026-06-30"
+        },
+        {
+            "user_id": "student1",
+            "amount": -10,
+            "timestamp": "2026-06-30T15:35:32-06:00",
+            "description": "Purchased Rocket Glasses"
         }
     ],
     "attendance": [
@@ -162,7 +183,8 @@
                 "2026-06-10",
                 "2026-06-15",
                 "2026-06-22",
-                "2026-06-24"
+                "2026-06-24",
+                "2026-06-30"
             ],
             "absent": null
         }
