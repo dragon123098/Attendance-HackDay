@@ -30,6 +30,7 @@ type ShopItemView struct {
 	Description string
 	Price       int
 	Owned       bool
+	Slot        string
 	Image       string `json:"image"`
 }
 
@@ -44,8 +45,16 @@ type AvatarCosmeticOptionView struct {
 	ID       string
 	Label    string
 	Slot     string
+	Image    string
 	Owned    bool
 	Selected bool
+}
+
+type AvatarLayerView struct {
+	ID    string
+	Label string
+	Slot  string
+	Image string
 }
 
 type AvatarPreviewView struct {
@@ -56,6 +65,7 @@ type AvatarPreviewView struct {
 	AccessoryLabel string
 	EffectLabel    string
 	HasCosmetics   bool
+	Layers         []AvatarLayerView
 }
 
 type PageData struct {

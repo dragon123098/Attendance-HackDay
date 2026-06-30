@@ -33,22 +33,34 @@ type avatarCosmeticOption struct {
 	ID    string
 	Label string
 	Slot  string
+	Image string
 }
 
 var avatarBaseCatalog = []avatarBaseOption{
 	{ID: "brainrot", Label: "BrainRot", Image: "/static/images/avatars/brainrot.png"},
 	{ID: "d_money", Label: "D-Money", Image: "/static/images/avatars/d_money.png"},
+	{ID: "funk_rapper", Label: "Funk Rapper", Image: "/static/images/avatars/funk_rapper.png"},
 	{ID: "gerald", Label: "Gerald", Image: "/static/images/avatars/gerald.png"},
+	{ID: "gopher", Label: "Gopher", Image: "/static/images/avatars/gopher.png"},
 	{ID: "mike", Label: "Mike", Image: "/static/images/avatars/mike.png"},
 	{ID: "milkman", Label: "Milk Man", Image: "/static/images/avatars/milkman.png"},
+	{ID: "peter", Label: "Peter", Image: "/static/images/avatars/peter.png"},
 	{ID: "salaryman", Label: "Salary Man", Image: "/static/images/avatars/salaryman.png"},
 }
 
 var avatarCosmeticCatalog = []avatarCosmeticOption{
-	{ID: "hat_star", Label: "Star Hat", Slot: avatarSlotHairStyle},
-	{ID: "cape_gold", Label: "Golden Cape", Slot: avatarSlotClothing},
-	{ID: "glasses_rocket", Label: "Rocket Glasses", Slot: avatarSlotAccessory},
-	{ID: "trail_rainbow", Label: "Rainbow Trail", Slot: avatarSlotEffect},
+	{ID: "hat_star", Label: "Star Hat", Slot: avatarSlotHairStyle, Image: "/static/images/cosmetics/hat_star.png"},
+	{ID: "hat_wizard", Label: "Wizard Hat", Slot: avatarSlotHairStyle, Image: "/static/images/cosmetics/hat_wizard.png"},
+	{ID: "crown_flower", Label: "Flower Crown", Slot: avatarSlotHairStyle, Image: "/static/images/cosmetics/crown_flower.png"},
+	{ID: "cape_gold", Label: "Golden Cape", Slot: avatarSlotClothing, Image: "/static/images/cosmetics/cape_gold.png"},
+	{ID: "hoodie_blue", Label: "Blue Hoodie", Slot: avatarSlotClothing, Image: "/static/images/cosmetics/hoodie_blue.png"},
+	{ID: "scarf_red", Label: "Red Scarf", Slot: avatarSlotClothing, Image: "/static/images/cosmetics/scarf_red.png"},
+	{ID: "glasses_rocket", Label: "Rocket Glasses", Slot: avatarSlotAccessory, Image: "/static/images/cosmetics/glasses_rocket.png"},
+	{ID: "shades_pixel", Label: "Pixel Shades", Slot: avatarSlotAccessory, Image: "/static/images/cosmetics/shades_pixel.png"},
+	{ID: "headphones_gem", Label: "Gem Headphones", Slot: avatarSlotAccessory, Image: "/static/images/cosmetics/headphones_gem.png"},
+	{ID: "trail_rainbow", Label: "Rainbow Trail", Slot: avatarSlotEffect, Image: "/static/images/cosmetics/trail_rainbow.png"},
+	{ID: "aura_sparkle", Label: "Sparkle Aura", Slot: avatarSlotEffect, Image: "/static/images/cosmetics/aura_sparkle.png"},
+	{ID: "trail_comet", Label: "Comet Trail", Slot: avatarSlotEffect, Image: "/static/images/cosmetics/trail_comet.png"},
 }
 
 // avatarView renders the saved avatar config, while preview and save POSTs reuse
@@ -294,6 +306,12 @@ func buildAvatarPreview(cfg *AvatarConfig) AvatarPreviewView {
 		ClothingLabel:  cosmeticLabel(normalized.Clothing),
 		AccessoryLabel: cosmeticLabel(normalized.Accessory),
 		EffectLabel:    cosmeticLabel(normalized.Effect),
+		Layers: avatarLayerViews([]string{
+			normalized.Effect,
+			normalized.Clothing,
+			normalized.HairStyle,
+			normalized.Accessory,
+		}),
 	}
 	preview.HasCosmetics = preview.HairStyleLabel != "" ||
 		preview.ClothingLabel != "" ||
@@ -334,6 +352,7 @@ func avatarCosmeticOptionViews(userID, slot, selectedID string) []AvatarCosmetic
 			ID:       option.ID,
 			Label:    option.Label,
 			Slot:     option.Slot,
+			Image:    option.Image,
 			Owned:    userOwnsShopItem(userID, option.ID),
 			Selected: option.ID == selectedID,
 		})
@@ -400,6 +419,23 @@ func cosmeticLabel(id string) string {
 		return ""
 	}
 	return option.Label
+}
+
+func avatarLayerViews(ids []string) []AvatarLayerView {
+	layers := make([]AvatarLayerView, 0, len(ids))
+	for _, id := range ids {
+		option, ok := avatarCosmeticByID(id)
+		if !ok {
+			continue
+		}
+		layers = append(layers, AvatarLayerView{
+			ID:    option.ID,
+			Label: option.Label,
+			Slot:  option.Slot,
+			Image: option.Image,
+		})
+	}
+	return layers
 }
 
 func avatarValidationMessage(err error) string {

@@ -8,8 +8,8 @@ items, and customize an avatar with unlocked cosmetics.
 
 - Session-based login and logout with role-aware routing.
 - Student dashboard with attendance status, coin balance, schedule data, and the current avatar.
-- Student shop with seeded items, coin validation, purchase persistence, and owned-item display.
-- Avatar customization with free base avatars, owned cosmetic unlocks, full-page preview, and persisted saves.
+- Student shop with seeded visual cosmetics, coin validation, purchase persistence, and owned-item display.
+- Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and persisted saves.
 - Teacher and admin dashboard scaffolding plus classroom management routes.
 
 Some teacher/admin reporting and schedule-management flows are still in progress;

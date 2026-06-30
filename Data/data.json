@@ -1,5 +1,13 @@
 {
     "users": {
+        "21": {
+            "name": "Peter",
+            "role": "student",
+            "email": "peter@example.com",
+            "password_hash": "$2a$10$JKh.VBpQzjvFdc9.SAvCUOm3/D95PqA/HjvQ3ixuwp7ySPspb4htO",
+            "classroom_id": "classroom1",
+            "user_id": "21"
+        },
         "DHoney": {
             "name": "Dylan Steenhoek",
             "role": "teacher",
@@ -64,7 +72,8 @@
             "teacher_id": "sconner1",
             "student_ids": [
                 "student1",
-                "jb"
+                "jb",
+                "21"
             ]
         },
         "classroom2": {
@@ -84,11 +93,23 @@
         }
     },
     "shop_items": {
+        "aura_sparkle": {
+            "id": "aura_sparkle",
+            "name": "Sparkle Aura",
+            "price": 9,
+            "description": "A bright aura for a student who keeps showing up."
+        },
         "cape_gold": {
             "id": "cape_gold",
             "name": "Golden Cape",
             "price": 12,
             "description": "A shiny cape for extra style."
+        },
+        "crown_flower": {
+            "id": "crown_flower",
+            "name": "Flower Crown",
+            "price": 6,
+            "description": "A leafy crown with bright classroom blooms."
         },
         "glasses_rocket": {
             "id": "glasses_rocket",
@@ -102,6 +123,42 @@
             "price": 5,
             "description": "A bright hat for a standout student."
         },
+        "hat_wizard": {
+            "id": "hat_wizard",
+            "name": "Wizard Hat",
+            "price": 7,
+            "description": "A tall purple hat for magical attendance streaks."
+        },
+        "headphones_gem": {
+            "id": "headphones_gem",
+            "name": "Gem Headphones",
+            "price": 9,
+            "description": "Bright headphones with a gem on top."
+        },
+        "hoodie_blue": {
+            "id": "hoodie_blue",
+            "name": "Blue Hoodie",
+            "price": 7,
+            "description": "A cozy hoodie for everyday questing."
+        },
+        "scarf_red": {
+            "id": "scarf_red",
+            "name": "Red Scarf",
+            "price": 6,
+            "description": "A bold scarf for chilly morning check-ins."
+        },
+        "shades_pixel": {
+            "id": "shades_pixel",
+            "name": "Pixel Shades",
+            "price": 8,
+            "description": "Blocky shades with old-school cool."
+        },
+        "trail_comet": {
+            "id": "trail_comet",
+            "name": "Comet Trail",
+            "price": 11,
+            "description": "A comet streak that follows your avatar."
+        },
         "trail_rainbow": {
             "id": "trail_rainbow",
             "name": "Rainbow Trail",
@@ -110,17 +167,27 @@
         }
     },
     "owned_shop_items": {
+        "21": [
+            "headphones_gem"
+        ],
         "student1": [
             "hat_star",
             "glasses_rocket"
         ]
     },
     "avatar_configs": {
+        "21": {
+            "base": "peter",
+            "hair_style": "",
+            "clothing": "",
+            "accessory": "headphones_gem",
+            "effect": ""
+        },
         "student1": {
             "base": "gerald",
-            "hair_style": "hat_star",
+            "hair_style": "",
             "clothing": "",
-            "accessory": "glasses_rocket",
+            "accessory": "",
             "effect": ""
         }
     },
@@ -172,6 +239,18 @@
             "amount": -10,
             "timestamp": "2026-06-30T15:35:32-06:00",
             "description": "Purchased Rocket Glasses"
+        },
+        {
+            "user_id": "21",
+            "amount": 1,
+            "timestamp": "2026-06-30T16:23:12-06:00",
+            "description": "Attendance reward for 2026-06-30"
+        },
+        {
+            "user_id": "21",
+            "amount": -9,
+            "timestamp": "2026-06-30T16:23:21-06:00",
+            "description": "Purchased Gem Headphones"
         }
     ],
     "attendance": [
@@ -187,6 +266,14 @@
                 "2026-06-30"
             ],
             "absent": null
+        },
+        {
+            "user_id": "21",
+            "classroom_id": "classroom1",
+            "present": [
+                "2026-06-30"
+            ],
+            "absent": []
         }
     ],
     "schedule": []

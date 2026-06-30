@@ -20,4 +20,5 @@ type DoubleDayView = viewmodel.DoubleDayView
 type ShopItemView = viewmodel.ShopItemView
 type AvatarBaseOptionView = viewmodel.AvatarBaseOptionView
 type AvatarCosmeticOptionView = viewmodel.AvatarCosmeticOptionView
+type AvatarLayerView = viewmodel.AvatarLayerView
 type AvatarPreviewView = viewmodel.AvatarPreviewView

@@ -7,7 +7,7 @@
     </div>
 
     <section class="dashboard-avatar-card" aria-label="Current avatar">
-        <img src="{{.AvatarImage}}" alt="Current Avatar">
+        {{template "avatarStack" .AvatarPreview}}
         <div>
             <h2>Your Avatar</h2>
             {{if .AvatarSummary}}

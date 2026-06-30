@@ -58,8 +58,8 @@ func TestValidateAvatarConfigAcceptsOwnedCosmetics(t *testing.T) {
 }
 
 func TestAvatarBaseCatalogUsesNormalizedStaticImages(t *testing.T) {
-	if len(avatarBaseCatalog) != 6 {
-		t.Fatalf("avatarBaseCatalog has %d options, want 6", len(avatarBaseCatalog))
+	if len(avatarBaseCatalog) != 9 {
+		t.Fatalf("avatarBaseCatalog has %d options, want 9", len(avatarBaseCatalog))
 	}
 
 	for _, option := range avatarBaseCatalog {
@@ -85,6 +85,54 @@ func TestAvatarBaseCatalogUsesNormalizedStaticImages(t *testing.T) {
 	}
 }
 
+func TestAvatarCosmeticCatalogUsesVisualOverlayImages(t *testing.T) {
+	if len(avatarCosmeticCatalog) != 12 {
+		t.Fatalf("avatarCosmeticCatalog has %d options, want 12", len(avatarCosmeticCatalog))
+	}
+
+	for _, option := range avatarCosmeticCatalog {
+		if !strings.HasPrefix(option.Image, "/static/images/cosmetics/") {
+			t.Fatalf("%s image path = %q, want cosmetic overlay path", option.ID, option.Image)
+		}
+
+		file, err := view.FS.Open(strings.TrimPrefix(option.Image, "/"))
+		if err != nil {
+			t.Fatalf("%s image does not exist: %v", option.ID, err)
+		}
+
+		cfg, _, err := image.DecodeConfig(file)
+		if closeErr := file.Close(); closeErr != nil {
+			t.Fatalf("close %s image: %v", option.ID, closeErr)
+		}
+		if err != nil {
+			t.Fatalf("decode %s image config: %v", option.ID, err)
+		}
+		if cfg.Width != 512 || cfg.Height != 512 {
+			t.Fatalf("%s image is %dx%d, want 512x512", option.ID, cfg.Width, cfg.Height)
+		}
+	}
+}
+
+func TestAvatarPreviewIncludesSelectedCosmeticLayers(t *testing.T) {
+	preview := buildAvatarPreview(&AvatarConfig{
+		Base:      "gerald",
+		HairStyle: "hat_star",
+		Clothing:  "cape_gold",
+		Accessory: "glasses_rocket",
+		Effect:    "trail_rainbow",
+	})
+
+	if len(preview.Layers) != 4 {
+		t.Fatalf("preview has %d layers, want 4", len(preview.Layers))
+	}
+
+	for _, layer := range preview.Layers {
+		if layer.Image == "" {
+			t.Fatalf("layer %s has empty image", layer.ID)
+		}
+	}
+}
+
 func TestAvatarViewShowsAvailableAndLockedOptions(t *testing.T) {
 	resetAvatarTestState(t)
 	app.OwnedShopItems["student1"] = []string{"hat_star"}
@@ -103,9 +151,56 @@ func TestAvatarViewShowsAvailableAndLockedOptions(t *testing.T) {
 	}
 
 	body := rec.Body.String()
-	for _, want := range []string{"BrainRot", "D-Money", "Gerald", "Mike", "Milk Man", "Salary Man", "Star Hat", "Rocket Glasses", "Locked"} {
+	for _, want := range []string{"BrainRot", "D-Money", "Funk Rapper", "Gerald", "Gopher", "Mike", "Milk Man", "Peter", "Salary Man", "Star Hat", "Wizard Hat", "Rocket Glasses", "Sparkle Aura", "Locked"} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("avatar page did not contain %q\n%s", want, body)
+		}
+	}
+}
+
+func TestSeedShopItemsAddsAllVisualCosmetics(t *testing.T) {
+	resetAvatarTestState(t)
+	withTempWorkingDir(t)
+	app.ShopItems = map[string]*ShopItem{
+		"hat_star": &ShopItem{ID: "hat_star", Name: "Custom Star Hat", Price: 99},
+	}
+
+	seedShopItems()
+
+	if len(app.ShopItems) != len(avatarCosmeticCatalog) {
+		t.Fatalf("shop item count = %d, want %d", len(app.ShopItems), len(avatarCosmeticCatalog))
+	}
+	if app.ShopItems["hat_star"].Name != "Custom Star Hat" {
+		t.Fatal("seedShopItems overwrote an existing shop item")
+	}
+	for _, cosmetic := range avatarCosmeticCatalog {
+		if _, ok := app.ShopItems[cosmetic.ID]; !ok {
+			t.Fatalf("missing seeded shop item %q", cosmetic.ID)
+		}
+	}
+}
+
+func TestGetShopItemViewsIncludesCosmeticImages(t *testing.T) {
+	resetAvatarTestState(t)
+	app.OwnedShopItems["student1"] = []string{"hat_star", "glasses_rocket"}
+
+	items, owned := getShopItemViews("student1")
+
+	if len(owned) != 2 {
+		t.Fatalf("owned item count = %d, want 2", len(owned))
+	}
+
+	for _, view := range items {
+		if view.Image == "" {
+			t.Fatalf("shop item %q has empty image", view.ID)
+		}
+		if view.Slot == "" {
+			t.Fatalf("shop item %q has empty slot", view.ID)
+		}
+	}
+	for _, view := range owned {
+		if view.Image == "" {
+			t.Fatalf("owned item %q has empty image", view.ID)
 		}
 	}
 }
@@ -231,12 +326,7 @@ func resetAvatarTestState(t *testing.T) {
 				UserID:      "student1",
 			},
 		},
-		ShopItems: map[string]*ShopItem{
-			"hat_star":       &ShopItem{ID: "hat_star", Name: "Star Hat", Price: 5},
-			"cape_gold":      &ShopItem{ID: "cape_gold", Name: "Golden Cape", Price: 12},
-			"glasses_rocket": &ShopItem{ID: "glasses_rocket", Name: "Rocket Glasses", Price: 10},
-			"trail_rainbow":  &ShopItem{ID: "trail_rainbow", Name: "Rainbow Trail", Price: 8},
-		},
+		ShopItems:      seededShopItemMap(),
 		OwnedShopItems: map[string][]string{},
 		AvatarConfigs:  map[string]*AvatarConfig{},
 	}
@@ -247,6 +337,15 @@ func resetAvatarTestState(t *testing.T) {
 		sessionStore = previousSessions
 		sessionMu.Unlock()
 	})
+}
+
+func seededShopItemMap() map[string]*ShopItem {
+	items := map[string]*ShopItem{}
+	for _, item := range seededShopItems() {
+		copied := *item
+		items[item.ID] = &copied
+	}
+	return items
 }
 
 func authedAvatarRequest(t *testing.T, method, target string, form url.Values) *http.Request {

@@ -27,6 +27,7 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 		Username:           user.Name,
 		AvatarImage:        getAvatarImage(user),
 		AvatarSummary:      avatarSummary(savedAvatarConfig(user.UserID)),
+		AvatarPreview:      buildAvatarPreview(savedAvatarConfig(user.UserID)),
 		Coins:              getCoinBalance(user.UserID),
 		AttendanceStatus:   attendanceStatus,
 		AttendanceMessage:  attendanceMessage,
@@ -247,6 +248,7 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 		Title:          "Shop",
 		Username:       user.Name,
 		AvatarImage:    getAvatarImage(user),
+		AvatarPreview:  buildAvatarPreview(savedAvatarConfig(user.UserID)),
 		Coins:          getCoinBalance(user.UserID),
 		ShopItems:      allItems,
 		OwnedShopItems: ownedItems,
@@ -318,36 +320,40 @@ func ensureShopState() {
 }
 
 func seedShopItems() {
-	if len(app.ShopItems) > 0 {
-		return
+	added := false
+	for _, item := range seededShopItems() {
+		added = seedShopItem(item) || added
 	}
 
-	app.ShopItems["hat_star"] = &ShopItem{
-		ID:          "hat_star",
-		Name:        "Star Hat",
-		Price:       5,
-		Description: "A bright hat for a standout student.",
+	if added {
+		saveData()
 	}
-	app.ShopItems["trail_rainbow"] = &ShopItem{
-		ID:          "trail_rainbow",
-		Name:        "Rainbow Trail",
-		Price:       8,
-		Description: "A colorful trail effect for your avatar.",
-	}
-	app.ShopItems["cape_gold"] = &ShopItem{
-		ID:          "cape_gold",
-		Name:        "Golden Cape",
-		Price:       12,
-		Description: "A shiny cape for extra style.",
-	}
-	app.ShopItems["glasses_rocket"] = &ShopItem{
-		ID:          "glasses_rocket",
-		Name:        "Rocket Glasses",
-		Price:       10,
-		Description: "A bold accessory for your avatar.",
+}
+
+func seedShopItem(item *ShopItem) bool {
+	if _, exists := app.ShopItems[item.ID]; exists {
+		return false
 	}
 
-	saveData()
+	app.ShopItems[item.ID] = item
+	return true
+}
+
+func seededShopItems() []*ShopItem {
+	return []*ShopItem{
+		{ID: "hat_star", Name: "Star Hat", Price: 5, Description: "A bright hat for a standout student."},
+		{ID: "hat_wizard", Name: "Wizard Hat", Price: 7, Description: "A tall purple hat for magical attendance streaks."},
+		{ID: "crown_flower", Name: "Flower Crown", Price: 6, Description: "A leafy crown with bright classroom blooms."},
+		{ID: "trail_rainbow", Name: "Rainbow Trail", Price: 8, Description: "A colorful trail effect for your avatar."},
+		{ID: "aura_sparkle", Name: "Sparkle Aura", Price: 9, Description: "A bright aura for a student who keeps showing up."},
+		{ID: "trail_comet", Name: "Comet Trail", Price: 11, Description: "A comet streak that follows your avatar."},
+		{ID: "cape_gold", Name: "Golden Cape", Price: 12, Description: "A shiny cape for extra style."},
+		{ID: "hoodie_blue", Name: "Blue Hoodie", Price: 7, Description: "A cozy hoodie for everyday questing."},
+		{ID: "scarf_red", Name: "Red Scarf", Price: 6, Description: "A bold scarf for chilly morning check-ins."},
+		{ID: "glasses_rocket", Name: "Rocket Glasses", Price: 10, Description: "A bold accessory for your avatar."},
+		{ID: "shades_pixel", Name: "Pixel Shades", Price: 8, Description: "Blocky shades with old-school cool."},
+		{ID: "headphones_gem", Name: "Gem Headphones", Price: 9, Description: "Bright headphones with a gem on top."},
+	}
 }
 
 func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView) {
@@ -368,6 +374,10 @@ func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView) {
 			Description: item.Description,
 			Price:       item.Price,
 			Owned:       userOwnsShopItem(userID, item.ID),
+		}
+		if cosmetic, ok := avatarCosmeticByID(item.ID); ok {
+			view.Image = cosmetic.Image
+			view.Slot = cosmetic.Slot
 		}
 		items = append(items, view)
 		if view.Owned {

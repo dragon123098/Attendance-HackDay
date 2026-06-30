@@ -16,7 +16,7 @@
 
     <div class="avatar-current-card">
         <div class="avatar-current-image">
-            <img src="{{.AvatarPreview.BaseImage}}" alt="Current Avatar">
+            {{template "avatarStack" .AvatarPreview}}
         </div>
 
         <div class="avatar-current-info">
@@ -64,6 +64,7 @@
                     {{range .AvatarHairOptions}}
                     <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
                         <input type="radio" name="hair_style" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
                         <span>{{.Label}}</span>
                         {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
                     </label>
@@ -75,6 +76,7 @@
                     {{range .AvatarClothOptions}}
                     <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
                         <input type="radio" name="clothing" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
                         <span>{{.Label}}</span>
                         {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
                     </label>
@@ -86,6 +88,7 @@
                     {{range .AvatarAccessOptions}}
                     <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
                         <input type="radio" name="accessory" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
                         <span>{{.Label}}</span>
                         {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
                     </label>
@@ -97,6 +100,7 @@
                     {{range .AvatarEffectOptions}}
                     <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
                         <input type="radio" name="effect" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
+                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
                         <span>{{.Label}}</span>
                         {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
                     </label>

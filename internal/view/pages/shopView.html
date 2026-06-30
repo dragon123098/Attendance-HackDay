@@ -26,6 +26,11 @@
         <div class="shop-grid">
             {{range .ShopItems}}
             <div class="shop-item-card">
+                {{if .Image}}
+                <div class="shop-item-image-wrap">
+                    <img src="{{.Image}}" alt="{{.Name}}">
+                </div>
+                {{end}}
                 <div class="shop-item-name">{{.Name}}</div>
                 <div class="shop-item-desc">{{.Description}}</div>
                 <div class="shop-item-cost">{{.Price}} coins</div>
@@ -57,7 +62,10 @@
         {{if .OwnedShopItems}}
         <div class="shop-owned-list">
             {{range .OwnedShopItems}}
-            <div class="shop-owned-item">{{.Name}}</div>
+            <div class="shop-owned-item">
+                {{if .Image}}<img src="{{.Image}}" alt="{{.Name}}">{{end}}
+                <span>{{.Name}}</span>
+            </div>
             {{end}}
         </div>
         {{else}}
