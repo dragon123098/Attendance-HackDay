@@ -1,0 +1,82 @@
+{{define "content"}}
+
+<div class="admin-page-header">
+    <h1>User Settings</h1>
+    <p>Search users and manage account roles.</p>
+</div>
+
+<div class="admin-form-card">
+    <form method="GET" action="/userSettings">
+        <div class="form-group">
+            <label for="q">Search Users</label>
+            <input
+                type="search"
+                id="q"
+                name="q"
+                value="{{.Query}}"
+                placeholder="Search by name, email, user ID, or role">
+        </div>
+
+        <button type="submit" class="admin-submit-btn">
+            Search
+        </button>
+
+        {{if .Query}}
+            <a href="/userSettings" class="admin-nav-item">Reset</a>
+        {{end}}
+    </form>
+</div>
+
+{{if .Users}}
+    <div class="admin-form-card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>User ID</th>
+                    <th>Email</th>
+                    <th>Current Role</th>
+                    <th>Change Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                    {{$user := .}}
+                    <tr>
+                        <td>{{.Name}}</td>
+                        <td>{{.UserID}}</td>
+                        <td>{{.Email}}</td>
+                        <td>{{.Role}}</td>
+                        <td>
+                            <form method="POST" action="/userSettings/role">
+                                <input type="hidden" name="user_id" value="{{.UserID}}">
+                                <input type="hidden" name="q" value="{{$.Query}}">
+
+                                <select name="role">
+                                    {{range $.RoleOptions}}
+                                        <option value="{{.Value}}" {{if eq .Value $user.Role}}selected{{end}}>
+                                            {{.Label}}
+                                        </option>
+                                    {{end}}
+                                </select>
+
+                                <button type="submit" class="admin-submit-btn">
+                                    Save
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+{{else}}
+    <div class="shop-empty-state">
+        <h3>No users found</h3>
+        <p>Try a different search.</p>
+    </div>
+{{end}}
+
+{{end}}
+
+{{template "base" .}}

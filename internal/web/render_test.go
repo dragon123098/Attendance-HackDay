@@ -76,6 +76,12 @@ func TestRenderedPagesReferenceExistingCSS(t *testing.T) {
 				return loadAdminTemplates("createStudent.html")
 			},
 		},
+		{
+			name: "user settings",
+			load: func() (*template.Template, error) {
+				return loadAdminTemplates("userSettings.html")
+			},
+		},
 	}
 
 	cssLink := regexp.MustCompile(`<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"`)

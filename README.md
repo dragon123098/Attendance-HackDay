@@ -36,3 +36,5 @@ To run the app manually:
 ```sh
 go run ./cmd/webserver
 ```
+
+Added CodeQL
