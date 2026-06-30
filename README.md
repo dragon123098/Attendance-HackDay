@@ -10,6 +10,7 @@ items, and customize an avatar with unlocked cosmetics.
 - Student dashboard with attendance status, coin balance, schedule data, and the current avatar.
 - Student shop with seeded visual cosmetics, coin validation, purchase persistence, and owned-item display.
 - Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and persisted saves.
+- Student pages include persistent light/dark and background color controls.
 - Teacher and admin dashboard scaffolding plus classroom management routes.
 
 Some teacher/admin reporting and schedule-management flows are still in progress;

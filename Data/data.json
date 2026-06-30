@@ -210,9 +210,9 @@
         },
         "student1": {
             "base": "gerald",
-            "hair_style": "",
+            "hair_style": "hat_star",
             "clothing": "",
-            "accessory": "",
+            "accessory": "glasses_rocket",
             "effect": ""
         }
     },
