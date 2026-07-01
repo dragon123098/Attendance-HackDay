@@ -50,3 +50,17 @@ If the command succeeds, it should return `AttendanceHackday` and `(1 rows affec
  Password: Password123!
 
 4. Click test connection. If it passes then click finish
+
+
+## Seed the DataBase
+
+1. Make sure the database is up
+    docker compose up -d
+
+2. Seed the data with the following command
+
+    ```powershell
+    docker run --rm -v "${PWD}\Seed_DataBase.sql:/tmp/Seed_DataBase.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase.sql
+
+    ```Bash/WSL
+    docker run --rm -v "$(pwd)/Seed_DataBase.sql:/tmp/Seed_DataBase.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase.sql
