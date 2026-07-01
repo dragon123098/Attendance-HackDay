@@ -34,3 +34,19 @@ docker run --rm --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mss
 ```
 
 If the command succeeds, it should return `AttendanceHackday` and `(1 rows affected)`.
+
+
+## Check Database in DBeaver
+
+1. Open a new connection
+
+2. Select SQL Server
+
+3. Fill in the Info
+ Host: localhost
+ Port: 1433
+ Database: Leave blank for now, or master
+ User name: sa
+ Password: Password123!
+
+4. Click test connection. If it passes then click finish
