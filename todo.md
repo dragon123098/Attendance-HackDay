@@ -102,6 +102,7 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Award coins when attendance is submitted
 - [x] Persist coin awards as `CoinTransaction` entries
 - [x] Compute coin balance from transaction history
+- [x] Support manual coin adjustments from `data/data.json`
 - [x] Double day multiplier support
 
 ### Student Dashboard
@@ -115,11 +116,16 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Seed shop items
 - [x] `GET /shop`
 - [x] Render shop items
+- [x] Split shop into Avatar Items and Backgrounds sections
 - [x] `POST /shop/buy`
 - [x] Validate sufficient coins
 - [x] Persist purchases
 - [x] Show owned items
 - [x] Update balance after purchases
+- [x] Seed visual avatar cosmetics with shop previews
+- [x] Seed purchasable pastel background themes
+- [x] Show purchased backgrounds in owned inventory
+- [x] Unlock purchased backgrounds in the theme picker
 
 ### Avatar System
 - [x] Persist avatar selections
@@ -128,12 +134,26 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Preview avatar changes
 - [x] Save avatar changes
 - [x] Show avatar on dashboard/navbar
+- [x] Normalize base avatar images for consistent display
+- [x] Add all current avatar images as selectable base avatars
+- [x] Add Peter, Funk Rapper, and Gopher base avatars
+- [x] Fix Funk Rapper orientation and Brazil flag background
+- [x] Add visual cosmetic overlays to avatar preview and saved avatar display
+- [x] Support avatar effect cosmetics
 
 ### Student Navbar Integration
 - [x] Display avatar
 - [x] Display username
 - [x] Display coin balance
 - [x] Use real user data
+
+### Student Theme / CSS Polish
+- [x] Calm student-side CSS refresh across dashboard, shop, avatar page, and related components
+- [x] Add persistent light/dark mode toggle
+- [x] Add free background color options: red, blue, green, yellow, orange, pink, purple
+- [x] Add sparse pastel background patterns
+- [x] Add purchasable special backgrounds: beach, forest, sky, meadow, mountain, sunset
+- [x] Keep purchased special backgrounds locked until bought
 
 **Track A Deliverable:** Student can log in, mark attendance, earn coins, view schedule, buy items, customize avatar, and see all data reflected throughout the UI.
 
@@ -193,7 +213,7 @@ These must be agreed on before either person starts their track. Commit the resu
 ## Final Packaging
 
 - [ ] Test on a clean machine (no Go installed) to verify the binary is self-contained
-- [ ] Embed templates and static files using Go's `embed` package so they're bundled into the binary
+- [x] Embed templates and static files using Go's `embed` package so they're bundled into the binary
 - [ ] Build for Windows: `GOOS=windows GOARCH=amd64 go build -o app.exe`
 - [ ] Confirm the `.exe` opens the server and can be visited at `localhost:<port>`
 - [ ] Optionally: auto-open the browser on launch using `os/exec` to call `start` (Windows) or `open` (Mac)
