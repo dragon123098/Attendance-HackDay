@@ -27,6 +27,8 @@ func NewRouter() http.Handler {
 	mux.Handle("GET /shop", RequireRole("student", http.HandlerFunc(shopView)))
 	mux.Handle("POST /shop/buy", RequireRole("student", http.HandlerFunc(shopBuyView)))
 	mux.Handle("GET /avatar", RequireRole("student", http.HandlerFunc(avatarView)))
+	mux.Handle("POST /avatar/preview", RequireRole("student", http.HandlerFunc(avatarPreviewView)))
+	mux.Handle("POST /avatar", RequireRole("student", http.HandlerFunc(avatarSaveView)))
 	mux.Handle("POST /attendance", RequireRole("student", http.HandlerFunc(attendanceView)))
 
 	// teacher routes

@@ -60,7 +60,7 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Static file serving confirmed working
 - [x] `html/template` base layout with a `{{template "content" .}}` slot
 - [x] CSS scaffold (can use a small utility CSS or write from scratch)
-- [ ] Add a `fakeUser` variable at the top of the handlers file so you can swap it for a real session lookup in one line later
+- [x] Add a `fakeUser` variable at the top of the handlers file so you can swap it for a real session lookup in one line later
 
 ### Stub Pages — All Roles
 - [x] `/login` — login form page (full page)
@@ -122,18 +122,18 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Update balance after purchases
 
 ### Avatar System
-- [ ] Persist avatar selections
-- [ ] Display available avatar options
-- [ ] Display owned/unlocked cosmetics
-- [ ] Preview avatar changes
-- [ ] Save avatar changes
-- [ ] Show avatar on dashboard/navbar
+- [x] Persist avatar selections
+- [x] Display available avatar options
+- [x] Display owned/unlocked cosmetics
+- [x] Preview avatar changes
+- [x] Save avatar changes
+- [x] Show avatar on dashboard/navbar
 
 ### Student Navbar Integration
 - [x] Display avatar
 - [x] Display username
 - [x] Display coin balance
-- [ ] Use real user data
+- [x] Use real user data
 
 **Track A Deliverable:** Student can log in, mark attendance, earn coins, view schedule, buy items, customize avatar, and see all data reflected throughout the UI.
 

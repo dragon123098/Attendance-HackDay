@@ -1,0 +1,451 @@
+package web
+
+import (
+	"errors"
+	"net/http"
+	"net/url"
+	"sort"
+	"strings"
+)
+
+const (
+	defaultAvatarBaseID = "gerald"
+	defaultAvatarImage  = "/static/images/avatars/gerald.png"
+
+	avatarSlotHairStyle = "hair_style"
+	avatarSlotClothing  = "clothing"
+	avatarSlotAccessory = "accessory"
+	avatarSlotEffect    = "effect"
+)
+
+var (
+	errInvalidAvatarSelection = errors.New("invalid avatar selection")
+	errLockedAvatarSelection  = errors.New("locked avatar selection")
+)
+
+type avatarBaseOption struct {
+	ID    string
+	Label string
+	Image string
+}
+
+type avatarCosmeticOption struct {
+	ID    string
+	Label string
+	Slot  string
+	Image string
+}
+
+var avatarBaseCatalog = []avatarBaseOption{
+	{ID: "brainrot", Label: "BrainRot", Image: "/static/images/avatars/brainrot.png"},
+	{ID: "d_money", Label: "D-Money", Image: "/static/images/avatars/d_money.png"},
+	{ID: "funk_rapper", Label: "Funk Rapper", Image: "/static/images/avatars/funk_rapper.png"},
+	{ID: "gerald", Label: "Gerald", Image: "/static/images/avatars/gerald.png"},
+	{ID: "gopher", Label: "Gopher", Image: "/static/images/avatars/gopher.png"},
+	{ID: "mike", Label: "Mike", Image: "/static/images/avatars/mike.png"},
+	{ID: "milkman", Label: "Milk Man", Image: "/static/images/avatars/milkman.png"},
+	{ID: "peter", Label: "Peter", Image: "/static/images/avatars/peter.png"},
+	{ID: "salaryman", Label: "Salary Man", Image: "/static/images/avatars/salaryman.png"},
+}
+
+var avatarCosmeticCatalog = []avatarCosmeticOption{
+	{ID: "hat_star", Label: "Star Hat", Slot: avatarSlotHairStyle, Image: "/static/images/cosmetics/hat_star.png"},
+	{ID: "hat_wizard", Label: "Wizard Hat", Slot: avatarSlotHairStyle, Image: "/static/images/cosmetics/hat_wizard.png"},
+	{ID: "crown_flower", Label: "Flower Crown", Slot: avatarSlotHairStyle, Image: "/static/images/cosmetics/crown_flower.png"},
+	{ID: "cape_gold", Label: "Golden Cape", Slot: avatarSlotClothing, Image: "/static/images/cosmetics/cape_gold.png"},
+	{ID: "hoodie_blue", Label: "Blue Hoodie", Slot: avatarSlotClothing, Image: "/static/images/cosmetics/hoodie_blue.png"},
+	{ID: "scarf_red", Label: "Red Scarf", Slot: avatarSlotClothing, Image: "/static/images/cosmetics/scarf_red.png"},
+	{ID: "glasses_rocket", Label: "Rocket Glasses", Slot: avatarSlotAccessory, Image: "/static/images/cosmetics/glasses_rocket.png"},
+	{ID: "shades_pixel", Label: "Pixel Shades", Slot: avatarSlotAccessory, Image: "/static/images/cosmetics/shades_pixel.png"},
+	{ID: "headphones_gem", Label: "Gem Headphones", Slot: avatarSlotAccessory, Image: "/static/images/cosmetics/headphones_gem.png"},
+	{ID: "trail_rainbow", Label: "Rainbow Trail", Slot: avatarSlotEffect, Image: "/static/images/cosmetics/trail_rainbow.png"},
+	{ID: "aura_sparkle", Label: "Sparkle Aura", Slot: avatarSlotEffect, Image: "/static/images/cosmetics/aura_sparkle.png"},
+	{ID: "trail_comet", Label: "Comet Trail", Slot: avatarSlotEffect, Image: "/static/images/cosmetics/trail_comet.png"},
+}
+
+// avatarView renders the saved avatar config, while preview and save POSTs reuse
+// the same page data so the form always stays server-rendered.
+func avatarView(w http.ResponseWriter, r *http.Request) {
+	user, ok := currentSessionUser(w, r)
+	if !ok {
+		return
+	}
+
+	data := buildAvatarPageData(user, savedAvatarConfig(user.UserID), r.URL.Query().Get("msg"), "")
+	renderStudent(w, "avatarView.html", data)
+}
+
+func avatarPreviewView(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	user, ok := currentSessionUser(w, r)
+	if !ok {
+		return
+	}
+
+	cfg, err := avatarConfigFromRequest(r, user.UserID)
+	if err != nil {
+		data := buildAvatarPageData(user, savedAvatarConfig(user.UserID), "", avatarValidationMessage(err))
+		renderStudent(w, "avatarView.html", data)
+		return
+	}
+
+	data := buildAvatarPageData(user, cfg, "Previewing unsaved avatar changes.", "")
+	renderStudent(w, "avatarView.html", data)
+}
+
+func avatarSaveView(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	user, ok := currentSessionUser(w, r)
+	if !ok {
+		return
+	}
+
+	cfg, err := avatarConfigFromRequest(r, user.UserID)
+	if err != nil {
+		data := buildAvatarPageData(user, savedAvatarConfig(user.UserID), "", avatarValidationMessage(err))
+		renderStudent(w, "avatarView.html", data)
+		return
+	}
+
+	ensureAvatarState()
+	app.AvatarConfigs[user.UserID] = cfg
+	saveData()
+
+	http.Redirect(w, r, "/avatar?msg="+url.QueryEscape("Avatar saved."), http.StatusSeeOther)
+}
+
+func ensureAvatarState() {
+	if app.AvatarConfigs == nil {
+		app.AvatarConfigs = map[string]*AvatarConfig{}
+	}
+}
+
+func savedAvatarConfig(userID string) *AvatarConfig {
+	ensureAvatarState()
+	return stripUnownedAvatarCosmetics(userID, normalizeAvatarConfig(app.AvatarConfigs[userID]))
+}
+
+func avatarConfigFromRequest(r *http.Request, userID string) (*AvatarConfig, error) {
+	if err := r.ParseForm(); err != nil {
+		return nil, errInvalidAvatarSelection
+	}
+
+	cfg := &AvatarConfig{
+		Base:      strings.TrimSpace(r.FormValue("base")),
+		HairStyle: strings.TrimSpace(r.FormValue("hair_style")),
+		Clothing:  strings.TrimSpace(r.FormValue("clothing")),
+		Accessory: strings.TrimSpace(r.FormValue("accessory")),
+		Effect:    strings.TrimSpace(r.FormValue("effect")),
+	}
+
+	return validateAvatarConfig(userID, cfg)
+}
+
+func validateAvatarConfig(userID string, cfg *AvatarConfig) (*AvatarConfig, error) {
+	if cfg == nil {
+		return normalizeAvatarConfig(nil), nil
+	}
+
+	base := strings.TrimSpace(cfg.Base)
+	if base == "" {
+		base = defaultAvatarBaseID
+	}
+	if !avatarBaseExists(base) {
+		return nil, errInvalidAvatarSelection
+	}
+
+	hairStyle := strings.TrimSpace(cfg.HairStyle)
+	clothing := strings.TrimSpace(cfg.Clothing)
+	accessory := strings.TrimSpace(cfg.Accessory)
+	effect := strings.TrimSpace(cfg.Effect)
+
+	if err := validateAvatarCosmetic(userID, hairStyle, avatarSlotHairStyle); err != nil {
+		return nil, err
+	}
+	if err := validateAvatarCosmetic(userID, clothing, avatarSlotClothing); err != nil {
+		return nil, err
+	}
+	if err := validateAvatarCosmetic(userID, accessory, avatarSlotAccessory); err != nil {
+		return nil, err
+	}
+	if err := validateAvatarCosmetic(userID, effect, avatarSlotEffect); err != nil {
+		return nil, err
+	}
+
+	return &AvatarConfig{
+		Base:      base,
+		HairStyle: hairStyle,
+		Clothing:  clothing,
+		Accessory: accessory,
+		Effect:    effect,
+	}, nil
+}
+
+func validateAvatarCosmetic(userID, itemID, slot string) error {
+	if itemID == "" {
+		return nil
+	}
+
+	option, ok := avatarCosmeticByID(itemID)
+	if !ok || option.Slot != slot {
+		return errInvalidAvatarSelection
+	}
+	if !userOwnsShopItem(userID, itemID) {
+		return errLockedAvatarSelection
+	}
+
+	return nil
+}
+
+func normalizeAvatarConfig(cfg *AvatarConfig) *AvatarConfig {
+	normalized := &AvatarConfig{
+		Base: defaultAvatarBaseID,
+	}
+
+	if cfg == nil {
+		return normalized
+	}
+
+	if avatarBaseExists(cfg.Base) {
+		normalized.Base = cfg.Base
+	}
+	if avatarCosmeticExistsForSlot(cfg.HairStyle, avatarSlotHairStyle) {
+		normalized.HairStyle = cfg.HairStyle
+	}
+	if avatarCosmeticExistsForSlot(cfg.Clothing, avatarSlotClothing) {
+		normalized.Clothing = cfg.Clothing
+	}
+	if avatarCosmeticExistsForSlot(cfg.Accessory, avatarSlotAccessory) {
+		normalized.Accessory = cfg.Accessory
+	}
+	if avatarCosmeticExistsForSlot(cfg.Effect, avatarSlotEffect) {
+		normalized.Effect = cfg.Effect
+	}
+
+	return normalized
+}
+
+func stripUnownedAvatarCosmetics(userID string, cfg *AvatarConfig) *AvatarConfig {
+	if cfg == nil {
+		return normalizeAvatarConfig(nil)
+	}
+
+	cleaned := *cfg
+	if !userOwnsShopItem(userID, cleaned.HairStyle) {
+		cleaned.HairStyle = ""
+	}
+	if !userOwnsShopItem(userID, cleaned.Clothing) {
+		cleaned.Clothing = ""
+	}
+	if !userOwnsShopItem(userID, cleaned.Accessory) {
+		cleaned.Accessory = ""
+	}
+	if !userOwnsShopItem(userID, cleaned.Effect) {
+		cleaned.Effect = ""
+	}
+
+	return &cleaned
+}
+
+func getAvatarImage(user *User) string {
+	if user == nil {
+		return defaultAvatarImage
+	}
+
+	cfg := savedAvatarConfig(user.UserID)
+	base, ok := avatarBaseByID(cfg.Base)
+	if !ok {
+		return defaultAvatarImage
+	}
+
+	return base.Image
+}
+
+func buildAvatarPageData(user *User, cfg *AvatarConfig, message, errorMessage string) PageData {
+	normalized := normalizeAvatarConfig(cfg)
+	preview := buildAvatarPreview(normalized)
+
+	return PageData{
+		Title:                  "Avatar",
+		Username:               user.Name,
+		AvatarImage:            preview.BaseImage,
+		AvatarSummary:          avatarSummary(normalized),
+		Coins:                  getCoinBalance(user.UserID),
+		ActiveNav:              "avatar",
+		UseStudentCSS:          true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
+		AvatarBaseOptions:      avatarBaseOptionViews(normalized.Base),
+		AvatarHairOptions:      avatarCosmeticOptionViews(user.UserID, avatarSlotHairStyle, normalized.HairStyle),
+		AvatarClothOptions:     avatarCosmeticOptionViews(user.UserID, avatarSlotClothing, normalized.Clothing),
+		AvatarAccessOptions:    avatarCosmeticOptionViews(user.UserID, avatarSlotAccessory, normalized.Accessory),
+		AvatarEffectOptions:    avatarCosmeticOptionViews(user.UserID, avatarSlotEffect, normalized.Effect),
+		AvatarPreview:          preview,
+		AvatarMessage:          message,
+		AvatarError:            errorMessage,
+	}
+}
+
+func buildAvatarPreview(cfg *AvatarConfig) AvatarPreviewView {
+	normalized := normalizeAvatarConfig(cfg)
+	base, ok := avatarBaseByID(normalized.Base)
+	if !ok {
+		base, _ = avatarBaseByID(defaultAvatarBaseID)
+	}
+
+	preview := AvatarPreviewView{
+		BaseLabel:      base.Label,
+		BaseImage:      base.Image,
+		HairStyleLabel: cosmeticLabel(normalized.HairStyle),
+		ClothingLabel:  cosmeticLabel(normalized.Clothing),
+		AccessoryLabel: cosmeticLabel(normalized.Accessory),
+		EffectLabel:    cosmeticLabel(normalized.Effect),
+		Layers: avatarLayerViews([]string{
+			normalized.Effect,
+			normalized.Clothing,
+			normalized.HairStyle,
+			normalized.Accessory,
+		}),
+	}
+	preview.HasCosmetics = preview.HairStyleLabel != "" ||
+		preview.ClothingLabel != "" ||
+		preview.AccessoryLabel != "" ||
+		preview.EffectLabel != ""
+
+	return preview
+}
+
+func avatarBaseOptionViews(selectedID string) []AvatarBaseOptionView {
+	views := make([]AvatarBaseOptionView, 0, len(avatarBaseCatalog))
+	for _, option := range avatarBaseCatalog {
+		views = append(views, AvatarBaseOptionView{
+			ID:       option.ID,
+			Label:    option.Label,
+			Image:    option.Image,
+			Selected: option.ID == selectedID,
+		})
+	}
+	return views
+}
+
+func avatarCosmeticOptionViews(userID, slot, selectedID string) []AvatarCosmeticOptionView {
+	views := []AvatarCosmeticOptionView{
+		{
+			Label:    "None",
+			Slot:     slot,
+			Owned:    true,
+			Selected: selectedID == "",
+		},
+	}
+	for _, option := range avatarCosmeticCatalog {
+		if option.Slot != slot {
+			continue
+		}
+
+		views = append(views, AvatarCosmeticOptionView{
+			ID:       option.ID,
+			Label:    option.Label,
+			Slot:     option.Slot,
+			Image:    option.Image,
+			Owned:    userOwnsShopItem(userID, option.ID),
+			Selected: option.ID == selectedID,
+		})
+	}
+
+	sort.Slice(views[1:], func(i, j int) bool {
+		return views[i+1].Label < views[j+1].Label
+	})
+
+	return views
+}
+
+func avatarSummary(cfg *AvatarConfig) []string {
+	preview := buildAvatarPreview(cfg)
+	summary := []string{preview.BaseLabel}
+	for _, label := range []string{
+		preview.HairStyleLabel,
+		preview.ClothingLabel,
+		preview.AccessoryLabel,
+		preview.EffectLabel,
+	} {
+		if label != "" {
+			summary = append(summary, label)
+		}
+	}
+	return summary
+}
+
+func avatarBaseExists(id string) bool {
+	_, ok := avatarBaseByID(id)
+	return ok
+}
+
+func avatarBaseByID(id string) (avatarBaseOption, bool) {
+	for _, option := range avatarBaseCatalog {
+		if option.ID == id {
+			return option, true
+		}
+	}
+	return avatarBaseOption{}, false
+}
+
+func avatarCosmeticExistsForSlot(id, slot string) bool {
+	if id == "" {
+		return false
+	}
+
+	option, ok := avatarCosmeticByID(id)
+	return ok && option.Slot == slot
+}
+
+func avatarCosmeticByID(id string) (avatarCosmeticOption, bool) {
+	for _, option := range avatarCosmeticCatalog {
+		if option.ID == id {
+			return option, true
+		}
+	}
+	return avatarCosmeticOption{}, false
+}
+
+func cosmeticLabel(id string) string {
+	option, ok := avatarCosmeticByID(id)
+	if !ok {
+		return ""
+	}
+	return option.Label
+}
+
+func avatarLayerViews(ids []string) []AvatarLayerView {
+	layers := make([]AvatarLayerView, 0, len(ids))
+	for _, id := range ids {
+		option, ok := avatarCosmeticByID(id)
+		if !ok {
+			continue
+		}
+		layers = append(layers, AvatarLayerView{
+			ID:    option.ID,
+			Label: option.Label,
+			Slot:  option.Slot,
+			Image: option.Image,
+		})
+	}
+	return layers
+}
+
+func avatarValidationMessage(err error) string {
+	switch {
+	case errors.Is(err, errLockedAvatarSelection):
+		return "You can only equip cosmetics you own."
+	case errors.Is(err, errInvalidAvatarSelection):
+		return "Choose a valid avatar option."
+	default:
+		return "Could not update avatar. Please try again."
+	}
+}

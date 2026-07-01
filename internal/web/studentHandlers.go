@@ -11,7 +11,6 @@ import (
 
 const startingStudentCoins = 10
 const attendanceRewardCoins = 1
-const defaultAvatarImage = "/static/images/geraldIcon3.png"
 
 func studentView(w http.ResponseWriter, r *http.Request) {
 	user, ok := currentSessionUser(w, r)
@@ -24,38 +23,23 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 	upcomingDoubleDays := getUpcomingDoubleDays(user)
 
 	data := PageData{
-		Title:              "Student Dashboard",
-		Username:           user.Name,
-		AvatarImage:        getAvatarImage(user),
-		Coins:              getCoinBalance(user.UserID),
-		AttendanceStatus:   attendanceStatus,
-		AttendanceMessage:  attendanceMessage,
-		CanMarkAttendance:  canMark,
-		WeeklySchedule:     weeklySchedule,
-		UpcomingDoubleDays: upcomingDoubleDays,
-		ActiveNav:          "home",
-		UseStudentCSS:      true,
+		Title:                  "Student Dashboard",
+		Username:               user.Name,
+		AvatarImage:            getAvatarImage(user),
+		AvatarSummary:          avatarSummary(savedAvatarConfig(user.UserID)),
+		AvatarPreview:          buildAvatarPreview(savedAvatarConfig(user.UserID)),
+		Coins:                  getCoinBalance(user.UserID),
+		AttendanceStatus:       attendanceStatus,
+		AttendanceMessage:      attendanceMessage,
+		CanMarkAttendance:      canMark,
+		WeeklySchedule:         weeklySchedule,
+		UpcomingDoubleDays:     upcomingDoubleDays,
+		ActiveNav:              "home",
+		UseStudentCSS:          true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
 	}
 
 	renderStudent(w, "studentDash.html", data)
-}
-
-func avatarView(w http.ResponseWriter, r *http.Request) {
-	user, ok := currentSessionUser(w, r)
-	if !ok {
-		return
-	}
-
-	data := PageData{
-		Title:         "Avatar",
-		Username:      user.Name,
-		AvatarImage:   getAvatarImage(user),
-		Coins:         getCoinBalance(user.UserID),
-		ActiveNav:     "avatar",
-		UseStudentCSS: true,
-	}
-
-	renderStudent(w, "avatarView.html", data)
 }
 
 func attendanceView(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +92,7 @@ func currentSessionUser(w http.ResponseWriter, r *http.Request) (*User, bool) {
 }
 
 func getCoinBalance(userID string) int {
-	total := startingStudentCoins
+	total := startingStudentCoins + app.ManualCoinAdjustments[userID]
 	for _, tx := range app.Transactions {
 		if tx.UserID == userID {
 			total += tx.Amount
@@ -165,10 +149,6 @@ func isDoubleDay(classroomID string, now time.Time) bool {
 	}
 
 	return false
-}
-
-func getAvatarImage(user *User) string {
-	return defaultAvatarImage
 }
 
 func getTodayAttendanceState(user *User) (status string, message string, canMark bool) {
@@ -263,18 +243,21 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 	ensureShopState()
 	seedShopItems()
 
-	allItems, ownedItems := getShopItemViews(user.UserID)
+	avatarItems, backgroundItems, ownedItems := getShopItemViews(user.UserID)
 
 	data := PageData{
-		Title:          "Shop",
-		Username:       user.Name,
-		AvatarImage:    getAvatarImage(user),
-		Coins:          getCoinBalance(user.UserID),
-		ShopItems:      allItems,
-		OwnedShopItems: ownedItems,
-		ShopMessage:    r.URL.Query().Get("msg"),
-		ActiveNav:      "shop",
-		UseStudentCSS:  true,
+		Title:                  "Shop",
+		Username:               user.Name,
+		AvatarImage:            getAvatarImage(user),
+		AvatarPreview:          buildAvatarPreview(savedAvatarConfig(user.UserID)),
+		Coins:                  getCoinBalance(user.UserID),
+		AvatarShopItems:        avatarItems,
+		BackgroundShopItems:    backgroundItems,
+		OwnedShopItems:         ownedItems,
+		ShopMessage:            r.URL.Query().Get("msg"),
+		ActiveNav:              "shop",
+		UseStudentCSS:          true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
 	}
 
 	renderStudent(w, "shopView.html", data)
@@ -340,40 +323,46 @@ func ensureShopState() {
 }
 
 func seedShopItems() {
-	if len(app.ShopItems) > 0 {
-		return
+	added := false
+	for _, item := range seededShopItems() {
+		added = seedShopItem(item) || added
 	}
 
-	app.ShopItems["hat_star"] = &ShopItem{
-		ID:          "hat_star",
-		Name:        "Star Hat",
-		Price:       5,
-		Description: "A bright hat for a standout student.",
+	if added {
+		saveData()
 	}
-	app.ShopItems["trail_rainbow"] = &ShopItem{
-		ID:          "trail_rainbow",
-		Name:        "Rainbow Trail",
-		Price:       8,
-		Description: "A colorful trail effect for your avatar.",
-	}
-	app.ShopItems["cape_gold"] = &ShopItem{
-		ID:          "cape_gold",
-		Name:        "Golden Cape",
-		Price:       12,
-		Description: "A shiny cape for extra style.",
-	}
-	app.ShopItems["glasses_rocket"] = &ShopItem{
-		ID:          "glasses_rocket",
-		Name:        "Rocket Glasses",
-		Price:       10,
-		Description: "A bold accessory for your avatar.",
-	}
-
-	saveData()
 }
 
-func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView) {
-	items := make([]ShopItemView, 0, len(app.ShopItems))
+func seedShopItem(item *ShopItem) bool {
+	if _, exists := app.ShopItems[item.ID]; exists {
+		return false
+	}
+
+	app.ShopItems[item.ID] = item
+	return true
+}
+
+func seededShopItems() []*ShopItem {
+	items := []*ShopItem{
+		{ID: "hat_star", Name: "Star Hat", Price: 5, Description: "A bright hat for a standout student."},
+		{ID: "hat_wizard", Name: "Wizard Hat", Price: 7, Description: "A tall purple hat for magical attendance streaks."},
+		{ID: "crown_flower", Name: "Flower Crown", Price: 6, Description: "A leafy crown with bright classroom blooms."},
+		{ID: "trail_rainbow", Name: "Rainbow Trail", Price: 8, Description: "A colorful trail effect for your avatar."},
+		{ID: "aura_sparkle", Name: "Sparkle Aura", Price: 9, Description: "A bright aura for a student who keeps showing up."},
+		{ID: "trail_comet", Name: "Comet Trail", Price: 11, Description: "A comet streak that follows your avatar."},
+		{ID: "cape_gold", Name: "Golden Cape", Price: 12, Description: "A shiny cape for extra style."},
+		{ID: "hoodie_blue", Name: "Blue Hoodie", Price: 7, Description: "A cozy hoodie for everyday questing."},
+		{ID: "scarf_red", Name: "Red Scarf", Price: 6, Description: "A bold scarf for chilly morning check-ins."},
+		{ID: "glasses_rocket", Name: "Rocket Glasses", Price: 10, Description: "A bold accessory for your avatar."},
+		{ID: "shades_pixel", Name: "Pixel Shades", Price: 8, Description: "Blocky shades with old-school cool."},
+		{ID: "headphones_gem", Name: "Gem Headphones", Price: 9, Description: "Bright headphones with a gem on top."},
+	}
+	return append(items, seededThemeBackgroundItems()...)
+}
+
+func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView, []ShopItemView) {
+	avatarItems := make([]ShopItemView, 0, len(app.ShopItems))
+	backgroundItems := make([]ShopItemView, 0, len(specialThemeBackgroundCatalog))
 	owned := make([]ShopItemView, 0)
 
 	ids := make([]string, 0, len(app.ShopItems))
@@ -391,13 +380,24 @@ func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView) {
 			Price:       item.Price,
 			Owned:       userOwnsShopItem(userID, item.ID),
 		}
-		items = append(items, view)
+		if cosmetic, ok := avatarCosmeticByID(item.ID); ok {
+			view.Image = cosmetic.Image
+			view.Slot = cosmetic.Slot
+		} else if background, ok := themeBackgroundByShopItemID(item.ID); ok {
+			view.Slot = shopItemSlotTheme
+			view.ThemeBackgroundID = background.ID
+		}
+		if view.Slot == shopItemSlotTheme {
+			backgroundItems = append(backgroundItems, view)
+		} else {
+			avatarItems = append(avatarItems, view)
+		}
 		if view.Owned {
 			owned = append(owned, view)
 		}
 	}
 
-	return items, owned
+	return avatarItems, backgroundItems, owned
 }
 
 func userOwnsShopItem(userID, itemID string) bool {

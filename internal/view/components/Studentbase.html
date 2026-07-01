@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/static/css/main.css">
   {{if .UseStudentCSS}}
   <link rel="stylesheet" href="/static/css/student.css">
+  <script src="/static/js/student-theme.js" defer></script>
   {{end}}
 </head>
 <body>
@@ -23,6 +24,45 @@
 
     {{template "footer" .}}
   </div>
+  {{if .UseStudentCSS}}
+  {{template "studentThemeControls" .}}
+  {{end}}
 </body>
 </html>
+{{end}}
+
+{{define "studentThemeControls"}}
+<section class="student-theme-panel" aria-label="Display settings">
+  <button class="theme-panel-toggle" type="button" aria-expanded="false" aria-controls="student-theme-menu">
+    Theme
+  </button>
+
+  <div class="theme-panel-menu" id="student-theme-menu" hidden>
+    <div class="theme-panel-group" aria-label="Mode">
+      <span class="theme-panel-label">Mode</span>
+      <button type="button" data-theme-value="light">Light</button>
+      <button type="button" data-theme-value="dark">Dark</button>
+    </div>
+
+    <div class="theme-panel-group theme-swatches" aria-label="Background">
+      <span class="theme-panel-label">Background</span>
+      <button type="button" data-bg-value="red" aria-label="Red background"></button>
+      <button type="button" data-bg-value="blue" aria-label="Blue background"></button>
+      <button type="button" data-bg-value="green" aria-label="Green background"></button>
+      <button type="button" data-bg-value="yellow" aria-label="Yellow background"></button>
+      <button type="button" data-bg-value="orange" aria-label="Orange background"></button>
+      <button type="button" data-bg-value="pink" aria-label="Pink background"></button>
+      <button type="button" data-bg-value="purple" aria-label="Purple background"></button>
+    </div>
+
+    {{if .ThemeBackgroundOptions}}
+    <div class="theme-panel-group theme-swatches theme-special-swatches" aria-label="Special backgrounds">
+      <span class="theme-panel-label">Special</span>
+      {{range .ThemeBackgroundOptions}}
+      <button type="button" data-bg-value="{{.ID}}" aria-label="{{.Label}} background"></button>
+      {{end}}
+    </div>
+    {{end}}
+  </div>
+</section>
 {{end}}

@@ -47,6 +47,9 @@ func ensureAppState() {
 	if app.AvatarConfigs == nil {
 		app.AvatarConfigs = make(map[string]*domain.AvatarConfig)
 	}
+	if app.ManualCoinAdjustments == nil {
+		app.ManualCoinAdjustments = make(map[string]int)
+	}
 	if app.Transactions == nil {
 		app.Transactions = []domain.CoinTransaction{}
 	}

@@ -2,7 +2,7 @@
 <header class="topbar">
   <div class="brand">
     <div class="brand-mark">
-      <img src="{{.AvatarImage}}" alt="Avatar">
+      {{template "avatarStack" .AvatarPreview}}
     </div>
 
     <div>
@@ -20,4 +20,13 @@
     <button type="submit" class="logout-btn">Logout</button>
   </form>
 </header>
+{{end}}
+
+{{define "avatarStack"}}
+<div class="avatar-stack">
+  <img class="avatar-base" src="{{.BaseImage}}" alt="Avatar">
+  {{range .Layers}}
+  <img class="avatar-layer avatar-layer-{{.Slot}}" src="{{.Image}}" alt="{{.Label}}">
+  {{end}}
+</div>
 {{end}}

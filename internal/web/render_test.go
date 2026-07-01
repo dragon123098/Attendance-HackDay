@@ -117,3 +117,32 @@ func TestRenderedPagesReferenceExistingCSS(t *testing.T) {
 		})
 	}
 }
+
+func TestTemplatesReferenceExistingStaticAssets(t *testing.T) {
+	staticRef := regexp.MustCompile(`(?:href|src)="(/static/[^"]+)"`)
+
+	if err := fs.WalkDir(view.FS, ".", func(filePath string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !strings.HasSuffix(filePath, ".html") {
+			return nil
+		}
+
+		contents, err := fs.ReadFile(view.FS, filePath)
+		if err != nil {
+			return err
+		}
+
+		for _, match := range staticRef.FindAllStringSubmatch(string(contents), -1) {
+			assetPath := strings.TrimPrefix(match[1], "/")
+			if _, err := fs.Stat(view.FS, assetPath); err != nil {
+				t.Errorf("%s references missing static asset %q: %v", filePath, match[1], err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		t.Fatalf("walk embedded templates: %v", err)
+	}
+}
