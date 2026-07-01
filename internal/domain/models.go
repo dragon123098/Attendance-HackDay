@@ -6,9 +6,11 @@ type AppState struct {
 	ShopItems      map[string]*ShopItem     `json:"shop_items"`
 	OwnedShopItems map[string][]string      `json:"owned_shop_items"` // userID -> item IDs
 	AvatarConfigs  map[string]*AvatarConfig `json:"avatar_configs"`
-	Transactions   []CoinTransaction        `json:"transactions"`
-	Attendance     []AttendanceRecord       `json:"attendance"`
-	Schedule       []Schedule               `json:"schedule"`
+	// ManualCoinAdjustments lets data.json add or subtract coins without creating transaction records.
+	ManualCoinAdjustments map[string]int     `json:"manual_coin_adjustments"`
+	Transactions          []CoinTransaction  `json:"transactions"`
+	Attendance            []AttendanceRecord `json:"attendance"`
+	Schedule              []Schedule         `json:"schedule"`
 }
 
 type User struct {

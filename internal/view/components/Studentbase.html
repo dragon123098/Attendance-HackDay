@@ -54,6 +54,15 @@
       <button type="button" data-bg-value="pink" aria-label="Pink background"></button>
       <button type="button" data-bg-value="purple" aria-label="Purple background"></button>
     </div>
+
+    {{if .ThemeBackgroundOptions}}
+    <div class="theme-panel-group theme-swatches theme-special-swatches" aria-label="Special backgrounds">
+      <span class="theme-panel-label">Special</span>
+      {{range .ThemeBackgroundOptions}}
+      <button type="button" data-bg-value="{{.ID}}" aria-label="{{.Label}} background"></button>
+      {{end}}
+    </div>
+    {{end}}
   </div>
 </section>
 {{end}}

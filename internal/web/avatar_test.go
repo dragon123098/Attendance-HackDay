@@ -158,7 +158,7 @@ func TestAvatarViewShowsAvailableAndLockedOptions(t *testing.T) {
 	}
 }
 
-func TestSeedShopItemsAddsAllVisualCosmetics(t *testing.T) {
+func TestSeedShopItemsAddsVisualCosmeticsAndSpecialBackgrounds(t *testing.T) {
 	resetAvatarTestState(t)
 	withTempWorkingDir(t)
 	app.ShopItems = map[string]*ShopItem{
@@ -167,8 +167,9 @@ func TestSeedShopItemsAddsAllVisualCosmetics(t *testing.T) {
 
 	seedShopItems()
 
-	if len(app.ShopItems) != len(avatarCosmeticCatalog) {
-		t.Fatalf("shop item count = %d, want %d", len(app.ShopItems), len(avatarCosmeticCatalog))
+	wantCount := len(avatarCosmeticCatalog) + len(specialThemeBackgroundCatalog)
+	if len(app.ShopItems) != wantCount {
+		t.Fatalf("shop item count = %d, want %d", len(app.ShopItems), wantCount)
 	}
 	if app.ShopItems["hat_star"].Name != "Custom Star Hat" {
 		t.Fatal("seedShopItems overwrote an existing shop item")
@@ -178,30 +179,134 @@ func TestSeedShopItemsAddsAllVisualCosmetics(t *testing.T) {
 			t.Fatalf("missing seeded shop item %q", cosmetic.ID)
 		}
 	}
+	for _, background := range specialThemeBackgroundCatalog {
+		item, ok := app.ShopItems[background.ShopItemID]
+		if !ok {
+			t.Fatalf("missing seeded background item %q", background.ShopItemID)
+		}
+		if item.Price != themeBackgroundPrice {
+			t.Fatalf("%s price = %d, want %d", background.ShopItemID, item.Price, themeBackgroundPrice)
+		}
+	}
 }
 
-func TestGetShopItemViewsIncludesCosmeticImages(t *testing.T) {
+func TestGetShopItemViewsIncludesVisualPreviews(t *testing.T) {
 	resetAvatarTestState(t)
-	app.OwnedShopItems["student1"] = []string{"hat_star", "glasses_rocket"}
+	app.OwnedShopItems["student1"] = []string{"hat_star", "glasses_rocket", "background_beach"}
 
-	items, owned := getShopItemViews("student1")
+	avatarItems, backgroundItems, owned := getShopItemViews("student1")
 
-	if len(owned) != 2 {
-		t.Fatalf("owned item count = %d, want 2", len(owned))
+	if len(avatarItems) != len(avatarCosmeticCatalog) {
+		t.Fatalf("avatar item count = %d, want %d", len(avatarItems), len(avatarCosmeticCatalog))
+	}
+	if len(backgroundItems) != len(specialThemeBackgroundCatalog) {
+		t.Fatalf("background item count = %d, want %d", len(backgroundItems), len(specialThemeBackgroundCatalog))
 	}
 
-	for _, view := range items {
+	if len(owned) != 3 {
+		t.Fatalf("owned item count = %d, want 3", len(owned))
+	}
+
+	for _, view := range avatarItems {
 		if view.Image == "" {
-			t.Fatalf("shop item %q has empty image", view.ID)
+			t.Fatalf("avatar shop item %q has empty image", view.ID)
 		}
 		if view.Slot == "" {
-			t.Fatalf("shop item %q has empty slot", view.ID)
+			t.Fatalf("avatar shop item %q has empty slot", view.ID)
+		}
+	}
+	for _, view := range backgroundItems {
+		if view.Slot != shopItemSlotTheme {
+			t.Fatalf("background shop item %q slot = %q, want %q", view.ID, view.Slot, shopItemSlotTheme)
+		}
+		if view.ThemeBackgroundID == "" {
+			t.Fatalf("background shop item %q has empty preview ID", view.ID)
 		}
 	}
 	for _, view := range owned {
-		if view.Image == "" {
-			t.Fatalf("owned item %q has empty image", view.ID)
+		if view.Image == "" && view.ThemeBackgroundID == "" {
+			t.Fatalf("owned item %q has empty visual preview", view.ID)
 		}
+	}
+}
+
+func TestOwnedThemeBackgroundOptionsOnlyIncludesPurchasedBackgrounds(t *testing.T) {
+	resetAvatarTestState(t)
+	app.OwnedShopItems["student1"] = []string{"background_beach", "hat_star"}
+
+	options := ownedThemeBackgroundOptionViews("student1")
+
+	if len(options) != 1 {
+		t.Fatalf("owned background count = %d, want 1", len(options))
+	}
+	if options[0].ID != "beach" || options[0].Label != "Beach" {
+		t.Fatalf("owned background option = %#v", options[0])
+	}
+}
+
+func TestShopViewShowsOwnedSpecialBackgroundSwatches(t *testing.T) {
+	resetAvatarTestState(t)
+	app.OwnedShopItems["student1"] = []string{"background_beach"}
+
+	req := authedAvatarRequest(t, http.MethodGet, "/shop", nil)
+	rec := httptest.NewRecorder()
+
+	shopView(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{`data-bg-value="red"`, `data-bg-value="beach"`, `data-theme-preview="beach"`} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("shop page did not contain %q\n%s", want, body)
+		}
+	}
+	for _, want := range []string{"Avatar Items", "Backgrounds"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("shop page did not contain section header %q\n%s", want, body)
+		}
+	}
+	if strings.Contains(body, `data-bg-value="forest"`) {
+		t.Fatalf("shop page showed unowned forest theme swatch\n%s", body)
+	}
+}
+
+func TestGetCoinBalanceIncludesManualAdjustments(t *testing.T) {
+	resetAvatarTestState(t)
+	app.ManualCoinAdjustments["student1"] = 25
+	app.Transactions = []CoinTransaction{
+		{UserID: "student1", Amount: 2, Description: "Attendance reward"},
+		{UserID: "student1", Amount: -5, Description: "Purchased Star Hat"},
+	}
+
+	if balance := getCoinBalance("student1"); balance != 32 {
+		t.Fatalf("coin balance = %d, want 32", balance)
+	}
+}
+
+func TestShopBuyCanPurchaseSpecialBackground(t *testing.T) {
+	resetAvatarTestState(t)
+	withTempWorkingDir(t)
+	app.Transactions = []CoinTransaction{
+		{UserID: "student1", Amount: 10, Description: "Test bonus"},
+	}
+
+	form := url.Values{"item_id": {"background_beach"}}
+	req := authedAvatarRequest(t, http.MethodPost, "/shop/buy", form)
+	rec := httptest.NewRecorder()
+
+	shopBuyView(rec, req)
+
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusSeeOther)
+	}
+	if !userOwnsShopItem("student1", "background_beach") {
+		t.Fatal("special background was not added to owned shop items")
+	}
+	if balance := getCoinBalance("student1"); balance != 5 {
+		t.Fatalf("coin balance = %d, want 5", balance)
 	}
 }
 
@@ -326,9 +431,10 @@ func resetAvatarTestState(t *testing.T) {
 				UserID:      "student1",
 			},
 		},
-		ShopItems:      seededShopItemMap(),
-		OwnedShopItems: map[string][]string{},
-		AvatarConfigs:  map[string]*AvatarConfig{},
+		ShopItems:             seededShopItemMap(),
+		OwnedShopItems:        map[string][]string{},
+		AvatarConfigs:         map[string]*AvatarConfig{},
+		ManualCoinAdjustments: map[string]int{},
 	}
 
 	t.Cleanup(func() {

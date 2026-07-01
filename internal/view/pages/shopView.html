@@ -19,35 +19,35 @@
 
     <div class="shop-section">
         <div class="section-header">
-            <h2>Items</h2>
-            <p>More rewards coming soon!</p>
+            <h2>Avatar Items</h2>
+            <p>Cosmetics that can be equipped on the avatar page.</p>
         </div>
 
         <div class="shop-grid">
-            {{range .ShopItems}}
-            <div class="shop-item-card">
-                {{if .Image}}
-                <div class="shop-item-image-wrap">
-                    <img src="{{.Image}}" alt="{{.Name}}">
-                </div>
-                {{end}}
-                <div class="shop-item-name">{{.Name}}</div>
-                <div class="shop-item-desc">{{.Description}}</div>
-                <div class="shop-item-cost">{{.Price}} coins</div>
-
-                {{if .Owned}}
-                <button class="shop-buy-btn" type="button" disabled>Owned</button>
-                {{else}}
-                <form method="POST" action="/shop/buy">
-                    <input type="hidden" name="item_id" value="{{.ID}}">
-                    <button class="shop-buy-btn" type="submit">Buy</button>
-                </form>
-                {{end}}
-            </div>
+            {{range .AvatarShopItems}}
+            {{template "shopItemCard" .}}
             {{else}}
             <div class="shop-empty-state">
-                <h3>No items yet</h3>
-                <p>Add shop items here when you are ready.</p>
+                <h3>No avatar items yet</h3>
+                <p>Add avatar cosmetics here when you are ready.</p>
+            </div>
+            {{end}}
+        </div>
+    </div>
+
+    <div class="shop-section">
+        <div class="section-header">
+            <h2>Backgrounds</h2>
+            <p>Special pastel themes for the student pages.</p>
+        </div>
+
+        <div class="shop-grid">
+            {{range .BackgroundShopItems}}
+            {{template "shopItemCard" .}}
+            {{else}}
+            <div class="shop-empty-state">
+                <h3>No backgrounds yet</h3>
+                <p>Add background themes here when you are ready.</p>
             </div>
             {{end}}
         </div>
@@ -63,7 +63,11 @@
         <div class="shop-owned-list">
             {{range .OwnedShopItems}}
             <div class="shop-owned-item">
-                {{if .Image}}<img src="{{.Image}}" alt="{{.Name}}">{{end}}
+                {{if .ThemeBackgroundID}}
+                <span class="shop-owned-theme-preview" data-theme-preview="{{.ThemeBackgroundID}}" aria-hidden="true"></span>
+                {{else if .Image}}
+                <img src="{{.Image}}" alt="{{.Name}}">
+                {{end}}
                 <span>{{.Name}}</span>
             </div>
             {{end}}
@@ -75,6 +79,32 @@
         </div>
         {{end}}
     </div>
+</div>
+{{end}}
+
+{{define "shopItemCard"}}
+<div class="shop-item-card">
+    {{if .ThemeBackgroundID}}
+    <div class="shop-item-image-wrap">
+        <span class="shop-theme-preview" data-theme-preview="{{.ThemeBackgroundID}}" aria-hidden="true"></span>
+    </div>
+    {{else if .Image}}
+    <div class="shop-item-image-wrap">
+        <img src="{{.Image}}" alt="{{.Name}}">
+    </div>
+    {{end}}
+    <div class="shop-item-name">{{.Name}}</div>
+    <div class="shop-item-desc">{{.Description}}</div>
+    <div class="shop-item-cost">{{.Price}} coins</div>
+
+    {{if .Owned}}
+    <button class="shop-buy-btn" type="button" disabled>Owned</button>
+    {{else}}
+    <form method="POST" action="/shop/buy">
+        <input type="hidden" name="item_id" value="{{.ID}}">
+        <button class="shop-buy-btn" type="submit">Buy</button>
+    </form>
+    {{end}}
 </div>
 {{end}}
 

@@ -23,19 +23,20 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 	upcomingDoubleDays := getUpcomingDoubleDays(user)
 
 	data := PageData{
-		Title:              "Student Dashboard",
-		Username:           user.Name,
-		AvatarImage:        getAvatarImage(user),
-		AvatarSummary:      avatarSummary(savedAvatarConfig(user.UserID)),
-		AvatarPreview:      buildAvatarPreview(savedAvatarConfig(user.UserID)),
-		Coins:              getCoinBalance(user.UserID),
-		AttendanceStatus:   attendanceStatus,
-		AttendanceMessage:  attendanceMessage,
-		CanMarkAttendance:  canMark,
-		WeeklySchedule:     weeklySchedule,
-		UpcomingDoubleDays: upcomingDoubleDays,
-		ActiveNav:          "home",
-		UseStudentCSS:      true,
+		Title:                  "Student Dashboard",
+		Username:               user.Name,
+		AvatarImage:            getAvatarImage(user),
+		AvatarSummary:          avatarSummary(savedAvatarConfig(user.UserID)),
+		AvatarPreview:          buildAvatarPreview(savedAvatarConfig(user.UserID)),
+		Coins:                  getCoinBalance(user.UserID),
+		AttendanceStatus:       attendanceStatus,
+		AttendanceMessage:      attendanceMessage,
+		CanMarkAttendance:      canMark,
+		WeeklySchedule:         weeklySchedule,
+		UpcomingDoubleDays:     upcomingDoubleDays,
+		ActiveNav:              "home",
+		UseStudentCSS:          true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
 	}
 
 	renderStudent(w, "studentDash.html", data)
@@ -91,7 +92,7 @@ func currentSessionUser(w http.ResponseWriter, r *http.Request) (*User, bool) {
 }
 
 func getCoinBalance(userID string) int {
-	total := startingStudentCoins
+	total := startingStudentCoins + app.ManualCoinAdjustments[userID]
 	for _, tx := range app.Transactions {
 		if tx.UserID == userID {
 			total += tx.Amount
@@ -242,19 +243,21 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 	ensureShopState()
 	seedShopItems()
 
-	allItems, ownedItems := getShopItemViews(user.UserID)
+	avatarItems, backgroundItems, ownedItems := getShopItemViews(user.UserID)
 
 	data := PageData{
-		Title:          "Shop",
-		Username:       user.Name,
-		AvatarImage:    getAvatarImage(user),
-		AvatarPreview:  buildAvatarPreview(savedAvatarConfig(user.UserID)),
-		Coins:          getCoinBalance(user.UserID),
-		ShopItems:      allItems,
-		OwnedShopItems: ownedItems,
-		ShopMessage:    r.URL.Query().Get("msg"),
-		ActiveNav:      "shop",
-		UseStudentCSS:  true,
+		Title:                  "Shop",
+		Username:               user.Name,
+		AvatarImage:            getAvatarImage(user),
+		AvatarPreview:          buildAvatarPreview(savedAvatarConfig(user.UserID)),
+		Coins:                  getCoinBalance(user.UserID),
+		AvatarShopItems:        avatarItems,
+		BackgroundShopItems:    backgroundItems,
+		OwnedShopItems:         ownedItems,
+		ShopMessage:            r.URL.Query().Get("msg"),
+		ActiveNav:              "shop",
+		UseStudentCSS:          true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
 	}
 
 	renderStudent(w, "shopView.html", data)
@@ -340,7 +343,7 @@ func seedShopItem(item *ShopItem) bool {
 }
 
 func seededShopItems() []*ShopItem {
-	return []*ShopItem{
+	items := []*ShopItem{
 		{ID: "hat_star", Name: "Star Hat", Price: 5, Description: "A bright hat for a standout student."},
 		{ID: "hat_wizard", Name: "Wizard Hat", Price: 7, Description: "A tall purple hat for magical attendance streaks."},
 		{ID: "crown_flower", Name: "Flower Crown", Price: 6, Description: "A leafy crown with bright classroom blooms."},
@@ -354,10 +357,12 @@ func seededShopItems() []*ShopItem {
 		{ID: "shades_pixel", Name: "Pixel Shades", Price: 8, Description: "Blocky shades with old-school cool."},
 		{ID: "headphones_gem", Name: "Gem Headphones", Price: 9, Description: "Bright headphones with a gem on top."},
 	}
+	return append(items, seededThemeBackgroundItems()...)
 }
 
-func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView) {
-	items := make([]ShopItemView, 0, len(app.ShopItems))
+func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView, []ShopItemView) {
+	avatarItems := make([]ShopItemView, 0, len(app.ShopItems))
+	backgroundItems := make([]ShopItemView, 0, len(specialThemeBackgroundCatalog))
 	owned := make([]ShopItemView, 0)
 
 	ids := make([]string, 0, len(app.ShopItems))
@@ -378,14 +383,21 @@ func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView) {
 		if cosmetic, ok := avatarCosmeticByID(item.ID); ok {
 			view.Image = cosmetic.Image
 			view.Slot = cosmetic.Slot
+		} else if background, ok := themeBackgroundByShopItemID(item.ID); ok {
+			view.Slot = shopItemSlotTheme
+			view.ThemeBackgroundID = background.ID
 		}
-		items = append(items, view)
+		if view.Slot == shopItemSlotTheme {
+			backgroundItems = append(backgroundItems, view)
+		} else {
+			avatarItems = append(avatarItems, view)
+		}
 		if view.Owned {
 			owned = append(owned, view)
 		}
 	}
 
-	return items, owned
+	return avatarItems, backgroundItems, owned
 }
 
 func userOwnsShopItem(userID, itemID string) bool {

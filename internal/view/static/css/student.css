@@ -78,6 +78,66 @@ html[data-student-bg="purple"] {
   --student-blue: #798eaf;
 }
 
+html[data-student-bg="beach"] {
+  --student-bg-top: #d4edf1;
+  --student-bg-mid: #a9d7d2;
+  --student-bg-low: #e4c999;
+  --student-green: #63988b;
+  --student-green-dark: #4c766d;
+  --student-gold: #d4ae67;
+  --student-blue: #6ea8bd;
+}
+
+html[data-student-bg="forest"] {
+  --student-bg-top: #d8ead1;
+  --student-bg-mid: #9fc68f;
+  --student-bg-low: #627f59;
+  --student-green: #63865c;
+  --student-green-dark: #4c6748;
+  --student-gold: #c9a966;
+  --student-blue: #7599a7;
+}
+
+html[data-student-bg="sky"] {
+  --student-bg-top: #d7ebfb;
+  --student-bg-mid: #a9ceeb;
+  --student-bg-low: #7faecc;
+  --student-green: #6d9286;
+  --student-green-dark: #526f68;
+  --student-gold: #d0ae65;
+  --student-blue: #6498bd;
+}
+
+html[data-student-bg="meadow"] {
+  --student-bg-top: #e5ecd1;
+  --student-bg-mid: #bfd897;
+  --student-bg-low: #82a55e;
+  --student-green: #739760;
+  --student-green-dark: #5c784d;
+  --student-gold: #d0ae5c;
+  --student-blue: #7da0b2;
+}
+
+html[data-student-bg="mountain"] {
+  --student-bg-top: #dfdef0;
+  --student-bg-mid: #b3b9d4;
+  --student-bg-low: #737fa6;
+  --student-green: #747da0;
+  --student-green-dark: #59617e;
+  --student-gold: #c8aa66;
+  --student-blue: #788fb6;
+}
+
+html[data-student-bg="sunset"] {
+  --student-bg-top: #f3d4c5;
+  --student-bg-mid: #df9f98;
+  --student-bg-low: #aa7a7d;
+  --student-green: #9b7764;
+  --student-green-dark: #78594b;
+  --student-gold: #d4a35b;
+  --student-blue: #8392ad;
+}
+
 html[data-student-mode="dark"] {
   --student-bg-top: #1c281f;
   --student-bg-mid: #233828;
@@ -138,6 +198,42 @@ html[data-student-mode="dark"][data-student-bg="purple"] {
   --student-bg-low: #584b73;
 }
 
+html[data-student-mode="dark"][data-student-bg="beach"] {
+  --student-bg-top: #15272d;
+  --student-bg-mid: #24454a;
+  --student-bg-low: #5c6350;
+}
+
+html[data-student-mode="dark"][data-student-bg="forest"] {
+  --student-bg-top: #132018;
+  --student-bg-mid: #243321;
+  --student-bg-low: #44553a;
+}
+
+html[data-student-mode="dark"][data-student-bg="sky"] {
+  --student-bg-top: #162536;
+  --student-bg-mid: #223b52;
+  --student-bg-low: #506575;
+}
+
+html[data-student-mode="dark"][data-student-bg="meadow"] {
+  --student-bg-top: #1d2615;
+  --student-bg-mid: #344725;
+  --student-bg-low: #586b3a;
+}
+
+html[data-student-mode="dark"][data-student-bg="mountain"] {
+  --student-bg-top: #1e2130;
+  --student-bg-mid: #343a55;
+  --student-bg-low: #575f79;
+}
+
+html[data-student-mode="dark"][data-student-bg="sunset"] {
+  --student-bg-top: #2e1e26;
+  --student-bg-mid: #4b303d;
+  --student-bg-low: #76535d;
+}
+
 body {
   color: var(--student-ink);
   background:
@@ -161,6 +257,54 @@ body::before {
     linear-gradient(115deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px 18px);
   background-size: 260px 220px, 340px 260px, 300px 280px, 130px 130px;
   mix-blend-mode: soft-light;
+}
+
+html[data-student-bg="beach"] body::before {
+  background-image:
+    linear-gradient(178deg, transparent 0 76%, rgba(255, 255, 255, 0.22) 77% 78%, transparent 79%),
+    radial-gradient(circle at 78% 18%, rgba(255, 246, 190, 0.46) 0 3px, transparent 4px),
+    radial-gradient(circle at 22% 68%, rgba(255, 255, 255, 0.26) 0 2px, transparent 3px);
+  background-size: 320px 120px, 280px 220px, 260px 260px;
+}
+
+html[data-student-bg="forest"] body::before {
+  background-image:
+    radial-gradient(ellipse at 24% 30%, rgba(255, 255, 255, 0.24) 0 2px, transparent 3px),
+    radial-gradient(ellipse at 76% 64%, rgba(63, 98, 57, 0.28) 0 3px, transparent 4px),
+    linear-gradient(128deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 24px);
+  background-size: 260px 240px, 320px 280px, 150px 150px;
+}
+
+html[data-student-bg="sky"] body::before {
+  background-image:
+    radial-gradient(ellipse at 18% 22%, rgba(255, 255, 255, 0.36) 0 7px, transparent 8px),
+    radial-gradient(ellipse at 72% 44%, rgba(255, 255, 255, 0.25) 0 10px, transparent 11px),
+    radial-gradient(circle at 42% 74%, rgba(255, 255, 255, 0.2) 0 2px, transparent 3px);
+  background-size: 340px 260px, 420px 300px, 260px 260px;
+}
+
+html[data-student-bg="meadow"] body::before {
+  background-image:
+    radial-gradient(circle at 16% 28%, rgba(255, 236, 171, 0.38) 0 2px, transparent 3px),
+    radial-gradient(circle at 72% 62%, rgba(244, 196, 218, 0.32) 0 2px, transparent 3px),
+    linear-gradient(112deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 22px);
+  background-size: 260px 240px, 300px 280px, 140px 140px;
+}
+
+html[data-student-bg="mountain"] body::before {
+  background-image:
+    linear-gradient(142deg, transparent 0 48%, rgba(255, 255, 255, 0.2) 49% 50%, transparent 51%),
+    radial-gradient(circle at 70% 22%, rgba(255, 255, 255, 0.26) 0 2px, transparent 3px),
+    radial-gradient(circle at 28% 74%, rgba(210, 218, 244, 0.32) 0 3px, transparent 4px);
+  background-size: 300px 260px, 260px 220px, 340px 300px;
+}
+
+html[data-student-bg="sunset"] body::before {
+  background-image:
+    radial-gradient(circle at 72% 24%, rgba(255, 223, 158, 0.44) 0 8px, transparent 9px),
+    radial-gradient(circle at 22% 62%, rgba(255, 255, 255, 0.22) 0 2px, transparent 3px),
+    linear-gradient(118deg, rgba(255, 255, 255, 0.13) 0 1px, transparent 1px 24px);
+  background-size: 360px 280px, 260px 240px, 150px 150px;
 }
 
 .app-shell {
@@ -540,6 +684,27 @@ body::before {
   object-fit: contain;
 }
 
+.shop-theme-preview,
+.shop-owned-theme-preview {
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(38, 51, 38, 0.08);
+}
+
+.shop-theme-preview {
+  width: 78px;
+  height: 78px;
+  border-radius: 14px;
+}
+
+.shop-owned-theme-preview {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
 .shop-item-name,
 .shop-item-cost {
   font-weight: 800;
@@ -771,6 +936,16 @@ body::before {
   padding: 0;
 }
 
+.theme-swatches button.active {
+  outline: 2px solid var(--student-ink);
+  outline-offset: 2px;
+}
+
+.theme-special-swatches {
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--student-line);
+}
+
 .theme-swatches button[data-bg-value="red"] {
   background: linear-gradient(135deg, #f1d3ce, #ad6f67);
 }
@@ -797,6 +972,56 @@ body::before {
 
 .theme-swatches button[data-bg-value="purple"] {
   background: linear-gradient(135deg, #e6dcf2, #8171ac);
+}
+
+.theme-swatches button[data-bg-value="beach"],
+.shop-theme-preview[data-theme-preview="beach"],
+.shop-owned-theme-preview[data-theme-preview="beach"] {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 247, 192, 0.86) 0 10%, transparent 11%),
+    linear-gradient(180deg, #bfe5ee 0 44%, #8ccfd0 45% 57%, #f0d8a8 58% 100%);
+}
+
+.theme-swatches button[data-bg-value="forest"],
+.shop-theme-preview[data-theme-preview="forest"],
+.shop-owned-theme-preview[data-theme-preview="forest"] {
+  background:
+    radial-gradient(ellipse at 30% 24%, rgba(255, 255, 255, 0.42) 0 12%, transparent 13%),
+    linear-gradient(160deg, #d8ead1 0 38%, #91ba82 39% 72%, #5f7c59 73% 100%);
+}
+
+.theme-swatches button[data-bg-value="sky"],
+.shop-theme-preview[data-theme-preview="sky"],
+.shop-owned-theme-preview[data-theme-preview="sky"] {
+  background:
+    radial-gradient(ellipse at 28% 28%, rgba(255, 255, 255, 0.74) 0 12%, transparent 13%),
+    radial-gradient(ellipse at 72% 42%, rgba(255, 255, 255, 0.46) 0 13%, transparent 14%),
+    linear-gradient(180deg, #d7ebfb 0 42%, #a9ceeb 43% 75%, #7faecc 76% 100%);
+}
+
+.theme-swatches button[data-bg-value="meadow"],
+.shop-theme-preview[data-theme-preview="meadow"],
+.shop-owned-theme-preview[data-theme-preview="meadow"] {
+  background:
+    radial-gradient(circle at 24% 28%, rgba(255, 228, 154, 0.8) 0 7%, transparent 8%),
+    radial-gradient(circle at 70% 64%, rgba(241, 181, 212, 0.72) 0 6%, transparent 7%),
+    linear-gradient(180deg, #e5ecd1 0 42%, #bfd897 43% 72%, #82a55e 73% 100%);
+}
+
+.theme-swatches button[data-bg-value="mountain"],
+.shop-theme-preview[data-theme-preview="mountain"],
+.shop-owned-theme-preview[data-theme-preview="mountain"] {
+  background:
+    linear-gradient(140deg, transparent 0 48%, rgba(255, 255, 255, 0.42) 49% 51%, transparent 52%),
+    linear-gradient(180deg, #dfdef0 0 40%, #b3b9d4 41% 67%, #737fa6 68% 100%);
+}
+
+.theme-swatches button[data-bg-value="sunset"],
+.shop-theme-preview[data-theme-preview="sunset"],
+.shop-owned-theme-preview[data-theme-preview="sunset"] {
+  background:
+    radial-gradient(circle at 72% 24%, rgba(255, 226, 158, 0.82) 0 14%, transparent 15%),
+    linear-gradient(180deg, #f3d4c5 0 39%, #df9f98 40% 70%, #aa7a7d 71% 100%);
 }
 
 html[data-student-mode="dark"] .shop-item-card,

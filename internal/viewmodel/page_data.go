@@ -25,13 +25,19 @@ type DoubleDayView struct {
 }
 
 type ShopItemView struct {
-	ID          string
-	Name        string
-	Description string
-	Price       int
-	Owned       bool
-	Slot        string
-	Image       string `json:"image"`
+	ID                string
+	Name              string
+	Description       string
+	Price             int
+	Owned             bool
+	Slot              string
+	Image             string `json:"image"`
+	ThemeBackgroundID string
+}
+
+type ThemeBackgroundOptionView struct {
+	ID    string
+	Label string
 }
 
 type AvatarBaseOptionView struct {
@@ -69,31 +75,33 @@ type AvatarPreviewView struct {
 }
 
 type PageData struct {
-	Title               string
-	Username            string
-	AvatarImage         string
-	AvatarSummary       []string
-	Error               string
-	Coins               int
-	HeaderTitle         string
-	HeaderSubtitle      string
-	HeaderBadge         string
-	AttendanceStatus    string
-	AttendanceMessage   string
-	CanMarkAttendance   bool
-	WeeklySchedule      []ScheduleItemView
-	UpcomingDoubleDays  []DoubleDayView
-	ActiveNav           string
-	UseStudentCSS       bool
-	ShopItems           []ShopItemView
-	OwnedShopItems      []ShopItemView
-	ShopMessage         string
-	AvatarBaseOptions   []AvatarBaseOptionView
-	AvatarHairOptions   []AvatarCosmeticOptionView
-	AvatarClothOptions  []AvatarCosmeticOptionView
-	AvatarAccessOptions []AvatarCosmeticOptionView
-	AvatarEffectOptions []AvatarCosmeticOptionView
-	AvatarPreview       AvatarPreviewView
-	AvatarMessage       string
-	AvatarError         string
+	Title                  string
+	Username               string
+	AvatarImage            string
+	AvatarSummary          []string
+	Error                  string
+	Coins                  int
+	HeaderTitle            string
+	HeaderSubtitle         string
+	HeaderBadge            string
+	AttendanceStatus       string
+	AttendanceMessage      string
+	CanMarkAttendance      bool
+	WeeklySchedule         []ScheduleItemView
+	UpcomingDoubleDays     []DoubleDayView
+	ActiveNav              string
+	UseStudentCSS          bool
+	AvatarShopItems        []ShopItemView
+	BackgroundShopItems    []ShopItemView
+	OwnedShopItems         []ShopItemView
+	ThemeBackgroundOptions []ThemeBackgroundOptionView
+	ShopMessage            string
+	AvatarBaseOptions      []AvatarBaseOptionView
+	AvatarHairOptions      []AvatarCosmeticOptionView
+	AvatarClothOptions     []AvatarCosmeticOptionView
+	AvatarAccessOptions    []AvatarCosmeticOptionView
+	AvatarEffectOptions    []AvatarCosmeticOptionView
+	AvatarPreview          AvatarPreviewView
+	AvatarMessage          string
+	AvatarError            string
 }

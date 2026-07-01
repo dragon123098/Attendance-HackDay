@@ -124,6 +124,42 @@
             "price": 9,
             "description": "A bright aura for a student who keeps showing up."
         },
+        "background_beach": {
+            "id": "background_beach",
+            "name": "Beach Background",
+            "price": 15,
+            "description": "A soft shoreline with sand, sea, and gentle sky colors."
+        },
+        "background_forest": {
+            "id": "background_forest",
+            "name": "Forest Background",
+            "price": 15,
+            "description": "A calm woodland palette with mossy greens and warm light."
+        },
+        "background_meadow": {
+            "id": "background_meadow",
+            "name": "Meadow Background",
+            "price": 15,
+            "description": "Pastel grass, tiny blooms, and a quiet afternoon feel."
+        },
+        "background_mountain": {
+            "id": "background_mountain",
+            "name": "Mountain Background",
+            "price": 15,
+            "description": "Cool ridge colors with misty lavender shadows."
+        },
+        "background_sky": {
+            "id": "background_sky",
+            "name": "Sky Background",
+            "price": 15,
+            "description": "Airy blues and cloud-soft highlights for a clear day."
+        },
+        "background_sunset": {
+            "id": "background_sunset",
+            "name": "Sunset Background",
+            "price": 15,
+            "description": "Peach, rose, and gold tones for a mellow evening glow."
+        },
         "cape_gold": {
             "id": "cape_gold",
             "name": "Golden Cape",
@@ -197,7 +233,8 @@
         ],
         "student1": [
             "hat_star",
-            "glasses_rocket"
+            "glasses_rocket",
+            "background_beach"
         ]
     },
     "avatar_configs": {
@@ -215,6 +252,9 @@
             "accessory": "glasses_rocket",
             "effect": ""
         }
+    },
+    "manual_coin_adjustments": {
+        "student1": 25
     },
     "transactions": [
         {
@@ -276,6 +316,18 @@
             "amount": -9,
             "timestamp": "2026-06-30T16:23:21-06:00",
             "description": "Purchased Gem Headphones"
+        },
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-07-01T16:08:04-06:00",
+            "description": "Attendance reward for 2026-07-01"
+        },
+        {
+            "user_id": "student1",
+            "amount": -15,
+            "timestamp": "2026-07-01T16:08:12-06:00",
+            "description": "Purchased Beach Background"
         }
     ],
     "attendance": [
@@ -288,7 +340,8 @@
                 "2026-06-15",
                 "2026-06-22",
                 "2026-06-24",
-                "2026-06-30"
+                "2026-06-30",
+                "2026-07-01"
             ],
             "absent": null
         },

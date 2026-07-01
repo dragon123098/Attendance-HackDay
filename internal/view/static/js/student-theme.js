@@ -2,7 +2,15 @@
   const root = document.documentElement;
   const storageKey = "attendanceQuestTheme";
   const defaults = { mode: "light", background: "green" };
-  const backgrounds = new Set(["red", "blue", "green", "yellow", "orange", "pink", "purple"]);
+  const freeBackgrounds = new Set(["red", "blue", "green", "yellow", "orange", "pink", "purple"]);
+
+  function availableBackgrounds() {
+    const backgrounds = new Set(freeBackgrounds);
+    document.querySelectorAll("[data-bg-value]").forEach((button) => {
+      backgrounds.add(button.dataset.bgValue);
+    });
+    return backgrounds;
+  }
 
   function readSettings() {
     try {
@@ -17,7 +25,7 @@
   }
 
   function applySettings(settings) {
-    if (!backgrounds.has(settings.background)) {
+    if (!availableBackgrounds().has(settings.background)) {
       settings.background = defaults.background;
     }
 

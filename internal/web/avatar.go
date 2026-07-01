@@ -274,21 +274,22 @@ func buildAvatarPageData(user *User, cfg *AvatarConfig, message, errorMessage st
 	preview := buildAvatarPreview(normalized)
 
 	return PageData{
-		Title:               "Avatar",
-		Username:            user.Name,
-		AvatarImage:         preview.BaseImage,
-		AvatarSummary:       avatarSummary(normalized),
-		Coins:               getCoinBalance(user.UserID),
-		ActiveNav:           "avatar",
-		UseStudentCSS:       true,
-		AvatarBaseOptions:   avatarBaseOptionViews(normalized.Base),
-		AvatarHairOptions:   avatarCosmeticOptionViews(user.UserID, avatarSlotHairStyle, normalized.HairStyle),
-		AvatarClothOptions:  avatarCosmeticOptionViews(user.UserID, avatarSlotClothing, normalized.Clothing),
-		AvatarAccessOptions: avatarCosmeticOptionViews(user.UserID, avatarSlotAccessory, normalized.Accessory),
-		AvatarEffectOptions: avatarCosmeticOptionViews(user.UserID, avatarSlotEffect, normalized.Effect),
-		AvatarPreview:       preview,
-		AvatarMessage:       message,
-		AvatarError:         errorMessage,
+		Title:                  "Avatar",
+		Username:               user.Name,
+		AvatarImage:            preview.BaseImage,
+		AvatarSummary:          avatarSummary(normalized),
+		Coins:                  getCoinBalance(user.UserID),
+		ActiveNav:              "avatar",
+		UseStudentCSS:          true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
+		AvatarBaseOptions:      avatarBaseOptionViews(normalized.Base),
+		AvatarHairOptions:      avatarCosmeticOptionViews(user.UserID, avatarSlotHairStyle, normalized.HairStyle),
+		AvatarClothOptions:     avatarCosmeticOptionViews(user.UserID, avatarSlotClothing, normalized.Clothing),
+		AvatarAccessOptions:    avatarCosmeticOptionViews(user.UserID, avatarSlotAccessory, normalized.Accessory),
+		AvatarEffectOptions:    avatarCosmeticOptionViews(user.UserID, avatarSlotEffect, normalized.Effect),
+		AvatarPreview:          preview,
+		AvatarMessage:          message,
+		AvatarError:            errorMessage,
 	}
 }
 

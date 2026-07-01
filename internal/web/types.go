@@ -18,6 +18,7 @@ type PageData = viewmodel.PageData
 type ScheduleItemView = viewmodel.ScheduleItemView
 type DoubleDayView = viewmodel.DoubleDayView
 type ShopItemView = viewmodel.ShopItemView
+type ThemeBackgroundOptionView = viewmodel.ThemeBackgroundOptionView
 type AvatarBaseOptionView = viewmodel.AvatarBaseOptionView
 type AvatarCosmeticOptionView = viewmodel.AvatarCosmeticOptionView
 type AvatarLayerView = viewmodel.AvatarLayerView
