@@ -1,7 +1,7 @@
 (function () {
   const root = document.documentElement;
   const storageKey = "attendanceQuestTheme";
-  const defaults = { mode: "light", background: "green" };
+  const defaults = { mode: "dark", background: "green" };
   const freeBackgrounds = new Set(["red", "blue", "green", "yellow", "orange", "pink", "purple"]);
 
   function availableBackgrounds() {

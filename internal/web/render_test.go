@@ -146,3 +146,23 @@ func TestTemplatesReferenceExistingStaticAssets(t *testing.T) {
 		t.Fatalf("walk embedded templates: %v", err)
 	}
 }
+
+func TestStudentCSSReferencesExistingFontAssets(t *testing.T) {
+	contents, err := fs.ReadFile(view.FS, "static/css/student.css")
+	if err != nil {
+		t.Fatalf("read student css: %v", err)
+	}
+
+	fontRef := regexp.MustCompile(`url\("(/static/fonts/[^"]+)"\)`)
+	matches := fontRef.FindAllStringSubmatch(string(contents), -1)
+	if len(matches) == 0 {
+		t.Fatal("expected student css to reference self-hosted fonts")
+	}
+
+	for _, match := range matches {
+		assetPath := strings.TrimPrefix(match[1], "/")
+		if _, err := fs.Stat(view.FS, assetPath); err != nil {
+			t.Fatalf("font asset %q does not exist in embedded FS: %v", match[1], err)
+		}
+	}
+}

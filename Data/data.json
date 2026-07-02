@@ -328,6 +328,12 @@
             "amount": -15,
             "timestamp": "2026-07-01T16:08:12-06:00",
             "description": "Purchased Beach Background"
+        },
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-07-02T14:39:02-06:00",
+            "description": "Attendance reward for 2026-07-02"
         }
     ],
     "attendance": [
@@ -341,7 +347,8 @@
                 "2026-06-22",
                 "2026-06-24",
                 "2026-06-30",
-                "2026-07-01"
+                "2026-07-01",
+                "2026-07-02"
             ],
             "absent": null
         },
