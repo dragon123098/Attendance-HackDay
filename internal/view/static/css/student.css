@@ -1858,3 +1858,252 @@ html[data-student-mode="light"] .avatar-cosmetic-image {
     width: 100%;
   }
 }
+
+/* Focused student UI follow-up: left rail, footer controls, and swatch fixes. */
+@media (min-width: 900px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .navbar {
+    position: sticky;
+    top: 0;
+    grid-column: 1;
+    grid-row: 1 / 4;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1.2rem 0.9rem;
+    border-right: 2px solid var(--student-line);
+    border-bottom: 0;
+  }
+
+  .page-wrap {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .bottombar {
+    grid-column: 2;
+    grid-row: 3;
+  }
+}
+
+.nav-link-disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.nav-link-disabled:hover {
+  background: transparent;
+  transform: none;
+}
+
+.bottombar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+.bottombar-copy {
+  color: var(--student-green);
+  font-family: var(--student-font-display);
+  font-weight: 400;
+}
+
+.bottombar-attendance {
+  justify-self: center;
+}
+
+.bottombar-attendance form {
+  margin: 0;
+}
+
+.bottombar-theme {
+  position: relative;
+  justify-self: end;
+}
+
+.footer-attendance-btn {
+  min-width: 13rem;
+  min-height: 3rem;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+}
+
+.bottombar-theme .student-theme-panel {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: 1;
+}
+
+.bottombar-theme .theme-panel-toggle {
+  min-width: 5.25rem;
+  padding: 0.68rem 0.9rem;
+  box-shadow: none;
+}
+
+.bottombar-theme .theme-panel-menu {
+  right: 0;
+  bottom: calc(100% + 0.65rem);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="red"] {
+  background: linear-gradient(135deg, #ff8a7c, #d83748);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="blue"] {
+  background: linear-gradient(135deg, #61d4ff, #1b73e8);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="green"] {
+  background: linear-gradient(135deg, #7be94f, #1fa33a);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="yellow"] {
+  background: linear-gradient(135deg, #ffe873, #ffb800);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="orange"] {
+  background: linear-gradient(135deg, #ffb35b, #f06423);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="pink"] {
+  background: linear-gradient(135deg, #ff8bd2, #d93690);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="purple"] {
+  background: linear-gradient(135deg, #bd8cff, #7b3ff2);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="beach"] {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 236, 116, 0.95) 0 10%, transparent 11%),
+    linear-gradient(180deg, #50c7e8 0 44%, #12a8b5 45% 57%, #ffc45f 58% 100%);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="forest"] {
+  background:
+    radial-gradient(ellipse at 30% 24%, rgba(255, 255, 255, 0.5) 0 12%, transparent 13%),
+    linear-gradient(160deg, #8add65 0 38%, #249c4b 39% 72%, #0d5d3b 73% 100%);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="sky"] {
+  background:
+    radial-gradient(ellipse at 28% 28%, rgba(255, 255, 255, 0.85) 0 12%, transparent 13%),
+    radial-gradient(ellipse at 72% 42%, rgba(255, 255, 255, 0.58) 0 13%, transparent 14%),
+    linear-gradient(180deg, #73d7ff 0 42%, #22a7f2 43% 75%, #1876c9 76% 100%);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="meadow"] {
+  background:
+    radial-gradient(circle at 24% 28%, rgba(255, 231, 84, 0.9) 0 7%, transparent 8%),
+    radial-gradient(circle at 70% 64%, rgba(255, 123, 190, 0.85) 0 6%, transparent 7%),
+    linear-gradient(180deg, #93e86b 0 42%, #42b84f 43% 72%, #247d3c 73% 100%);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="mountain"] {
+  background:
+    linear-gradient(140deg, transparent 0 48%, rgba(255, 255, 255, 0.58) 49% 51%, transparent 52%),
+    linear-gradient(180deg, #9c98ff 0 40%, #576fd6 41% 67%, #24398c 68% 100%);
+}
+
+.theme-panel-menu .theme-swatches button[data-bg-value="sunset"] {
+  background:
+    radial-gradient(circle at 72% 24%, rgba(255, 222, 94, 0.95) 0 14%, transparent 15%),
+    linear-gradient(180deg, #ff8b68 0 39%, #e44c76 40% 70%, #8730a9 71% 100%);
+}
+
+.theme-panel-menu .theme-swatches button.active {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+html[data-student-mode="light"] .theme-panel-menu .theme-swatches button.active {
+  outline-color: #07181d;
+}
+
+.avatar-cosmetic-group {
+  padding: 0 0 0.85rem;
+}
+
+.avatar-cosmetic-group legend {
+  box-sizing: border-box;
+  float: left;
+  width: 100%;
+  margin: 0 0 0.55rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 2px solid var(--student-line);
+  background: rgba(28, 176, 246, 0.12);
+}
+
+.avatar-cosmetic-group legend + .avatar-cosmetic-option {
+  clear: both;
+}
+
+.avatar-cosmetic-option {
+  margin: 0.45rem 0.85rem;
+}
+
+.shop-owned-item {
+  border: 2px solid var(--student-line);
+  background: #0b2026;
+  color: #ffffff;
+}
+
+.shop-owned-item span {
+  color: inherit;
+}
+
+.shop-owned-item img,
+.shop-owned-theme-preview {
+  border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+html[data-student-mode="light"] .shop-owned-item {
+  background: #102a31;
+  color: #ffffff;
+}
+
+html[data-student-mode="light"] .theme-panel-menu .theme-swatches button[data-bg-value],
+html[data-student-mode="light"] .theme-panel-menu .theme-special-swatches button[data-bg-value] {
+  border-color: rgba(7, 24, 29, 0.35);
+}
+
+@media (max-width: 899px) {
+  .navbar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .nav-link {
+    text-align: center;
+  }
+
+  .bottombar {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .bottombar-theme {
+    justify-self: center;
+  }
+
+  .bottombar-theme .theme-panel-menu {
+    right: 50%;
+    transform: translateX(50%);
+  }
+}

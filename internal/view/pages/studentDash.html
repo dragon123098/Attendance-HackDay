@@ -39,20 +39,6 @@
         {{end}}
     </div>
 
-    <div class="attendance-section">
-        {{if .CanMarkAttendance}}
-        <form method="POST" action="/attendance">
-            <button type="submit" class="attendance-btn">
-                Mark Attendance
-            </button>
-        </form>
-        {{else}}
-        <button type="button" class="attendance-btn attendance-btn-disabled" disabled>
-            Attendance Already Marked
-        </button>
-        {{end}}
-    </div>
-
 </div>
 {{end}}
 

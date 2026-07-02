@@ -1,6 +1,23 @@
 {{define "footer"}}
 <footer class="bottombar">
-  <div>Keep going — every answer makes you stronger!</div>
-  <div class="bottombar-right">Made for bright young learners</div>
+  <div class="bottombar-copy">Made for bright young learners</div>
+
+  {{if .UseStudentCSS}}
+  <div class="bottombar-attendance">
+    {{if .CanMarkAttendance}}
+    <form method="POST" action="/attendance">
+      <button type="submit" class="attendance-btn footer-attendance-btn">Mark Attendance</button>
+    </form>
+    {{else}}
+    <button type="button" class="attendance-btn attendance-btn-disabled footer-attendance-btn" disabled>
+      Attendance Already Marked
+    </button>
+    {{end}}
+  </div>
+
+  <div class="bottombar-theme">
+    {{template "studentThemeControls" .}}
+  </div>
+  {{end}}
 </footer>
 {{end}}
