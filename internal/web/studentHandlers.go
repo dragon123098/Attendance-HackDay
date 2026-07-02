@@ -244,6 +244,7 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 	seedShopItems()
 
 	avatarItems, backgroundItems, ownedItems := getShopItemViews(user.UserID)
+	attendanceStatus, attendanceMessage, canMark := getTodayAttendanceState(user)
 
 	data := PageData{
 		Title:                  "Shop",
@@ -251,6 +252,9 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 		AvatarImage:            getAvatarImage(user),
 		AvatarPreview:          buildAvatarPreview(savedAvatarConfig(user.UserID)),
 		Coins:                  getCoinBalance(user.UserID),
+		AttendanceStatus:       attendanceStatus,
+		AttendanceMessage:      attendanceMessage,
+		CanMarkAttendance:      canMark,
 		AvatarShopItems:        avatarItems,
 		BackgroundShopItems:    backgroundItems,
 		OwnedShopItems:         ownedItems,

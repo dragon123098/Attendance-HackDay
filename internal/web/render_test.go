@@ -146,3 +146,65 @@ func TestTemplatesReferenceExistingStaticAssets(t *testing.T) {
 		t.Fatalf("walk embedded templates: %v", err)
 	}
 }
+
+func TestStudentShellRendersFooterControlsAndProofNav(t *testing.T) {
+	tmpl, err := loadStudentTemplates("studentDash.html")
+	if err != nil {
+		t.Fatalf("load student template: %v", err)
+	}
+
+	data := PageData{
+		Title:             "Student Dashboard",
+		Username:          "Seth",
+		Coins:             12,
+		CanMarkAttendance: true,
+		ActiveNav:         "home",
+		UseStudentCSS:     true,
+		AvatarPreview:     buildAvatarPreview(nil),
+		ThemeBackgroundOptions: []ThemeBackgroundOptionView{
+			{ID: "beach", Label: "Beach"},
+		},
+	}
+
+	var rendered bytes.Buffer
+	if err := tmpl.ExecuteTemplate(&rendered, "base", data); err != nil {
+		t.Fatalf("render student template: %v", err)
+	}
+
+	body := rendered.String()
+	if count := strings.Count(body, `action="/attendance"`); count != 1 {
+		t.Fatalf("attendance form count = %d, want 1", count)
+	}
+
+	for _, want := range []string{
+		`class="student-theme-panel"`,
+		`data-bg-value="beach"`,
+		`Games`,
+		`Social`,
+		`Stats`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("rendered student shell missing %q", want)
+		}
+	}
+}
+
+func TestStudentCSSReferencesExistingFontAssets(t *testing.T) {
+	contents, err := fs.ReadFile(view.FS, "static/css/student.css")
+	if err != nil {
+		t.Fatalf("read student css: %v", err)
+	}
+
+	fontRef := regexp.MustCompile(`url\("(/static/fonts/[^"]+)"\)`)
+	matches := fontRef.FindAllStringSubmatch(string(contents), -1)
+	if len(matches) == 0 {
+		t.Fatal("expected student css to reference self-hosted fonts")
+	}
+
+	for _, match := range matches {
+		assetPath := strings.TrimPrefix(match[1], "/")
+		if _, err := fs.Stat(view.FS, assetPath); err != nil {
+			t.Fatalf("font asset %q does not exist in embedded FS: %v", match[1], err)
+		}
+	}
+}

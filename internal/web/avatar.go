@@ -272,6 +272,7 @@ func getAvatarImage(user *User) string {
 func buildAvatarPageData(user *User, cfg *AvatarConfig, message, errorMessage string) PageData {
 	normalized := normalizeAvatarConfig(cfg)
 	preview := buildAvatarPreview(normalized)
+	attendanceStatus, attendanceMessage, canMark := getTodayAttendanceState(user)
 
 	return PageData{
 		Title:                  "Avatar",
@@ -279,6 +280,9 @@ func buildAvatarPageData(user *User, cfg *AvatarConfig, message, errorMessage st
 		AvatarImage:            preview.BaseImage,
 		AvatarSummary:          avatarSummary(normalized),
 		Coins:                  getCoinBalance(user.UserID),
+		AttendanceStatus:       attendanceStatus,
+		AttendanceMessage:      attendanceMessage,
+		CanMarkAttendance:      canMark,
 		ActiveNav:              "avatar",
 		UseStudentCSS:          true,
 		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
