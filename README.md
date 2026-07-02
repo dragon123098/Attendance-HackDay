@@ -6,13 +6,13 @@ items, and customize an avatar with unlocked cosmetics.
 
 ## Current Capabilities
 
-- Session-based login and logout with role-aware routing.
+- SQL-backed login with session logout and role-aware routing.
 - Student dashboard with attendance status, coin balance, schedule data, and the current avatar.
 - Student shop with seeded visual cosmetics, purchasable pastel background themes, coin validation, purchase persistence, and owned-item display.
 - Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and persisted saves.
 - Student pages include persistent light/dark controls, free background colors, and unlocked special background themes.
 - Manual coin adjustments can be added in `data/data.json` without writing transaction records.
-- The admin Add Student flow reads classrooms from SQL Server and creates the student there.
+- The admin Add Student and Add Teacher flows create users in SQL Server.
 - Teacher and admin dashboard scaffolding plus classroom management routes.
 
 Some teacher/admin reporting and schedule-management flows are still in progress;

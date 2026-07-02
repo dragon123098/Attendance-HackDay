@@ -1,11 +1,13 @@
 package web
 
 import (
-	"golang.org/x/crypto/bcrypt"
+	"errors"
 	"net/http"
-)
+	"strings"
 
-// PageData holds transient page-only values.
+	datastore "github.com/dragon123098/Attendance-HackDay.git/internal/store"
+	"golang.org/x/crypto/bcrypt"
+)
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -19,7 +21,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		email := r.FormValue("email")
+		email := strings.TrimSpace(r.FormValue("email"))
 		password := r.FormValue("password")
 
 		if email == "" || password == "" {
@@ -30,19 +32,21 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var user *User
-		for _, u := range app.Users {
-			if u.Email == email {
-				user = u
-				break
-			}
+		if authStore == nil {
+			http.Error(w, "auth store is not configured", http.StatusInternalServerError)
+			return
 		}
 
-		if user == nil {
+		user, err := authStore.FindUserByEmail(r.Context(), email)
+		if errors.Is(err, datastore.ErrUserNotFound) {
 			renderUnAuth(w, "login.html", PageData{
 				Title: "Login",
 				Error: "Invalid email or password.",
 			})
+			return
+		}
+		if err != nil {
+			http.Error(w, "could not authenticate user", http.StatusInternalServerError)
 			return
 		}
 
@@ -53,6 +57,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
+
+		rememberAuthenticatedUser(user)
 
 		if err := createSession(w, user.UserID); err != nil {
 			http.Error(w, "failed to create session", http.StatusInternalServerError)
@@ -75,6 +81,16 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// rememberAuthenticatedUser bridges SQL login into the existing JSON-backed session checks.
+func rememberAuthenticatedUser(user User) {
+	if app.Users == nil {
+		app.Users = make(map[string]*User)
+	}
+
+	copied := user
+	app.Users[user.UserID] = &copied
 }
 
 func logoutView(w http.ResponseWriter, r *http.Request) {

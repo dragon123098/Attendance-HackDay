@@ -12,6 +12,7 @@ import (
 )
 
 var adminStudentStore AdminStudentStore
+var adminTeacherStore AdminTeacherStore
 
 type ClassroomPageData struct {
 	Title          string
@@ -668,12 +669,8 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if app.Users == nil {
-		app.Users = make(map[string]*User)
-	}
-
-	if _, exists := app.Users[userID]; exists {
-		http.Error(w, "teacher id already exists", http.StatusConflict)
+	if adminTeacherStore == nil {
+		http.Error(w, "teacher store is not configured", http.StatusInternalServerError)
 		return
 	}
 
@@ -692,8 +689,14 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 		UserID:       userID,
 	}
 
-	app.Users[userID] = teacher
-	saveData()
+	if err := adminTeacherStore.CreateTeacher(r.Context(), *teacher); err != nil {
+		if errors.Is(err, datastore.ErrUserAlreadyExists) {
+			http.Error(w, "teacher id already exists", http.StatusConflict)
+			return
+		}
+		http.Error(w, "could not create teacher", http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
 }

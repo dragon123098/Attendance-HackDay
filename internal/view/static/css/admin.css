@@ -85,6 +85,30 @@
   font-weight: 800;
 }
 
+.teacher-header-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.admin-logout-form {
+  margin: 0;
+}
+
+.admin-logout-btn {
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  padding: .75rem 1.1rem;
+  color: var(--admin-red-900);
+  background: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-logout-btn:hover {
+  background: var(--admin-red-100);
+}
+
 .admin-page-header {
   margin-bottom: 1rem;
 }

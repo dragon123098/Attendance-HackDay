@@ -234,7 +234,8 @@
         "student1": [
             "hat_star",
             "glasses_rocket",
-            "background_beach"
+            "background_beach",
+            "aura_sparkle"
         ]
     },
     "avatar_configs": {
@@ -246,11 +247,11 @@
             "effect": ""
         },
         "student1": {
-            "base": "peter",
-            "hair_style": "hat_star",
+            "base": "milkman",
+            "hair_style": "",
             "clothing": "",
             "accessory": "",
-            "effect": ""
+            "effect": "aura_sparkle"
         }
     },
     "manual_coin_adjustments": {
@@ -340,6 +341,12 @@
             "amount": 1,
             "timestamp": "2026-07-02T09:07:28-06:00",
             "description": "Attendance reward for 2026-07-02"
+        },
+        {
+            "user_id": "student1",
+            "amount": -9,
+            "timestamp": "2026-07-02T16:37:17-06:00",
+            "description": "Purchased Sparkle Aura"
         }
     ],
     "attendance": [

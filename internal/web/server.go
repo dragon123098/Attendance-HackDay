@@ -7,8 +7,16 @@ import (
 	"github.com/dragon123098/Attendance-HackDay.git/internal/view"
 )
 
-func NewRouter(studentStore AdminStudentStore) http.Handler {
-	adminStudentStore = studentStore
+type AppStore interface {
+	AdminStudentStore
+	AdminTeacherStore
+	AuthStore
+}
+
+func NewRouter(appStore AppStore) http.Handler {
+	adminStudentStore = appStore
+	adminTeacherStore = appStore
+	authStore = appStore
 	mux := http.NewServeMux()
 
 	staticFS, err := fs.Sub(view.FS, "static")
@@ -43,8 +51,8 @@ func NewRouter(studentStore AdminStudentStore) http.Handler {
 	mux.HandleFunc("GET /classrooms", listClassroomsView)
 	mux.HandleFunc("GET /classrooms/edit", editClassrooms)
 	mux.HandleFunc("POST /classrooms/edit", saveClassrooms)
-	mux.HandleFunc("GET /addTeacher", createTeacher)
-	mux.HandleFunc("POST /addTeacher", teacherCreateSubmitView)
+	mux.Handle("GET /addTeacher", RequireRole("admin", http.HandlerFunc(createTeacher)))
+	mux.Handle("POST /addTeacher", RequireRole("admin", http.HandlerFunc(teacherCreateSubmitView)))
 	mux.Handle("GET /addStudent", RequireRole("admin", http.HandlerFunc(createStudent)))
 	mux.Handle("POST /addStudent", RequireRole("admin", http.HandlerFunc(studentCreateSubmitView)))
 	mux.HandleFunc("GET /userSettings", userSettingsView)
