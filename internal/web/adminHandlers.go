@@ -1,13 +1,17 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 
+	datastore "github.com/dragon123098/Attendance-HackDay.git/internal/store"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var adminStudentStore AdminStudentStore
 
 type ClassroomPageData struct {
 	Title          string
@@ -230,6 +234,22 @@ func classroomOptions() []ClassroomOption {
 	options := make([]ClassroomOption, 0, len(classroomIDs))
 	for _, id := range classroomIDs {
 		classroom := app.Classrooms[id]
+		options = append(options, ClassroomOption{
+			ID:   classroom.ID,
+			Name: classroom.Name,
+		})
+	}
+
+	return options
+}
+
+func classroomOptionsFromStore(classrooms []Classroom) []ClassroomOption {
+	sort.Slice(classrooms, func(i, j int) bool {
+		return classrooms[i].ID < classrooms[j].ID
+	})
+
+	options := make([]ClassroomOption, 0, len(classrooms))
+	for _, classroom := range classrooms {
 		options = append(options, ClassroomOption{
 			ID:   classroom.ID,
 			Name: classroom.Name,
@@ -697,12 +717,23 @@ func createStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if adminStudentStore == nil {
+		http.Error(w, "student store is not configured", http.StatusInternalServerError)
+		return
+	}
+
+	classrooms, err := adminStudentStore.ListClassrooms(r.Context())
+	if err != nil {
+		http.Error(w, "could not load classrooms", http.StatusInternalServerError)
+		return
+	}
+
 	data := StudentCreatePageData{
 		Title:          "Add Student",
 		HeaderTitle:    "Admin Tools",
 		HeaderSubtitle: "Create a new student account.",
 		HeaderBadge:    "Admin View",
-		Classrooms:     classroomOptions(),
+		Classrooms:     classroomOptionsFromStore(classrooms),
 	}
 
 	renderAdmin(w, "createStudent.html", data)
@@ -730,18 +761,8 @@ func studentCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	classroom, ok := app.Classrooms[classroomID]
-	if !ok {
-		http.Error(w, "classroom does not exist", http.StatusBadRequest)
-		return
-	}
-
-	if app.Users == nil {
-		app.Users = make(map[string]*User)
-	}
-
-	if _, exists := app.Users[userID]; exists {
-		http.Error(w, "student id already exists", http.StatusConflict)
+	if adminStudentStore == nil {
+		http.Error(w, "student store is not configured", http.StatusInternalServerError)
 		return
 	}
 
@@ -760,9 +781,17 @@ func studentCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 		UserID:       userID,
 	}
 
-	app.Users[userID] = student
-	classroom.StudentIDs = appendUniqueString(classroom.StudentIDs, userID)
-	saveData()
+	if err := adminStudentStore.CreateStudent(r.Context(), *student); err != nil {
+		switch {
+		case errors.Is(err, datastore.ErrClassroomNotFound):
+			http.Error(w, "classroom does not exist", http.StatusBadRequest)
+		case errors.Is(err, datastore.ErrUserAlreadyExists):
+			http.Error(w, "student id already exists", http.StatusConflict)
+		default:
+			http.Error(w, "could not create student", http.StatusInternalServerError)
+		}
+		return
+	}
 
 	http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
 }

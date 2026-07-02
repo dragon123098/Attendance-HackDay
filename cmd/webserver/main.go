@@ -1,10 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
-	"database/sql"
 	"os"
+
+	"github.com/dragon123098/Attendance-HackDay.git/internal/store"
 	"github.com/dragon123098/Attendance-HackDay.git/internal/web"
 
 	_ "github.com/microsoft/go-mssqldb"
@@ -20,10 +22,8 @@ func main() {
 	defer db.Close()
 
 	log.Print("starting server on http://localhost:4000")
-	log.Fatal(http.ListenAndServe(":4000", web.NewRouter()))
+	log.Fatal(http.ListenAndServe(":4000", web.NewRouter(store.NewSQLStore(db))))
 }
-
-
 
 func databaseURL() string {
 	if value := os.Getenv("DATABASE_URL"); value != "" {

@@ -1,0 +1,8 @@
+package web
+
+import "context"
+
+type AdminStudentStore interface {
+	ListClassrooms(context.Context) ([]Classroom, error)
+	CreateStudent(context.Context, User) error
+}

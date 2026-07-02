@@ -12,6 +12,7 @@ items, and customize an avatar with unlocked cosmetics.
 - Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and persisted saves.
 - Student pages include persistent light/dark controls, free background colors, and unlocked special background themes.
 - Manual coin adjustments can be added in `data/data.json` without writing transaction records.
+- The admin Add Student flow reads classrooms from SQL Server and creates the student there.
 - Teacher and admin dashboard scaffolding plus classroom management routes.
 
 Some teacher/admin reporting and schedule-management flows are still in progress;
@@ -21,9 +22,10 @@ see `todo.md` for the remaining project checklist.
 
 - `cmd/webserver/main.go` starts the HTTP server on `localhost:4000`.
 - `internal/web` contains routes, handlers, auth/session helpers, persistence, and student feature logic.
+- `internal/store` contains SQL Server data access for flows that have moved off `data/data.json`.
 - `internal/domain` contains persisted application models.
 - `internal/view` contains embedded templates, static CSS, and images.
-- `data/data.json` is the local JSON data store loaded and saved by the app.
+- `data/data.json` is still the local JSON data store for most app flows.
 
 ## Local Development
 
