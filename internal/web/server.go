@@ -10,12 +10,14 @@ import (
 type AppStore interface {
 	AdminStudentStore
 	AdminTeacherStore
+	AdminClassroomStore
 	AuthStore
 }
 
 func NewRouter(appStore AppStore) http.Handler {
 	adminStudentStore = appStore
 	adminTeacherStore = appStore
+	adminClassroomStore = appStore
 	authStore = appStore
 	mux := http.NewServeMux()
 

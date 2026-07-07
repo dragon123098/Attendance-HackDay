@@ -111,10 +111,12 @@
             ]
         },
         "classroom3": {
-            "name": "2nd Grade",
+            "name": "3rd Grade",
             "id": "classroom3",
-            "teacher_id": "DHoney",
-            "student_ids": null
+            "teacher_id": "teacher1",
+            "student_ids": [
+                "student1"
+            ]
         }
     },
     "shop_items": {

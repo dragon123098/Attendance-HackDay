@@ -10,3 +10,7 @@ type AdminStudentStore interface {
 type AdminTeacherStore interface {
 	CreateTeacher(context.Context, User) error
 }
+
+type AdminClassroomStore interface {
+	CreateClassroom(context.Context, Classroom) error
+}

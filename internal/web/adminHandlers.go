@@ -13,6 +13,7 @@ import (
 
 var adminStudentStore AdminStudentStore
 var adminTeacherStore AdminTeacherStore
+var adminClassroomStore AdminClassroomStore
 
 type ClassroomPageData struct {
 	Title          string
@@ -522,9 +523,20 @@ func createClassroomView(w http.ResponseWriter, r *http.Request) {
 		app.Classrooms = make(map[string]*Classroom)
 	}
 
-	app.Classrooms[id] = classroom
+	err := adminClassroomStore.CreateClassroom(r.Context(), *classroom)
+	if err != nil {
+		http.Error(w, "could not save classroom", http.StatusInternalServerError)
+		return
+	}
 
-	saveData()
+	
+	http.Redirect(
+		w,
+		r,
+		"/adminDashboard",
+		http.StatusSeeOther,
+	)
+	
 }
 
 func editClassrooms(w http.ResponseWriter, r *http.Request) {
@@ -563,13 +575,14 @@ func editClassrooms(w http.ResponseWriter, r *http.Request) {
 	renderAdmin(w, "editClassrooms.html", data)
 }
 
+//This saves the edited classrooms. Right now it doesn't work how I want it to. 
 func saveClassrooms(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "could not parse form", http.StatusBadRequest)
 		return
 	}
 
-	originalID := r.FormValue("original_id")
+	//originalID := r.FormValue("original_id")
 
 	name := r.FormValue("name")
 	id := r.FormValue("id")
@@ -595,14 +608,12 @@ func saveClassrooms(w http.ResponseWriter, r *http.Request) {
 		StudentIDs: studentIDs,
 	}
 
-	// Handle ID changes
-	if originalID != id {
-		delete(app.Classrooms, originalID)
+	err := adminClassroomStore.CreateClassroom(r.Context(), *classroom)
+	if err != nil {
+		http.Error(w, "could not save classroom", http.StatusInternalServerError)
+		return
 	}
-
-	app.Classrooms[id] = classroom
-
-	saveData()
+	
 
 	http.Redirect(
 		w,
