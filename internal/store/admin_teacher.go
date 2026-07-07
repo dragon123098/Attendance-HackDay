@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"log"
 
 	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
@@ -46,7 +47,57 @@ func (s *SQLStore) CreateClassroom(ctx context.Context, classroom domain.Classro
 		return err
 	}
 
-	for _, studentID := range classroom.StudentIDs {
+	if err := insertClassroomStudents(ctx, tx, classroom.ID, classroom.StudentIDs); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// UpdateClassroom saves edits to an existing classroom and replaces its student assignments.
+func (s *SQLStore) UpdateClassroom(ctx context.Context, originalID string, classroom domain.Classroom) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		log.Println("Error starting transaction:", err)
+		return err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.ExecContext(ctx, `
+		UPDATE dbo.Classrooms
+		SET ID = @p2, Name = @p3, TeacherID = @p4
+		WHERE ID = @p1;
+	`, originalID, classroom.ID, classroom.Name, classroom.TeacherID)
+	if err != nil {
+		log.Println("Error updating classroom:", err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrClassroomNotFound
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM dbo.ClassroomStudents
+		WHERE ClassroomID = @p1 OR ClassroomID = @p2;
+	`, originalID, classroom.ID); err != nil {
+		log.Println("Error clearing classroom students:", err)
+		return err
+	}
+
+	if err := insertClassroomStudents(ctx, tx, classroom.ID, classroom.StudentIDs); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func insertClassroomStudents(ctx context.Context, tx *sql.Tx, classroomID string, studentIDs []string) error {
+	for _, studentID := range studentIDs {
 		if _, err := tx.ExecContext(ctx, `
 			IF NOT EXISTS (
 				SELECT 1
@@ -57,11 +108,11 @@ func (s *SQLStore) CreateClassroom(ctx context.Context, classroom domain.Classro
 				INSERT INTO dbo.ClassroomStudents (ClassroomID, StudentID)
 				VALUES (@p1, @p2);
 			END;
-		`, classroom.ID, studentID); err != nil {
+		`, classroomID, studentID); err != nil {
 			log.Println("Error inserting classroom student:", err)
 			return err
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }

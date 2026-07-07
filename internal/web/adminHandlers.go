@@ -529,14 +529,13 @@ func createClassroomView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	http.Redirect(
 		w,
 		r,
 		"/adminDashboard",
 		http.StatusSeeOther,
 	)
-	
+
 }
 
 func editClassrooms(w http.ResponseWriter, r *http.Request) {
@@ -575,18 +574,22 @@ func editClassrooms(w http.ResponseWriter, r *http.Request) {
 	renderAdmin(w, "editClassrooms.html", data)
 }
 
-//This saves the edited classrooms. Right now it doesn't work how I want it to. 
+// saveClassrooms persists edits for one classroom submitted from the admin edit form.
 func saveClassrooms(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "could not parse form", http.StatusBadRequest)
 		return
 	}
 
-	//originalID := r.FormValue("original_id")
+	originalID := strings.TrimSpace(r.FormValue("original_id"))
+	name := strings.TrimSpace(r.FormValue("name"))
+	id := strings.TrimSpace(r.FormValue("id"))
+	teacherID := strings.TrimSpace(r.FormValue("teacher_id"))
 
-	name := r.FormValue("name")
-	id := r.FormValue("id")
-	teacherID := r.FormValue("teacher_id")
+	if originalID == "" || name == "" || id == "" {
+		http.Error(w, "classroom id and name are required", http.StatusBadRequest)
+		return
+	}
 
 	var studentIDs []string
 
@@ -608,12 +611,21 @@ func saveClassrooms(w http.ResponseWriter, r *http.Request) {
 		StudentIDs: studentIDs,
 	}
 
-	err := adminClassroomStore.CreateClassroom(r.Context(), *classroom)
+	err := adminClassroomStore.UpdateClassroom(r.Context(), originalID, *classroom)
 	if err != nil {
-		http.Error(w, "could not save classroom", http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, datastore.ErrClassroomNotFound):
+			http.Error(w, "classroom does not exist", http.StatusBadRequest)
+		default:
+			http.Error(w, "could not save classroom", http.StatusInternalServerError)
+		}
 		return
 	}
-	
+
+	if app.Classrooms != nil {
+		delete(app.Classrooms, originalID)
+		app.Classrooms[id] = classroom
+	}
 
 	http.Redirect(
 		w,

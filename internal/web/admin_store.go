@@ -13,4 +13,5 @@ type AdminTeacherStore interface {
 
 type AdminClassroomStore interface {
 	CreateClassroom(context.Context, Classroom) error
+	UpdateClassroom(context.Context, string, Classroom) error
 }
