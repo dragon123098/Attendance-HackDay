@@ -142,77 +142,85 @@ func adminView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if adminClassroomStore == nil {
+		http.Error(w, "classroom store is not configured", http.StatusInternalServerError)
+		return
+	}
+
+	classrooms, err := adminClassroomStore.ListClassrooms(r.Context())
+	if err != nil {
+		http.Error(w, "could not load classrooms", http.StatusInternalServerError)
+		return
+	}
+
+	classroomUsers, err := adminClassroomStore.ListClassroomUsers(r.Context())
+	if err != nil {
+		http.Error(w, "could not load classroom users", http.StatusInternalServerError)
+		return
+	}
+
 	data := AdminDashboardPageData{
 		Title:          "Admin Dashboard",
 		Username:       user.Name,
 		HeaderTitle:    "Admin Dashboard",
 		HeaderSubtitle: "Review classroom assignments and roster details.",
 		HeaderBadge:    "Admin View",
-		Classrooms:     buildAdminClassroomViews(),
+		Classrooms:     buildAdminClassroomViews(classrooms, classroomUsers),
 	}
 
 	renderAdmin(w, "adminDash.html", data)
 }
 
-func buildAdminClassroomViews() []AdminClassroomView {
-	classroomIDs := make([]string, 0, len(app.Classrooms))
-	for id := range app.Classrooms {
-		classroomIDs = append(classroomIDs, id)
-	}
-	sort.Strings(classroomIDs)
+func buildAdminClassroomViews(classrooms []Classroom, users map[string]User) []AdminClassroomView {
+	sort.SliceStable(classrooms, func(i, j int) bool {
+		return classrooms[i].ID < classrooms[j].ID
+	})
 
-	classrooms := make([]AdminClassroomView, 0, len(classroomIDs))
-	for _, id := range classroomIDs {
-		classroom := app.Classrooms[id]
-		studentIDs := assignedStudentIDs(classroom)
+	views := make([]AdminClassroomView, 0, len(classrooms))
+	for _, classroom := range classrooms {
+		studentIDs := classroomStudentIDs(classroom.StudentIDs)
 		students := make([]AdminClassroomPerson, 0, len(studentIDs))
 
 		for _, studentID := range studentIDs {
-			students = append(students, adminClassroomPerson(studentID))
+			students = append(students, adminClassroomPerson(studentID, users))
 		}
 
-		classrooms = append(classrooms, AdminClassroomView{
+		views = append(views, AdminClassroomView{
 			Name:     classroom.Name,
 			ID:       classroom.ID,
-			Teacher:  adminClassroomPerson(classroom.TeacherID),
+			Teacher:  adminClassroomPerson(classroom.TeacherID, users),
 			Students: students,
 		})
 	}
 
-	return classrooms
+	return views
 }
 
-func assignedStudentIDs(classroom *Classroom) []string {
+func classroomStudentIDs(studentIDs []string) []string {
 	seen := make(map[string]bool)
-	for _, studentID := range classroom.StudentIDs {
+	for _, studentID := range studentIDs {
 		studentID = strings.TrimSpace(studentID)
 		if studentID != "" {
 			seen[studentID] = true
 		}
 	}
 
-	for userID, user := range app.Users {
-		if user.Role == "student" && user.ClassroomID == classroom.ID {
-			seen[userID] = true
-		}
-	}
-
-	studentIDs := make([]string, 0, len(seen))
+	sortedStudentIDs := make([]string, 0, len(seen))
 	for studentID := range seen {
-		studentIDs = append(studentIDs, studentID)
+		sortedStudentIDs = append(sortedStudentIDs, studentID)
 	}
-	sort.Strings(studentIDs)
+	sort.Strings(sortedStudentIDs)
 
-	return studentIDs
+	return sortedStudentIDs
 }
 
-func adminClassroomPerson(userID string) AdminClassroomPerson {
+func adminClassroomPerson(userID string, users map[string]User) AdminClassroomPerson {
 	userID = strings.TrimSpace(userID)
 	if userID == "" {
 		return AdminClassroomPerson{Name: "Unassigned"}
 	}
 
-	user, ok := app.Users[userID]
+	user, ok := users[userID]
 	if !ok {
 		return AdminClassroomPerson{
 			Name:   "Unknown user",
@@ -557,10 +565,20 @@ func editClassrooms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	classrooms := make([]*Classroom, 0, len(app.Classrooms))
+	if adminClassroomStore == nil {
+		http.Error(w, "classroom store is not configured", http.StatusInternalServerError)
+		return
+	}
 
-	for _, classroom := range app.Classrooms {
-		classrooms = append(classrooms, classroom)
+	storeClassrooms, err := adminClassroomStore.ListClassrooms(r.Context())
+	if err != nil {
+		http.Error(w, "could not load classrooms", http.StatusInternalServerError)
+		return
+	}
+
+	classrooms := make([]*Classroom, 0, len(storeClassrooms))
+	for i := range storeClassrooms {
+		classrooms = append(classrooms, &storeClassrooms[i])
 	}
 
 	data := ClassroomPageData{

@@ -24,12 +24,14 @@ func NewSQLStore(db *sql.DB) *SQLStore {
 	return &SQLStore{db: db}
 }
 
-// ListClassrooms returns the classroom options used by admin forms.
+// ListClassrooms returns classroom details and roster IDs used by admin forms.
 func (s *SQLStore) ListClassrooms(ctx context.Context) ([]domain.Classroom, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT ID, Name, COALESCE(TeacherID, N'')
-		FROM dbo.Classrooms
-		ORDER BY ID;
+		SELECT c.ID, c.Name, COALESCE(c.TeacherID, N''), COALESCE(cs.StudentID, N'')
+		FROM dbo.Classrooms AS c
+		LEFT JOIN dbo.ClassroomStudents AS cs
+			ON cs.ClassroomID = c.ID
+		ORDER BY c.ID, cs.StudentID;
 	`)
 	if err != nil {
 		return nil, err
@@ -37,18 +39,70 @@ func (s *SQLStore) ListClassrooms(ctx context.Context) ([]domain.Classroom, erro
 	defer rows.Close()
 
 	classrooms := []domain.Classroom{}
+	classroomIndexes := map[string]int{}
 	for rows.Next() {
-		var classroom domain.Classroom
-		if err := rows.Scan(&classroom.ID, &classroom.Name, &classroom.TeacherID); err != nil {
+		var (
+			classroomID string
+			name        string
+			teacherID   string
+			studentID   string
+		)
+		if err := rows.Scan(&classroomID, &name, &teacherID, &studentID); err != nil {
 			return nil, err
 		}
-		classrooms = append(classrooms, classroom)
+
+		index, ok := classroomIndexes[classroomID]
+		if !ok {
+			classrooms = append(classrooms, domain.Classroom{
+				ID:        classroomID,
+				Name:      name,
+				TeacherID: teacherID,
+			})
+			index = len(classrooms) - 1
+			classroomIndexes[classroomID] = index
+		}
+
+		if studentID != "" {
+			classrooms[index].StudentIDs = append(classrooms[index].StudentIDs, studentID)
+		}
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
 	return classrooms, nil
+}
+
+// ListClassroomUsers returns users that can be displayed in classroom roster views.
+func (s *SQLStore) ListClassroomUsers(ctx context.Context) (map[string]domain.User, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT
+			UserID,
+			Name,
+			Role,
+			Email,
+			COALESCE(ClassroomID, N'')
+		FROM dbo.Users
+		ORDER BY UserID;
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := map[string]domain.User{}
+	for rows.Next() {
+		var user domain.User
+		if err := rows.Scan(&user.UserID, &user.Name, &user.Role, &user.Email, &user.ClassroomID); err != nil {
+			return nil, err
+		}
+		users[user.UserID] = user
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 // CreateStudent inserts a student and classroom assignment in one SQL transaction.

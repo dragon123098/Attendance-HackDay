@@ -12,6 +12,8 @@ type AdminTeacherStore interface {
 }
 
 type AdminClassroomStore interface {
+	ListClassrooms(context.Context) ([]Classroom, error)
+	ListClassroomUsers(context.Context) (map[string]User, error)
 	CreateClassroom(context.Context, Classroom) error
 	UpdateClassroom(context.Context, string, Classroom) error
 }
