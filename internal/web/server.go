@@ -30,6 +30,7 @@ func NewRouter(appStore AppStore) http.Handler {
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
 	// auth routes
+	mux.HandleFunc("/", loginHandler)
 	mux.HandleFunc("/login", loginHandler)
 	mux.HandleFunc("POST /logout", logoutView)
 
