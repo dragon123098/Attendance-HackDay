@@ -26,9 +26,9 @@ BEGIN
 END;
 GO
 
-IF COL_LENGTH(N'dbo.Classrooms', N'StudentIDs') IS NULL
+IF COL_LENGTH(N'dbo.Classrooms', N'StudentIDs') IS NOT NULL
 BEGIN
-    ALTER TABLE dbo.Classrooms ADD StudentIDs nvarchar(max) NULL;
+    ALTER TABLE dbo.Classrooms DROP COLUMN StudentIDs;
 END;
 GO
 
@@ -77,16 +77,6 @@ ON target.ClassroomID = source.ClassroomID
 WHEN NOT MATCHED THEN
     INSERT (ClassroomID, StudentID)
     VALUES (source.ClassroomID, source.StudentID);
-GO
-
-UPDATE classrooms
-SET StudentIDs = COALESCE(students.StudentIDs, N'[]')
-FROM dbo.Classrooms AS classrooms
-OUTER APPLY (
-    SELECT N'[' + STRING_AGG(N'"' + STRING_ESCAPE(StudentID, 'json') + N'"', N',') WITHIN GROUP (ORDER BY StudentID) + N']' AS StudentIDs
-    FROM dbo.ClassroomStudents
-    WHERE ClassroomID = classrooms.ID
-) AS students;
 GO
 
 MERGE dbo.ShopItems AS target

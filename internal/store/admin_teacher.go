@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"log"
+
 	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
 )
 
@@ -28,8 +29,7 @@ func (s *SQLStore) CreateTeacher(ctx context.Context, teacher domain.User) error
 	return tx.Commit()
 }
 
-
-//This will store a new Classroom in the database. It will be called from the admin tools.
+// CreateClassroom stores a new classroom and its initial student assignments from the admin tools.
 func (s *SQLStore) CreateClassroom(ctx context.Context, classroom domain.Classroom) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -39,11 +39,28 @@ func (s *SQLStore) CreateClassroom(ctx context.Context, classroom domain.Classro
 	defer tx.Rollback()
 
 	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO dbo.Classrooms (ID, Name)
-		VALUES (@p1, @p2);
-	`, classroom.ID, classroom.Name); err != nil {
+		INSERT INTO dbo.Classrooms (ID, Name, TeacherID)
+		VALUES (@p1, @p2, @p3);
+	`, classroom.ID, classroom.Name, classroom.TeacherID); err != nil {
 		log.Println("Error inserting classroom:", err)
 		return err
+	}
+
+	for _, studentID := range classroom.StudentIDs {
+		if _, err := tx.ExecContext(ctx, `
+			IF NOT EXISTS (
+				SELECT 1
+				FROM dbo.ClassroomStudents
+				WHERE ClassroomID = @p1 AND StudentID = @p2
+			)
+			BEGIN
+				INSERT INTO dbo.ClassroomStudents (ClassroomID, StudentID)
+				VALUES (@p1, @p2);
+			END;
+		`, classroom.ID, studentID); err != nil {
+			log.Println("Error inserting classroom student:", err)
+			return err
+		}
 	}
 
 	return tx.Commit()
