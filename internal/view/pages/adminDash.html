@@ -5,35 +5,69 @@
     <p>Teacher and student assignments for every classroom.</p>
 </div>
 
+<section class="dashboard-alert {{if not .NeedsAttention}}dashboard-alert-clear{{end}}">
+    <div>
+        <span class="dashboard-banner-label">Needs attention</span>
+        <h2>{{.NeedsAttentionCount}} classrooms without students</h2>
+        <p>Classrooms listed here do not have any students assigned.</p>
+    </div>
+
+    {{if .NeedsAttention}}
+        <div class="dashboard-alert-list">
+            {{range .NeedsAttention}}
+                <span>{{.Name}} <small>{{.ID}}</small></span>
+            {{end}}
+        </div>
+    {{else}}
+        <div class="dashboard-alert-list">
+            <span>All classrooms have students assigned.</span>
+        </div>
+    {{end}}
+</section>
+
+<section class="dashboard-summary-banner">
+    <article>
+        <span class="dashboard-banner-label">Students</span>
+        <strong>{{.Summary.StudentCount}}</strong>
+    </article>
+
+    <article>
+        <span class="dashboard-banner-label">Teachers</span>
+        <strong>{{.Summary.TeacherCount}}</strong>
+    </article>
+
+    <article>
+        <span class="dashboard-banner-label">Classrooms</span>
+        <strong>{{.Summary.ClassroomCount}}</strong>
+    </article>
+</section>
+
 {{if .Classrooms}}
-    <div class="classroom-list">
+    <div class="dashboard-classroom-list">
         {{range .Classrooms}}
-            <section class="classroom-row">
-                <div class="classroom-info">
-                    <div class="form-group">
-                        <label>Classroom</label>
+            <section class="dashboard-classroom-card {{if not .Students}}needs-attention{{end}}">
+                <div class="dashboard-classroom-main">
+                    <div>
                         <h2>{{.Name}}</h2>
                         <p>{{.ID}}</p>
                     </div>
 
-                    <div class="form-group">
-                        <label>Teacher</label>
-                        <p>{{.Teacher.Name}}{{if .Teacher.UserID}} ({{.Teacher.UserID}}){{end}}</p>
+                    <span class="dashboard-classroom-status">
+                        {{if .Students}}{{len .Students}} students{{else}}No students{{end}}
+                    </span>
+                </div>
+
+                <dl class="dashboard-classroom-meta">
+                    <div>
+                        <dt>Teacher</dt>
+                        <dd>{{.Teacher.Name}}{{if .Teacher.UserID}} ({{.Teacher.UserID}}){{end}}</dd>
                     </div>
 
-                    <div class="form-group classroom-students">
-                        <label>Students</label>
-                        {{if .Students}}
-                            <ul>
-                                {{range .Students}}
-                                    <li>{{.Name}}{{if .UserID}} ({{.UserID}}){{end}}</li>
-                                {{end}}
-                            </ul>
-                        {{else}}
-                            <p>No students assigned.</p>
-                        {{end}}
+                    <div>
+                        <dt>Students</dt>
+                        <dd>{{len .Students}}</dd>
                     </div>
-                </div>
+                </dl>
             </section>
         {{end}}
     </div>

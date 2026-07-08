@@ -25,12 +25,21 @@ type ClassroomPageData struct {
 }
 
 type AdminDashboardPageData struct {
-	Title          string
-	Username       string
-	HeaderTitle    string
-	HeaderSubtitle string
-	HeaderBadge    string
-	Classrooms     []AdminClassroomView
+	Title               string
+	Username            string
+	HeaderTitle         string
+	HeaderSubtitle      string
+	HeaderBadge         string
+	Summary             AdminDashboardSummary
+	NeedsAttention      []AdminClassroomView
+	Classrooms          []AdminClassroomView
+	NeedsAttentionCount int
+}
+
+type AdminDashboardSummary struct {
+	StudentCount   int
+	TeacherCount   int
+	ClassroomCount int
 }
 
 type AdminClassroomView struct {
@@ -160,13 +169,18 @@ func adminView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	classroomViews := buildAdminClassroomViews(classrooms, classroomUsers)
+	needsAttention := classroomsNeedingAttention(classroomViews)
 	data := AdminDashboardPageData{
-		Title:          "Admin Dashboard",
-		Username:       user.Name,
-		HeaderTitle:    "Admin Dashboard",
-		HeaderSubtitle: "Review classroom assignments and roster details.",
-		HeaderBadge:    "Admin View",
-		Classrooms:     buildAdminClassroomViews(classrooms, classroomUsers),
+		Title:               "Admin Dashboard",
+		Username:            user.Name,
+		HeaderTitle:         "Admin Dashboard",
+		HeaderSubtitle:      "Review classroom assignments and roster details.",
+		HeaderBadge:         "Admin View",
+		Summary:             buildAdminDashboardSummary(classrooms, classroomUsers),
+		NeedsAttention:      needsAttention,
+		Classrooms:          classroomViews,
+		NeedsAttentionCount: len(needsAttention),
 	}
 
 	renderAdmin(w, "adminDash.html", data)
@@ -195,6 +209,34 @@ func buildAdminClassroomViews(classrooms []Classroom, users map[string]User) []A
 	}
 
 	return views
+}
+
+func buildAdminDashboardSummary(classrooms []Classroom, users map[string]User) AdminDashboardSummary {
+	summary := AdminDashboardSummary{
+		ClassroomCount: len(classrooms),
+	}
+
+	for _, user := range users {
+		switch strings.ToLower(strings.TrimSpace(user.Role)) {
+		case "student":
+			summary.StudentCount++
+		case "teacher":
+			summary.TeacherCount++
+		}
+	}
+
+	return summary
+}
+
+func classroomsNeedingAttention(classrooms []AdminClassroomView) []AdminClassroomView {
+	needsAttention := make([]AdminClassroomView, 0)
+	for _, classroom := range classrooms {
+		if len(classroom.Students) == 0 {
+			needsAttention = append(needsAttention, classroom)
+		}
+	}
+
+	return needsAttention
 }
 
 func classroomStudentIDs(studentIDs []string) []string {

@@ -18,15 +18,19 @@
 
 <body class="admin-shell">
 
-{{template "teacher-header" .}}
-{{template "admin-navbar" .}}
+  <div class="admin-layout">
+    {{template "admin-navbar" .}}
 
+    <div class="admin-content">
+      {{template "teacher-header" .}}
 
-  <main class="admin-main">
-    <div class="admin-page-frame">
-      {{block "content" .}}{{end}}
+      <main class="admin-main">
+        <div class="admin-page-frame">
+          {{block "content" .}}{{end}}
+        </div>
+      </main>
     </div>
-  </main>
+  </div>
 
 </body>
 </html>

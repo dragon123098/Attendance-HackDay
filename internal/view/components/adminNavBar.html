@@ -1,29 +1,48 @@
 {{define "admin-navbar"}}
 <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+        <span class="admin-brand-mark">AQ</span>
+        <span>
+            <strong>Attendance</strong>
+            <small>Admin</small>
+        </span>
+    </div>
 
-    <a href="/adminDashboard" class="admin-nav-item">
-        Dashboard
-    </a>
+    <div class="admin-nav-section">
+        <span class="admin-nav-label">Workspace</span>
 
-    <a href="/classrooms" class = "admin-nav-item">
-        Create Classroom
-    </a>
+        <a href="/adminDashboard" class="admin-nav-item">
+            Dashboard
+        </a>
 
-    <a href="/classrooms/edit" class ="admin-nav-item">
-        Edit Classroom
-    </a>
+        <a href="/classrooms" class="admin-nav-item">
+            Create Classroom
+        </a>
 
-    <a href="/addTeacher" class = "admin-nav-item">
-        Add Teacher
-    </a>
+        <a href="/classrooms/edit" class="admin-nav-item">
+            Edit Classroom
+        </a>
+    </div>
 
-    <a href="/addStudent" class = "admin-nav-item">
-        Add Student
-    </a>
+    <div class="admin-nav-section">
+        <span class="admin-nav-label">People</span>
 
-    <a href="/userSettings" class = "admin-nav-item">
-        User Settings
-    </a>
+        <a href="/addTeacher" class="admin-nav-item">
+            Add Teacher
+        </a>
+
+        <a href="/addStudent" class="admin-nav-item">
+            Add Student
+        </a>
+
+        <a href="/userSettings" class="admin-nav-item">
+            User Settings
+        </a>
+    </div>
+
+    <form method="POST" action="/logout" class="admin-sidebar-logout">
+        <button type="submit" class="admin-logout-btn">Logout</button>
+    </form>
 
 </nav>
 {{end}}

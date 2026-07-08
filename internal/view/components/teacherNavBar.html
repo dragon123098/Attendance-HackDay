@@ -1,13 +1,28 @@
 {{define "admin-navbar"}}
 <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+        <span class="admin-brand-mark">AQ</span>
+        <span>
+            <strong>Attendance</strong>
+            <small>Teacher</small>
+        </span>
+    </div>
 
-    <a href="/adminDashboard" class="admin-nav-item">
-        Dashboard
-    </a>
+    <div class="admin-nav-section">
+        <span class="admin-nav-label">Workspace</span>
 
-    <a href="/adminDashboard/edit" class ="admin-nav-item">
-        Edit
-    </a>
+        <a href="/teacherDashboard" class="admin-nav-item">
+            Dashboard
+        </a>
+
+        <a href="/teacherDashboard/edit" class="admin-nav-item">
+            Edit
+        </a>
+    </div>
+
+    <form method="POST" action="/logout" class="admin-sidebar-logout">
+        <button type="submit" class="admin-logout-btn">Logout</button>
+    </form>
 
 </nav>
 {{end}}
