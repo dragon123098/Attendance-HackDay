@@ -14,6 +14,7 @@ import (
 var adminStudentStore AdminStudentStore
 var adminTeacherStore AdminTeacherStore
 var adminClassroomStore AdminClassroomStore
+var adminUserStore AdminUserStore
 
 type ClassroomPageData struct {
 	Title          string
@@ -277,11 +278,11 @@ func userRoleOptions() []RoleOption {
 	}
 }
 
-func buildUserSettingsRows(query string) []UserSettingsRow {
+func buildUserSettingsRows(query string, users []User) []UserSettingsRow {
 	query = strings.ToLower(strings.TrimSpace(query))
-	rows := make([]UserSettingsRow, 0, len(app.Users))
+	rows := make([]UserSettingsRow, 0, len(users))
 
-	for _, user := range app.Users {
+	for _, user := range users {
 		if query != "" && !userMatchesSearch(user, query) {
 			continue
 		}
@@ -306,7 +307,7 @@ func buildUserSettingsRows(query string) []UserSettingsRow {
 	return rows
 }
 
-func userMatchesSearch(user *User, query string) bool {
+func userMatchesSearch(user User, query string) bool {
 	values := []string{
 		user.Name,
 		user.Email,
@@ -333,14 +334,24 @@ func isValidUserRole(role string) bool {
 	return false
 }
 
-func adminUserCount() int {
+func adminUserCount(users []User) int {
 	count := 0
-	for _, user := range app.Users {
+	for _, user := range users {
 		if user.Role == "admin" {
 			count++
 		}
 	}
 	return count
+}
+
+func userByID(users []User, userID string) (User, bool) {
+	for _, user := range users {
+		if user.UserID == userID {
+			return user, true
+		}
+	}
+
+	return User{}, false
 }
 
 func adminEditView(w http.ResponseWriter, r *http.Request) {
@@ -389,6 +400,17 @@ func userSettingsView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if adminUserStore == nil {
+		http.Error(w, "user store is not configured", http.StatusInternalServerError)
+		return
+	}
+
+	users, err := adminUserStore.ListUsers(r.Context())
+	if err != nil {
+		http.Error(w, "could not load users", http.StatusInternalServerError)
+		return
+	}
+
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
 	data := UserSettingsPageData{
 		Title:          "User Settings",
@@ -396,7 +418,7 @@ func userSettingsView(w http.ResponseWriter, r *http.Request) {
 		HeaderSubtitle: "Search users and manage their roles.",
 		HeaderBadge:    "Admin View",
 		Query:          query,
-		Users:          buildUserSettingsRows(query),
+		Users:          buildUserSettingsRows(query, users),
 		RoleOptions:    userRoleOptions(),
 	}
 
@@ -427,6 +449,11 @@ func updateUserRoleView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if adminUserStore == nil {
+		http.Error(w, "user store is not configured", http.StatusInternalServerError)
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "could not parse form", http.StatusBadRequest)
 		return
@@ -436,7 +463,13 @@ func updateUserRoleView(w http.ResponseWriter, r *http.Request) {
 	role := strings.TrimSpace(r.FormValue("role"))
 	query := strings.TrimSpace(r.FormValue("q"))
 
-	targetUser, ok := app.Users[targetUserID]
+	users, err := adminUserStore.ListUsers(r.Context())
+	if err != nil {
+		http.Error(w, "could not load users", http.StatusInternalServerError)
+		return
+	}
+
+	targetUser, ok := userByID(users, targetUserID)
 	if !ok {
 		http.Error(w, "user does not exist", http.StatusBadRequest)
 		return
@@ -453,13 +486,24 @@ func updateUserRoleView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if targetUser.Role == "admin" && role != "admin" && adminUserCount() <= 1 {
+	if targetUser.Role == "admin" && role != "admin" && adminUserCount(users) <= 1 {
 		http.Error(w, "cannot remove the last admin role", http.StatusBadRequest)
 		return
 	}
 
-	targetUser.Role = role
-	saveData()
+	if err := adminUserStore.UpdateUserRole(r.Context(), targetUserID, role); err != nil {
+		switch {
+		case errors.Is(err, datastore.ErrUserNotFound):
+			http.Error(w, "user does not exist", http.StatusBadRequest)
+		default:
+			http.Error(w, "could not update user role", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if cachedUser, ok := app.Users[targetUserID]; ok {
+		cachedUser.Role = role
+	}
 
 	redirectTo := "/userSettings"
 	if query != "" {

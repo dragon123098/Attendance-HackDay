@@ -12,7 +12,7 @@ items, and customize an avatar with unlocked cosmetics.
 - Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and persisted saves.
 - Student pages include persistent light/dark controls, free background colors, and unlocked special background themes.
 - Manual coin adjustments can be added in `data/data.json` without writing transaction records.
-- The admin dashboard, Add Student, Add Teacher, and classroom create/edit flows use SQL Server; dashboard and edit classroom pages load rosters from `ClassroomStudents`.
+- The admin dashboard, User Settings, Add Student, Add Teacher, and classroom create/edit flows use SQL Server; dashboard and edit classroom pages load rosters from `ClassroomStudents`.
 - Teacher and admin dashboard scaffolding plus classroom management routes.
 
 Some teacher/admin reporting and schedule-management flows are still in progress;

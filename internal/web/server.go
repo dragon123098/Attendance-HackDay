@@ -11,6 +11,7 @@ type AppStore interface {
 	AdminStudentStore
 	AdminTeacherStore
 	AdminClassroomStore
+	AdminUserStore
 	AuthStore
 }
 
@@ -18,6 +19,7 @@ func NewRouter(appStore AppStore) http.Handler {
 	adminStudentStore = appStore
 	adminTeacherStore = appStore
 	adminClassroomStore = appStore
+	adminUserStore = appStore
 	authStore = appStore
 	mux := http.NewServeMux()
 
