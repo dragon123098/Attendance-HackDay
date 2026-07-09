@@ -349,6 +349,12 @@
             "amount": -9,
             "timestamp": "2026-07-02T16:37:17-06:00",
             "description": "Purchased Sparkle Aura"
+        },
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-07-08T17:33:20-06:00",
+            "description": "Attendance reward for 2026-07-08"
         }
     ],
     "attendance": [
@@ -363,7 +369,8 @@
                 "2026-06-24",
                 "2026-06-30",
                 "2026-07-01",
-                "2026-07-02"
+                "2026-07-02",
+                "2026-07-08"
             ],
             "absent": null
         },
