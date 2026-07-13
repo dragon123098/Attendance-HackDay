@@ -13,8 +13,17 @@ var ErrUserNotFound = errors.New("user not found")
 
 // FindUserByEmail loads the credential and routing data needed by the login flow.
 func (s *SQLStore) FindUserByEmail(ctx context.Context, email string) (domain.User, error) {
+	return s.findUser(ctx, "Email", email)
+}
+
+// FindUserByID loads the current SQL user referenced by an authenticated session.
+func (s *SQLStore) FindUserByID(ctx context.Context, userID string) (domain.User, error) {
+	return s.findUser(ctx, "UserID", userID)
+}
+
+func (s *SQLStore) findUser(ctx context.Context, column, value string) (domain.User, error) {
 	var user domain.User
-	err := s.db.QueryRowContext(ctx, `
+	query := `
 		SELECT TOP (1)
 			UserID,
 			Name,
@@ -23,9 +32,10 @@ func (s *SQLStore) FindUserByEmail(ctx context.Context, email string) (domain.Us
 			PasswordHash,
 			COALESCE(ClassroomID, N'')
 		FROM dbo.Users
-		WHERE Email = @p1
+		WHERE ` + column + ` = @p1
 		ORDER BY UserID;
-	`, email).Scan(
+	`
+	err := s.db.QueryRowContext(ctx, query, value).Scan(
 		&user.UserID,
 		&user.Name,
 		&user.Role,

@@ -8,6 +8,7 @@ import (
 
 type AuthStore interface {
 	FindUserByEmail(context.Context, string) (domain.User, error)
+	FindUserByID(context.Context, string) (domain.User, error)
 }
 
 var authStore AuthStore

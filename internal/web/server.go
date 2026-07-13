@@ -13,6 +13,7 @@ type AppStore interface {
 	AdminClassroomStore
 	AdminUserStore
 	AuthStore
+	StudentStore
 }
 
 func NewRouter(appStore AppStore) http.Handler {
@@ -21,6 +22,7 @@ func NewRouter(appStore AppStore) http.Handler {
 	adminClassroomStore = appStore
 	adminUserStore = appStore
 	authStore = appStore
+	studentStore = appStore
 	mux := http.NewServeMux()
 
 	staticFS, err := fs.Sub(view.FS, "static")
@@ -47,21 +49,21 @@ func NewRouter(appStore AppStore) http.Handler {
 
 	// teacher routes
 	mux.Handle("GET /teacherDashboard", RequireRole("teacher", http.HandlerFunc(teacherView)))
-	mux.HandleFunc("GET /teacherDashboard/edit", teacherEditView)
+	mux.Handle("POST /teacherDashboard/edit", RequireRole("teacher", http.HandlerFunc(teacherEditView)))
 
 	// admin routes
 	mux.Handle("GET /adminDashboard", RequireRole("admin", http.HandlerFunc(adminView)))
-	mux.HandleFunc("GET /adminDashboard/edit", adminEditView)
-	mux.HandleFunc("POST /classrooms", createClassroomView)
-	mux.HandleFunc("GET /classrooms", listClassroomsView)
-	mux.HandleFunc("GET /classrooms/edit", editClassrooms)
-	mux.HandleFunc("POST /classrooms/edit", saveClassrooms)
+	mux.Handle("POST /adminDashboard/edit", RequireRole("admin", http.HandlerFunc(adminEditView)))
+	mux.Handle("POST /classrooms", RequireRole("admin", http.HandlerFunc(createClassroomView)))
+	mux.Handle("GET /classrooms", RequireRole("admin", http.HandlerFunc(listClassroomsView)))
+	mux.Handle("GET /classrooms/edit", RequireRole("admin", http.HandlerFunc(editClassrooms)))
+	mux.Handle("POST /classrooms/edit", RequireRole("admin", http.HandlerFunc(saveClassrooms)))
 	mux.Handle("GET /addTeacher", RequireRole("admin", http.HandlerFunc(createTeacher)))
 	mux.Handle("POST /addTeacher", RequireRole("admin", http.HandlerFunc(teacherCreateSubmitView)))
 	mux.Handle("GET /addStudent", RequireRole("admin", http.HandlerFunc(createStudent)))
 	mux.Handle("POST /addStudent", RequireRole("admin", http.HandlerFunc(studentCreateSubmitView)))
-	mux.HandleFunc("GET /userSettings", userSettingsView)
-	mux.HandleFunc("POST /userSettings/role", updateUserRoleView)
+	mux.Handle("GET /userSettings", RequireRole("admin", http.HandlerFunc(userSettingsView)))
+	mux.Handle("POST /userSettings/role", RequireRole("admin", http.HandlerFunc(updateUserRoleView)))
 
 	return mux
 }

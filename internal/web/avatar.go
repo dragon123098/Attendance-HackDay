@@ -6,6 +6,9 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
 )
 
 const (
@@ -66,12 +69,11 @@ var avatarCosmeticCatalog = []avatarCosmeticOption{
 // avatarView renders the saved avatar config, while preview and save POSTs reuse
 // the same page data so the form always stays server-rendered.
 func avatarView(w http.ResponseWriter, r *http.Request) {
-	user, ok := currentSessionUser(w, r)
+	state, ok := currentStudentState(w, r)
 	if !ok {
 		return
 	}
-
-	data := buildAvatarPageData(user, savedAvatarConfig(user.UserID), r.URL.Query().Get("msg"), "")
+	data := buildAvatarPageData(state, savedAvatarConfig(state.AvatarConfig, state.OwnedShopItemIDs), r.URL.Query().Get("msg"), "")
 	renderStudent(w, "avatarView.html", data)
 }
 
@@ -81,19 +83,19 @@ func avatarPreviewView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := currentSessionUser(w, r)
+	state, ok := currentStudentState(w, r)
 	if !ok {
 		return
 	}
 
-	cfg, err := avatarConfigFromRequest(r, user.UserID)
+	cfg, err := avatarConfigFromRequest(r, state.OwnedShopItemIDs)
 	if err != nil {
-		data := buildAvatarPageData(user, savedAvatarConfig(user.UserID), "", avatarValidationMessage(err))
+		data := buildAvatarPageData(state, savedAvatarConfig(state.AvatarConfig, state.OwnedShopItemIDs), "", avatarValidationMessage(err))
 		renderStudent(w, "avatarView.html", data)
 		return
 	}
 
-	data := buildAvatarPageData(user, cfg, "Previewing unsaved avatar changes.", "")
+	data := buildAvatarPageData(state, cfg, "Previewing unsaved avatar changes.", "")
 	renderStudent(w, "avatarView.html", data)
 }
 
@@ -103,37 +105,31 @@ func avatarSaveView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := currentSessionUser(w, r)
+	state, ok := currentStudentState(w, r)
 	if !ok {
 		return
 	}
 
-	cfg, err := avatarConfigFromRequest(r, user.UserID)
+	cfg, err := avatarConfigFromRequest(r, state.OwnedShopItemIDs)
 	if err != nil {
-		data := buildAvatarPageData(user, savedAvatarConfig(user.UserID), "", avatarValidationMessage(err))
+		data := buildAvatarPageData(state, savedAvatarConfig(state.AvatarConfig, state.OwnedShopItemIDs), "", avatarValidationMessage(err))
 		renderStudent(w, "avatarView.html", data)
 		return
 	}
 
-	ensureAvatarState()
-	app.AvatarConfigs[user.UserID] = cfg
-	saveData()
+	if err := studentStore.SaveAvatarConfig(r.Context(), state.User.UserID, *cfg); err != nil {
+		http.Error(w, "could not save avatar", http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, "/avatar?msg="+url.QueryEscape("Avatar saved."), http.StatusSeeOther)
 }
 
-func ensureAvatarState() {
-	if app.AvatarConfigs == nil {
-		app.AvatarConfigs = map[string]*AvatarConfig{}
-	}
+func savedAvatarConfig(config *AvatarConfig, ownedIDs []string) *AvatarConfig {
+	return stripUnownedAvatarCosmetics(ownedIDs, normalizeAvatarConfig(config))
 }
 
-func savedAvatarConfig(userID string) *AvatarConfig {
-	ensureAvatarState()
-	return stripUnownedAvatarCosmetics(userID, normalizeAvatarConfig(app.AvatarConfigs[userID]))
-}
-
-func avatarConfigFromRequest(r *http.Request, userID string) (*AvatarConfig, error) {
+func avatarConfigFromRequest(r *http.Request, ownedIDs []string) (*AvatarConfig, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, errInvalidAvatarSelection
 	}
@@ -146,10 +142,10 @@ func avatarConfigFromRequest(r *http.Request, userID string) (*AvatarConfig, err
 		Effect:    strings.TrimSpace(r.FormValue("effect")),
 	}
 
-	return validateAvatarConfig(userID, cfg)
+	return validateAvatarConfig(ownedIDs, cfg)
 }
 
-func validateAvatarConfig(userID string, cfg *AvatarConfig) (*AvatarConfig, error) {
+func validateAvatarConfig(ownedIDs []string, cfg *AvatarConfig) (*AvatarConfig, error) {
 	if cfg == nil {
 		return normalizeAvatarConfig(nil), nil
 	}
@@ -167,16 +163,16 @@ func validateAvatarConfig(userID string, cfg *AvatarConfig) (*AvatarConfig, erro
 	accessory := strings.TrimSpace(cfg.Accessory)
 	effect := strings.TrimSpace(cfg.Effect)
 
-	if err := validateAvatarCosmetic(userID, hairStyle, avatarSlotHairStyle); err != nil {
+	if err := validateAvatarCosmetic(ownedIDs, hairStyle, avatarSlotHairStyle); err != nil {
 		return nil, err
 	}
-	if err := validateAvatarCosmetic(userID, clothing, avatarSlotClothing); err != nil {
+	if err := validateAvatarCosmetic(ownedIDs, clothing, avatarSlotClothing); err != nil {
 		return nil, err
 	}
-	if err := validateAvatarCosmetic(userID, accessory, avatarSlotAccessory); err != nil {
+	if err := validateAvatarCosmetic(ownedIDs, accessory, avatarSlotAccessory); err != nil {
 		return nil, err
 	}
-	if err := validateAvatarCosmetic(userID, effect, avatarSlotEffect); err != nil {
+	if err := validateAvatarCosmetic(ownedIDs, effect, avatarSlotEffect); err != nil {
 		return nil, err
 	}
 
@@ -189,7 +185,7 @@ func validateAvatarConfig(userID string, cfg *AvatarConfig) (*AvatarConfig, erro
 	}, nil
 }
 
-func validateAvatarCosmetic(userID, itemID, slot string) error {
+func validateAvatarCosmetic(ownedIDs []string, itemID, slot string) error {
 	if itemID == "" {
 		return nil
 	}
@@ -198,7 +194,7 @@ func validateAvatarCosmetic(userID, itemID, slot string) error {
 	if !ok || option.Slot != slot {
 		return errInvalidAvatarSelection
 	}
-	if !userOwnsShopItem(userID, itemID) {
+	if !ownsShopItem(ownedIDs, itemID) {
 		return errLockedAvatarSelection
 	}
 
@@ -233,35 +229,30 @@ func normalizeAvatarConfig(cfg *AvatarConfig) *AvatarConfig {
 	return normalized
 }
 
-func stripUnownedAvatarCosmetics(userID string, cfg *AvatarConfig) *AvatarConfig {
+func stripUnownedAvatarCosmetics(ownedIDs []string, cfg *AvatarConfig) *AvatarConfig {
 	if cfg == nil {
 		return normalizeAvatarConfig(nil)
 	}
 
 	cleaned := *cfg
-	if !userOwnsShopItem(userID, cleaned.HairStyle) {
+	if !ownsShopItem(ownedIDs, cleaned.HairStyle) {
 		cleaned.HairStyle = ""
 	}
-	if !userOwnsShopItem(userID, cleaned.Clothing) {
+	if !ownsShopItem(ownedIDs, cleaned.Clothing) {
 		cleaned.Clothing = ""
 	}
-	if !userOwnsShopItem(userID, cleaned.Accessory) {
+	if !ownsShopItem(ownedIDs, cleaned.Accessory) {
 		cleaned.Accessory = ""
 	}
-	if !userOwnsShopItem(userID, cleaned.Effect) {
+	if !ownsShopItem(ownedIDs, cleaned.Effect) {
 		cleaned.Effect = ""
 	}
 
 	return &cleaned
 }
 
-func getAvatarImage(user *User) string {
-	if user == nil {
-		return defaultAvatarImage
-	}
-
-	cfg := savedAvatarConfig(user.UserID)
-	base, ok := avatarBaseByID(cfg.Base)
+func getAvatarImage(config *AvatarConfig) string {
+	base, ok := avatarBaseByID(normalizeAvatarConfig(config).Base)
 	if !ok {
 		return defaultAvatarImage
 	}
@@ -269,28 +260,28 @@ func getAvatarImage(user *User) string {
 	return base.Image
 }
 
-func buildAvatarPageData(user *User, cfg *AvatarConfig, message, errorMessage string) PageData {
+func buildAvatarPageData(state domain.StudentState, cfg *AvatarConfig, message, errorMessage string) PageData {
 	normalized := normalizeAvatarConfig(cfg)
 	preview := buildAvatarPreview(normalized)
-	attendanceStatus, attendanceMessage, canMark := getTodayAttendanceState(user)
+	attendanceStatus, attendanceMessage, canMark := getTodayAttendanceState(state.Attendance, time.Now())
 
 	return PageData{
 		Title:                  "Avatar",
-		Username:               user.Name,
+		Username:               state.User.Name,
 		AvatarImage:            preview.BaseImage,
 		AvatarSummary:          avatarSummary(normalized),
-		Coins:                  getCoinBalance(user.UserID),
+		Coins:                  state.CoinBalance,
 		AttendanceStatus:       attendanceStatus,
 		AttendanceMessage:      attendanceMessage,
 		CanMarkAttendance:      canMark,
 		ActiveNav:              "avatar",
 		UseStudentCSS:          true,
-		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(state.OwnedShopItemIDs),
 		AvatarBaseOptions:      avatarBaseOptionViews(normalized.Base),
-		AvatarHairOptions:      avatarCosmeticOptionViews(user.UserID, avatarSlotHairStyle, normalized.HairStyle),
-		AvatarClothOptions:     avatarCosmeticOptionViews(user.UserID, avatarSlotClothing, normalized.Clothing),
-		AvatarAccessOptions:    avatarCosmeticOptionViews(user.UserID, avatarSlotAccessory, normalized.Accessory),
-		AvatarEffectOptions:    avatarCosmeticOptionViews(user.UserID, avatarSlotEffect, normalized.Effect),
+		AvatarHairOptions:      avatarCosmeticOptionViews(state.OwnedShopItemIDs, avatarSlotHairStyle, normalized.HairStyle),
+		AvatarClothOptions:     avatarCosmeticOptionViews(state.OwnedShopItemIDs, avatarSlotClothing, normalized.Clothing),
+		AvatarAccessOptions:    avatarCosmeticOptionViews(state.OwnedShopItemIDs, avatarSlotAccessory, normalized.Accessory),
+		AvatarEffectOptions:    avatarCosmeticOptionViews(state.OwnedShopItemIDs, avatarSlotEffect, normalized.Effect),
 		AvatarPreview:          preview,
 		AvatarMessage:          message,
 		AvatarError:            errorMessage,
@@ -339,7 +330,7 @@ func avatarBaseOptionViews(selectedID string) []AvatarBaseOptionView {
 	return views
 }
 
-func avatarCosmeticOptionViews(userID, slot, selectedID string) []AvatarCosmeticOptionView {
+func avatarCosmeticOptionViews(ownedIDs []string, slot, selectedID string) []AvatarCosmeticOptionView {
 	views := []AvatarCosmeticOptionView{
 		{
 			Label:    "None",
@@ -358,7 +349,7 @@ func avatarCosmeticOptionViews(userID, slot, selectedID string) []AvatarCosmetic
 			Label:    option.Label,
 			Slot:     option.Slot,
 			Image:    option.Image,
-			Owned:    userOwnsShopItem(userID, option.ID),
+			Owned:    ownsShopItem(ownedIDs, option.ID),
 			Selected: option.ID == selectedID,
 		})
 	}

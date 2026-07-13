@@ -1,9 +1,6 @@
 package web
 
-const (
-	themeBackgroundPrice = 15
-	shopItemSlotTheme    = "background"
-)
+const shopItemSlotTheme = "background"
 
 type themeBackgroundOption struct {
 	ID          string
@@ -51,19 +48,6 @@ var specialThemeBackgroundCatalog = []themeBackgroundOption{
 	},
 }
 
-func seededThemeBackgroundItems() []*ShopItem {
-	items := make([]*ShopItem, 0, len(specialThemeBackgroundCatalog))
-	for _, background := range specialThemeBackgroundCatalog {
-		items = append(items, &ShopItem{
-			ID:          background.ShopItemID,
-			Name:        background.Label + " Background",
-			Price:       themeBackgroundPrice,
-			Description: background.Description,
-		})
-	}
-	return items
-}
-
 func themeBackgroundByShopItemID(itemID string) (themeBackgroundOption, bool) {
 	for _, background := range specialThemeBackgroundCatalog {
 		if background.ShopItemID == itemID {
@@ -73,10 +57,10 @@ func themeBackgroundByShopItemID(itemID string) (themeBackgroundOption, bool) {
 	return themeBackgroundOption{}, false
 }
 
-func ownedThemeBackgroundOptionViews(userID string) []ThemeBackgroundOptionView {
+func ownedThemeBackgroundOptionViews(ownedIDs []string) []ThemeBackgroundOptionView {
 	views := make([]ThemeBackgroundOptionView, 0, len(specialThemeBackgroundCatalog))
 	for _, background := range specialThemeBackgroundCatalog {
-		if !userOwnsShopItem(userID, background.ShopItemID) {
+		if !ownsShopItem(ownedIDs, background.ShopItemID) {
 			continue
 		}
 		views = append(views, ThemeBackgroundOptionView{

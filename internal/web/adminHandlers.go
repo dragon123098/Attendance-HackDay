@@ -90,15 +90,8 @@ type RoleOption struct {
 }
 
 func teacherView(w http.ResponseWriter, r *http.Request) {
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
+	user, ok := authenticatedUser(r)
 	if !ok {
-		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -117,37 +110,12 @@ func teacherEditView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
-	if !ok {
-		clearSessionUser(w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if user.Role != "teacher" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 }
 
 func adminView(w http.ResponseWriter, r *http.Request) {
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
+	user, ok := authenticatedUser(r)
 	if !ok {
-		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -277,25 +245,6 @@ func adminClassroomPerson(userID string, users map[string]User) AdminClassroomPe
 	}
 }
 
-func classroomOptions() []ClassroomOption {
-	classroomIDs := make([]string, 0, len(app.Classrooms))
-	for id := range app.Classrooms {
-		classroomIDs = append(classroomIDs, id)
-	}
-	sort.Strings(classroomIDs)
-
-	options := make([]ClassroomOption, 0, len(classroomIDs))
-	for _, id := range classroomIDs {
-		classroom := app.Classrooms[id]
-		options = append(options, ClassroomOption{
-			ID:   classroom.ID,
-			Name: classroom.Name,
-		})
-	}
-
-	return options
-}
-
 func classroomOptionsFromStore(classrooms []Classroom) []ClassroomOption {
 	sort.Slice(classrooms, func(i, j int) bool {
 		return classrooms[i].ID < classrooms[j].ID
@@ -402,46 +351,10 @@ func adminEditView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
-	if !ok {
-		clearSessionUser(w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if user.Role != "admin" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 }
 
 func userSettingsView(w http.ResponseWriter, r *http.Request) {
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
-	if !ok {
-		clearSessionUser(w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if user.Role != "admin" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
 	if adminUserStore == nil {
 		http.Error(w, "user store is not configured", http.StatusInternalServerError)
 		return
@@ -473,23 +386,12 @@ func updateUserRoleView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentUserID, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	currentUser, ok := app.Users[currentUserID]
+	currentUser, ok := authenticatedUser(r)
 	if !ok {
-		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-
-	if currentUser.Role != "admin" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
+	currentUserID := currentUser.UserID
 
 	if adminUserStore == nil {
 		http.Error(w, "user store is not configured", http.StatusInternalServerError)
@@ -543,10 +445,6 @@ func updateUserRoleView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cachedUser, ok := app.Users[targetUserID]; ok {
-		cachedUser.Role = role
-	}
-
 	redirectTo := "/userSettings"
 	if query != "" {
 		redirectTo += "?q=" + url.QueryEscape(query)
@@ -557,24 +455,6 @@ func updateUserRoleView(w http.ResponseWriter, r *http.Request) {
 func listClassroomsView(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
-	if !ok {
-		clearSessionUser(w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if user.Role != "admin" {
-		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -613,10 +493,6 @@ func createClassroomView(w http.ResponseWriter, r *http.Request) {
 		StudentIDs: studentIDs,
 	}
 
-	if app.Classrooms == nil {
-		app.Classrooms = make(map[string]*Classroom)
-	}
-
 	err := adminClassroomStore.CreateClassroom(r.Context(), *classroom)
 	if err != nil {
 		http.Error(w, "could not save classroom", http.StatusInternalServerError)
@@ -633,24 +509,6 @@ func createClassroomView(w http.ResponseWriter, r *http.Request) {
 }
 
 func editClassrooms(w http.ResponseWriter, r *http.Request) {
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
-	if !ok {
-		clearSessionUser(w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if user.Role != "admin" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
 	if adminClassroomStore == nil {
 		http.Error(w, "classroom store is not configured", http.StatusInternalServerError)
 		return
@@ -726,11 +584,6 @@ func saveClassrooms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if app.Classrooms != nil {
-		delete(app.Classrooms, originalID)
-		app.Classrooms[id] = classroom
-	}
-
 	http.Redirect(
 		w,
 		r,
@@ -748,23 +601,6 @@ type TeacherCreatePageData struct {
 }
 
 func createTeacher(w http.ResponseWriter, r *http.Request) {
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
-	if !ok {
-		clearSessionUser(w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if user.Role != "admin" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
 	data := TeacherCreatePageData{
 		Title:          "Add Teacher",
 		HeaderTitle:    "Admin Tools",
@@ -829,24 +665,6 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 }
 
 func createStudent(w http.ResponseWriter, r *http.Request) {
-	username, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	user, ok := app.Users[username]
-	if !ok {
-		clearSessionUser(w, r)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if user.Role != "admin" {
-		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-
 	if adminStudentStore == nil {
 		http.Error(w, "student store is not configured", http.StatusInternalServerError)
 		return

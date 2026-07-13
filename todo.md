@@ -24,10 +24,10 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] `main.go` with a basic HTTP server and static file serving
 
 ### Persistence
-- [x] Load application state from `data/data.json`
-- [x] Save application state to `data/data.json`
+- [x] Load application state from SQL Server
+- [x] Save application state to SQL Server
 - [x] Initialize nil maps after loading
-- [x] Ensure `saveData()` is called after state changes
+- [x] Persist state changes through SQL store methods
 - [x] Create `data/` directory automatically if missing
 
 ### User Storage
@@ -102,7 +102,7 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Award coins when attendance is submitted
 - [x] Persist coin awards as `CoinTransaction` entries
 - [x] Compute coin balance from transaction history
-- [x] Support manual coin adjustments from `data/data.json`
+- [x] Support manual coin adjustments from `dbo.ManualCoinAdjustments`
 - [x] Double day multiplier support
 
 ### Student Dashboard
