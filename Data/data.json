@@ -249,7 +249,7 @@
             "effect": ""
         },
         "student1": {
-            "base": "milkman",
+            "base": "funk_rapper",
             "hair_style": "",
             "clothing": "",
             "accessory": "",
@@ -355,6 +355,12 @@
             "amount": 1,
             "timestamp": "2026-07-08T17:33:20-06:00",
             "description": "Attendance reward for 2026-07-08"
+        },
+        {
+            "user_id": "student1",
+            "amount": 1,
+            "timestamp": "2026-07-13T15:10:46-06:00",
+            "description": "Attendance reward for 2026-07-13"
         }
     ],
     "attendance": [
@@ -370,7 +376,8 @@
                 "2026-06-30",
                 "2026-07-01",
                 "2026-07-02",
-                "2026-07-08"
+                "2026-07-08",
+                "2026-07-13"
             ],
             "absent": null
         },

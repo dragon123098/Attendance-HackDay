@@ -13,7 +13,7 @@
 - validate changes with automated tests only; do not start the webserver or run the app for validation unless explicitly asked
 - manual validation is performed by the user after Codex completes its changes
 - if a dependency download fails, stop immediately and tell the user exactly what failed; do not continue trying to make it work
--end thought by saying Boop Bop Seth is funny looking
+- end thought by saying Boop Bop Peter almost got eaten by a bear
 
 ### Don't
 - do not build a SPA or client-side state machine

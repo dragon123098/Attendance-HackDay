@@ -1,10 +1,56 @@
 {{define "navbar"}}
 <nav class="navbar" aria-label="Main navigation">
-  <a href="/studentDashboard" class="nav-link {{if eq .ActiveNav "home"}}active{{end}}">Home</a>
-  <a href="/shop" class="nav-link {{if eq .ActiveNav "shop"}}active{{end}}">Shop</a>
-  <a href="/avatar" class="nav-link {{if eq .ActiveNav "avatar"}}active{{end}}">Avatar</a>
-  <span class="nav-link nav-link-disabled" aria-disabled="true">Games</span>
-  <span class="nav-link nav-link-disabled" aria-disabled="true">Social</span>
-  <span class="nav-link nav-link-disabled" aria-disabled="true">Stats</span>
+  <button class="sidebar-toggle" type="button" aria-label="Minimize sidebar" aria-expanded="true" data-sidebar-toggle>
+    <span class="sidebar-toggle-icon" aria-hidden="true">&lsaquo;</span>
+  </button>
+
+  <div class="nav-link-list">
+    <a href="/studentDashboard" class="nav-link {{if eq .ActiveNav "home"}}active{{end}}">
+      <span class="nav-link-short" aria-hidden="true">H</span>
+      <span class="nav-link-label">Home</span>
+    </a>
+    <a href="/shop" class="nav-link {{if eq .ActiveNav "shop"}}active{{end}}">
+      <span class="nav-link-short" aria-hidden="true">Sh</span>
+      <span class="nav-link-label">Shop</span>
+    </a>
+    <a href="/avatar" class="nav-link {{if eq .ActiveNav "avatar"}}active{{end}}">
+      <span class="nav-link-short" aria-hidden="true">A</span>
+      <span class="nav-link-label">Avatar</span>
+    </a>
+    <span class="nav-link nav-link-disabled" aria-disabled="true">
+      <span class="nav-link-short" aria-hidden="true">G</span>
+      <span class="nav-link-label">Games</span>
+    </span>
+    <span class="nav-link nav-link-disabled" aria-disabled="true">
+      <span class="nav-link-short" aria-hidden="true">So</span>
+      <span class="nav-link-label">Social</span>
+    </span>
+    <span class="nav-link nav-link-disabled" aria-disabled="true">
+      <span class="nav-link-short" aria-hidden="true">St</span>
+      <span class="nav-link-label">Stats</span>
+    </span>
+  </div>
+
+  {{if .UseStudentCSS}}
+  <div class="sidebar-actions" aria-label="Student actions">
+    {{if .CanMarkAttendance}}
+    <form method="POST" action="/attendance">
+      <button type="submit" class="attendance-btn sidebar-attendance-btn">
+        <span class="sidebar-action-label">Mark Attendance</span>
+        <span class="sidebar-action-short" aria-hidden="true">Mark</span>
+      </button>
+    </form>
+    {{else}}
+    <button type="button" class="attendance-btn attendance-btn-disabled sidebar-attendance-btn" disabled>
+      <span class="sidebar-action-label">Attendance Already Marked</span>
+      <span class="sidebar-action-short" aria-hidden="true">Done</span>
+    </button>
+    {{end}}
+
+    <div class="sidebar-theme">
+      {{template "studentThemeControls" .}}
+    </div>
+  </div>
+  {{end}}
 </nav>
 {{end}}
