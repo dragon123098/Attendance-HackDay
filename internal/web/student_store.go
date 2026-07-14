@@ -8,7 +8,7 @@ import (
 )
 
 type StudentStore interface {
-	LoadStudentState(context.Context, string) (domain.StudentState, error)
+	LoadStudentState(context.Context, domain.User) (domain.StudentState, error)
 	MarkAttendanceAndAwardCoins(context.Context, string, string, string, int, time.Time) error
 	PurchaseShopItem(context.Context, string, string, time.Time) error
 	SaveAvatarConfig(context.Context, string, domain.AvatarConfig) error

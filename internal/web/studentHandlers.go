@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -55,6 +56,8 @@ func attendanceView(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/studentDashboard", http.StatusSeeOther)
 }
 
+// currentStudentState loads the SQL-backed state shared by student pages and
+// logs internal failures without exposing database details in the response.
 func currentStudentState(w http.ResponseWriter, r *http.Request) (domain.StudentState, bool) {
 	user, ok := authenticatedUser(r)
 	if !ok {
@@ -65,8 +68,9 @@ func currentStudentState(w http.ResponseWriter, r *http.Request) (domain.Student
 		http.Error(w, "student store is not configured", http.StatusInternalServerError)
 		return domain.StudentState{}, false
 	}
-	state, err := studentStore.LoadStudentState(r.Context(), user.UserID)
+	state, err := studentStore.LoadStudentState(r.Context(), user)
 	if err != nil {
+		log.Printf("load student state for %q: %v", user.UserID, err)
 		http.Error(w, "could not load student data", http.StatusInternalServerError)
 		return domain.StudentState{}, false
 	}

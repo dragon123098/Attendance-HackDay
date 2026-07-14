@@ -22,20 +22,16 @@ var (
 	ErrInsufficientCoins       = errors.New("insufficient coins")
 )
 
-// LoadStudentState gathers the SQL-backed state shared by all student pages.
-func (s *SQLStore) LoadStudentState(ctx context.Context, userID string) (domain.StudentState, error) {
-	user, err := s.FindUserByID(ctx, userID)
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
-			return domain.StudentState{}, ErrInvalidStudent
-		}
-		return domain.StudentState{}, err
-	}
+// LoadStudentState gathers the SQL-backed state shared by student pages. The
+// user has already been loaded and authorized by middleware.
+func (s *SQLStore) LoadStudentState(ctx context.Context, user domain.User) (domain.StudentState, error) {
 	if user.Role != "student" || user.ClassroomID == "" {
 		return domain.StudentState{}, ErrInvalidStudent
 	}
 
-	state := domain.StudentState{User: user}
+	state := domain.StudentState{
+		User: user,
+	}
 	if err := s.loadCoinBalance(ctx, &state); err != nil {
 		return domain.StudentState{}, err
 	}
@@ -54,11 +50,16 @@ func (s *SQLStore) LoadStudentState(ctx context.Context, userID string) (domain.
 	return state, nil
 }
 
+// loadCoinBalance applies adjustments and transactions while keeping the
+// effective balance at zero or above.
 func (s *SQLStore) loadCoinBalance(ctx context.Context, state *domain.StudentState) error {
 	return s.db.QueryRowContext(ctx, `
-		SELECT @p2
-			+ COALESCE((SELECT Amount FROM dbo.ManualCoinAdjustments WHERE UserID = @p1), 0)
-			+ COALESCE((SELECT SUM(Amount) FROM dbo.Transactions WHERE UserID = @p1), 0);
+		SELECT CASE WHEN balance.Total < 0 THEN 0 ELSE balance.Total END
+		FROM (
+			SELECT @p2
+				+ COALESCE((SELECT Amount FROM dbo.ManualCoinAdjustments WHERE UserID = @p1), 0)
+				+ COALESCE((SELECT SUM(Amount) FROM dbo.Transactions WHERE UserID = @p1), 0) AS Total
+		) AS balance;
 	`, state.User.UserID, startingStudentCoins).Scan(&state.CoinBalance)
 }
 
@@ -125,10 +126,11 @@ func (s *SQLStore) loadShopState(ctx context.Context, state *domain.StudentState
 		}
 		state.ShopItems = append(state.ShopItems, item)
 	}
-	if err := rows.Close(); err != nil {
+	if err := rows.Err(); err != nil {
+		rows.Close()
 		return err
 	}
-	if err := rows.Err(); err != nil {
+	if err := rows.Close(); err != nil {
 		return err
 	}
 
