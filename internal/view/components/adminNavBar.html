@@ -40,9 +40,10 @@
         </a>
     </div>
 
-    <form method="POST" action="/logout" class="admin-sidebar-logout">
-        <button type="submit" class="admin-logout-btn">Logout</button>
-    </form>
+    <div class="admin-sidebar-status">
+        <span>Status</span>
+        <strong>{{if .HeaderBadge}}{{.HeaderBadge}}{{else}}Admin View{{end}}</strong>
+    </div>
 
 </nav>
 {{end}}
