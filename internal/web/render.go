@@ -5,9 +5,12 @@ import (
 	"io/fs"
 	"net/http"
 	"path"
+	"sync"
 
 	"github.com/dragon123098/Attendance-HackDay.git/internal/view"
 )
+
+var templateCache sync.Map
 
 func pageTemplate(page string) string {
 	candidate := path.Join("pages", page)
@@ -20,11 +23,13 @@ func pageTemplate(page string) string {
 
 // These two functions load pages for unauthenticated users.
 func loadUnAuthTemplates(page string) (*template.Template, error) {
-	return template.ParseFS(
-		view.FS,
-		"components/UnAuthBase.html",
-		pageTemplate(page),
-	)
+	return loadCachedTemplate("unauth/"+page, func() (*template.Template, error) {
+		return template.ParseFS(
+			view.FS,
+			"components/UnAuthBase.html",
+			pageTemplate(page),
+		)
+	})
 }
 
 func renderUnAuth(w http.ResponseWriter, page string, data any) {
@@ -56,24 +61,28 @@ func renderStudent(w http.ResponseWriter, page string, data any) {
 }
 
 func loadStudentTemplates(page string) (*template.Template, error) {
-	return template.ParseFS(
-		view.FS,
-		"components/Studentbase.html",
-		"components/topbar.html",
-		"components/StudentNavbar.html",
-		"components/footer.html",
-		pageTemplate(page),
-	)
+	return loadCachedTemplate("student/"+page, func() (*template.Template, error) {
+		return template.ParseFS(
+			view.FS,
+			"components/Studentbase.html",
+			"components/topbar.html",
+			"components/StudentNavbar.html",
+			"components/footer.html",
+			pageTemplate(page),
+		)
+	})
 }
 
 func loadTeacherTemplates(page string) (*template.Template, error) {
-	return template.ParseFS(
-		view.FS,
-		"components/adminBase.html",
-		"components/teacherNavBar.html",
-		"components/teacherHeader.html",
-		pageTemplate(page),
-	)
+	return loadCachedTemplate("teacher/"+page, func() (*template.Template, error) {
+		return template.ParseFS(
+			view.FS,
+			"components/adminBase.html",
+			"components/teacherNavBar.html",
+			"components/teacherHeader.html",
+			pageTemplate(page),
+		)
+	})
 }
 
 func renderTeacher(w http.ResponseWriter, page string, data any) {
@@ -90,13 +99,30 @@ func renderTeacher(w http.ResponseWriter, page string, data any) {
 }
 
 func loadAdminTemplates(page string) (*template.Template, error) {
-	return template.ParseFS(
-		view.FS,
-		"components/adminBase.html",
-		"components/adminHeader.html",
-		"components/adminNavBar.html",
-		pageTemplate(page),
-	)
+	return loadCachedTemplate("admin/"+page, func() (*template.Template, error) {
+		return template.ParseFS(
+			view.FS,
+			"components/adminBase.html",
+			"components/adminHeader.html",
+			"components/adminNavBar.html",
+			pageTemplate(page),
+		)
+	})
+}
+
+// loadCachedTemplate parses each embedded page once and shares the immutable
+// result across requests. Templates are safe for concurrent execution.
+func loadCachedTemplate(key string, parse func() (*template.Template, error)) (*template.Template, error) {
+	if cached, ok := templateCache.Load(key); ok {
+		return cached.(*template.Template), nil
+	}
+
+	tmpl, err := parse()
+	if err != nil {
+		return nil, err
+	}
+	cached, _ := templateCache.LoadOrStore(key, tmpl)
+	return cached.(*template.Template), nil
 }
 
 func renderAdmin(w http.ResponseWriter, page string, data any) {

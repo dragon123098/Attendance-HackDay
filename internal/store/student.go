@@ -22,9 +22,25 @@ var (
 	ErrInsufficientCoins       = errors.New("insufficient coins")
 )
 
-// LoadStudentState gathers the SQL-backed state shared by student pages. The
-// user has already been loaded and authorized by middleware.
-func (s *SQLStore) LoadStudentState(ctx context.Context, user domain.User) (domain.StudentState, error) {
+// LoadStudentDashboardState loads the shared student data plus the classroom
+// schedule needed only by the dashboard and attendance workflow.
+func (s *SQLStore) LoadStudentDashboardState(ctx context.Context, user domain.User) (domain.StudentState, error) {
+	return s.loadStudentPageState(ctx, user, true, false)
+}
+
+// LoadStudentShopState loads the shared student data plus the SQL shop catalog.
+func (s *SQLStore) LoadStudentShopState(ctx context.Context, user domain.User) (domain.StudentState, error) {
+	return s.loadStudentPageState(ctx, user, false, true)
+}
+
+// LoadStudentAvatarState loads only the shared data used by the avatar page.
+func (s *SQLStore) LoadStudentAvatarState(ctx context.Context, user domain.User) (domain.StudentState, error) {
+	return s.loadStudentPageState(ctx, user, false, false)
+}
+
+// loadStudentPageState keeps page reads focused while loading balance,
+// attendance, avatar, and ownership data shared by the student shell.
+func (s *SQLStore) loadStudentPageState(ctx context.Context, user domain.User, includeSchedules, includeShop bool) (domain.StudentState, error) {
 	if user.Role != "student" || user.ClassroomID == "" {
 		return domain.StudentState{}, ErrInvalidStudent
 	}
@@ -32,54 +48,70 @@ func (s *SQLStore) LoadStudentState(ctx context.Context, user domain.User) (doma
 	state := domain.StudentState{
 		User: user,
 	}
-	if err := s.loadCoinBalance(ctx, &state); err != nil {
+	if err := s.loadStudentCore(ctx, &state); err != nil {
 		return domain.StudentState{}, err
 	}
-	if err := s.loadAttendance(ctx, &state); err != nil {
-		return domain.StudentState{}, err
+	if includeSchedules {
+		if err := s.loadSchedules(ctx, &state); err != nil {
+			return domain.StudentState{}, err
+		}
 	}
-	if err := s.loadSchedules(ctx, &state); err != nil {
-		return domain.StudentState{}, err
+	if includeShop {
+		if err := s.loadShopItems(ctx, &state); err != nil {
+			return domain.StudentState{}, err
+		}
 	}
-	if err := s.loadShopState(ctx, &state); err != nil {
-		return domain.StudentState{}, err
-	}
-	if err := s.loadAvatarConfig(ctx, &state); err != nil {
+	if err := s.loadOwnedShopItems(ctx, &state); err != nil {
 		return domain.StudentState{}, err
 	}
 	return state, nil
 }
 
-// loadCoinBalance applies adjustments and transactions while keeping the
-// effective balance at zero or above.
-func (s *SQLStore) loadCoinBalance(ctx context.Context, state *domain.StudentState) error {
-	return s.db.QueryRowContext(ctx, `
-		SELECT CASE WHEN balance.Total < 0 THEN 0 ELSE balance.Total END
-		FROM (
-			SELECT @p2
+// loadStudentCore combines the common balance, attendance, and avatar reads
+// into one database round trip for every student page.
+func (s *SQLStore) loadStudentCore(ctx context.Context, state *domain.StudentState) error {
+	var (
+		presentJSON string
+		absentJSON  string
+		hasAvatar   int
+		config      domain.AvatarConfig
+	)
+	err := s.db.QueryRowContext(ctx, `
+		SELECT
+			CASE WHEN balance.Total < 0 THEN 0 ELSE balance.Total END,
+			COALESCE(attendance.PresentDates, N'[]'),
+			COALESCE(attendance.AbsentDates, N'[]'),
+			CASE WHEN avatar.UserID IS NULL THEN 0 ELSE 1 END,
+			COALESCE(avatar.Base, N''),
+			COALESCE(avatar.HairStyle, N''),
+			COALESCE(avatar.Clothing, N''),
+			COALESCE(avatar.Accessory, N''),
+			COALESCE(avatar.Effect, N'')
+		FROM dbo.Users AS student
+		CROSS APPLY (
+			SELECT @p3
 				+ COALESCE((SELECT Amount FROM dbo.ManualCoinAdjustments WHERE UserID = @p1), 0)
 				+ COALESCE((SELECT SUM(Amount) FROM dbo.Transactions WHERE UserID = @p1), 0) AS Total
-		) AS balance;
-	`, state.User.UserID, startingStudentCoins).Scan(&state.CoinBalance)
-}
-
-func (s *SQLStore) loadAttendance(ctx context.Context, state *domain.StudentState) error {
-	var presentJSON, absentJSON string
-	err := s.db.QueryRowContext(ctx, `
-		SELECT COALESCE(PresentDates, N'[]'), COALESCE(AbsentDates, N'[]')
-		FROM dbo.AttendanceRecords
-		WHERE UserID = @p1 AND ClassroomID = @p2;
-	`, state.User.UserID, state.User.ClassroomID).Scan(&presentJSON, &absentJSON)
-	if errors.Is(err, sql.ErrNoRows) {
-		state.Attendance = domain.AttendanceRecord{
-			UserID: state.User.UserID, ClassroomID: state.User.ClassroomID,
-			Present: []string{}, Absent: []string{},
-		}
-		return nil
-	}
+		) AS balance
+		LEFT JOIN dbo.AttendanceRecords AS attendance
+			ON attendance.UserID = student.UserID AND attendance.ClassroomID = @p2
+		LEFT JOIN dbo.AvatarConfigs AS avatar ON avatar.UserID = student.UserID
+		WHERE student.UserID = @p1;
+	`, state.User.UserID, state.User.ClassroomID, startingStudentCoins).Scan(
+		&state.CoinBalance,
+		&presentJSON,
+		&absentJSON,
+		&hasAvatar,
+		&config.Base,
+		&config.HairStyle,
+		&config.Clothing,
+		&config.Accessory,
+		&config.Effect,
+	)
 	if err != nil {
 		return err
 	}
+
 	state.Attendance.UserID = state.User.UserID
 	state.Attendance.ClassroomID = state.User.ClassroomID
 	if err := json.Unmarshal([]byte(presentJSON), &state.Attendance.Present); err != nil {
@@ -87,6 +119,9 @@ func (s *SQLStore) loadAttendance(ctx context.Context, state *domain.StudentStat
 	}
 	if err := json.Unmarshal([]byte(absentJSON), &state.Attendance.Absent); err != nil {
 		return fmt.Errorf("decode absent dates: %w", err)
+	}
+	if hasAvatar == 1 {
+		state.AvatarConfig = &config
 	}
 	return nil
 }
@@ -110,7 +145,7 @@ func (s *SQLStore) loadSchedules(ctx context.Context, state *domain.StudentState
 	return rows.Err()
 }
 
-func (s *SQLStore) loadShopState(ctx context.Context, state *domain.StudentState) error {
+func (s *SQLStore) loadShopItems(ctx context.Context, state *domain.StudentState) error {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT ID, Name, Price, Description, COALESCE(ImagePath, N''), COALESCE(Slot, N'')
 		FROM dbo.ShopItems ORDER BY ID;
@@ -133,7 +168,10 @@ func (s *SQLStore) loadShopState(ctx context.Context, state *domain.StudentState
 	if err := rows.Close(); err != nil {
 		return err
 	}
+	return nil
+}
 
+func (s *SQLStore) loadOwnedShopItems(ctx context.Context, state *domain.StudentState) error {
 	ownedRows, err := s.db.QueryContext(ctx, `
 		SELECT ShopItemID FROM dbo.OwnedShopItems WHERE UserID = @p1 ORDER BY ShopItemID;
 	`, state.User.UserID)
@@ -149,23 +187,6 @@ func (s *SQLStore) loadShopState(ctx context.Context, state *domain.StudentState
 		state.OwnedShopItemIDs = append(state.OwnedShopItemIDs, itemID)
 	}
 	return ownedRows.Err()
-}
-
-func (s *SQLStore) loadAvatarConfig(ctx context.Context, state *domain.StudentState) error {
-	var config domain.AvatarConfig
-	err := s.db.QueryRowContext(ctx, `
-		SELECT COALESCE(Base, N''), COALESCE(HairStyle, N''), COALESCE(Clothing, N''),
-			COALESCE(Accessory, N''), COALESCE(Effect, N'')
-		FROM dbo.AvatarConfigs WHERE UserID = @p1;
-	`, state.User.UserID).Scan(&config.Base, &config.HairStyle, &config.Clothing, &config.Accessory, &config.Effect)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	state.AvatarConfig = &config
-	return nil
 }
 
 // MarkAttendanceAndAwardCoins locks a student's attendance row so one date and

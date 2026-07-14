@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -16,7 +17,7 @@ import (
 const attendanceRewardCoins = 1
 
 func studentView(w http.ResponseWriter, r *http.Request) {
-	state, ok := currentStudentState(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentDashboardState)
 	if !ok {
 		return
 	}
@@ -35,7 +36,7 @@ func studentView(w http.ResponseWriter, r *http.Request) {
 }
 
 func attendanceView(w http.ResponseWriter, r *http.Request) {
-	state, ok := currentStudentState(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentDashboardState)
 	if !ok {
 		return
 	}
@@ -56,9 +57,11 @@ func attendanceView(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/studentDashboard", http.StatusSeeOther)
 }
 
-// currentStudentState loads the SQL-backed state shared by student pages and
-// logs internal failures without exposing database details in the response.
-func currentStudentState(w http.ResponseWriter, r *http.Request) (domain.StudentState, bool) {
+type studentStateLoader func(StudentStore, context.Context, domain.User) (domain.StudentState, error)
+
+// currentStudentState loads the page-specific SQL state selected by its handler
+// and logs internal failures without exposing database details in the response.
+func currentStudentState(w http.ResponseWriter, r *http.Request, load studentStateLoader) (domain.StudentState, bool) {
 	user, ok := authenticatedUser(r)
 	if !ok {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -68,7 +71,7 @@ func currentStudentState(w http.ResponseWriter, r *http.Request) (domain.Student
 		http.Error(w, "student store is not configured", http.StatusInternalServerError)
 		return domain.StudentState{}, false
 	}
-	state, err := studentStore.LoadStudentState(r.Context(), user)
+	state, err := load(studentStore, r.Context(), user)
 	if err != nil {
 		log.Printf("load student state for %q: %v", user.UserID, err)
 		http.Error(w, "could not load student data", http.StatusInternalServerError)
@@ -140,7 +143,7 @@ func weekdayIndex(day string) int {
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
-	state, ok := currentStudentState(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentShopState)
 	if !ok {
 		return
 	}

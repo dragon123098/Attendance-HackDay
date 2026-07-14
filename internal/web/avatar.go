@@ -69,7 +69,7 @@ var avatarCosmeticCatalog = []avatarCosmeticOption{
 // avatarView renders the saved avatar config, while preview and save POSTs reuse
 // the same page data so the form always stays server-rendered.
 func avatarView(w http.ResponseWriter, r *http.Request) {
-	state, ok := currentStudentState(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentAvatarState)
 	if !ok {
 		return
 	}
@@ -83,7 +83,7 @@ func avatarPreviewView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state, ok := currentStudentState(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentAvatarState)
 	if !ok {
 		return
 	}
@@ -105,7 +105,7 @@ func avatarSaveView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state, ok := currentStudentState(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentAvatarState)
 	if !ok {
 		return
 	}

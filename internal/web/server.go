@@ -3,6 +3,7 @@ package web
 import (
 	"io/fs"
 	"net/http"
+	"path"
 
 	"github.com/dragon123098/Attendance-HackDay.git/internal/view"
 )
@@ -31,7 +32,15 @@ func NewRouter(appStore AppStore) http.Handler {
 	}
 
 	fileServer := http.FileServer(http.FS(staticFS))
-	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
+	staticHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if extension := path.Ext(r.URL.Path); extension == ".css" || extension == ".js" {
+			w.Header().Set("Cache-Control", "no-cache")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=3600")
+		}
+		fileServer.ServeHTTP(w, r)
+	})
+	mux.Handle("/static/", http.StripPrefix("/static/", staticHandler))
 
 	// auth routes
 	mux.HandleFunc("/", loginHandler)

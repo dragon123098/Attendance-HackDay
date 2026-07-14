@@ -2156,6 +2156,18 @@ html[data-student-mode="light"] .theme-panel-menu .theme-special-swatches button
   display: none;
 }
 
+.nav-link-short {
+  width: 1.4rem;
+  height: 1.4rem;
+  color: currentColor;
+}
+
+.nav-link-short svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .sidebar-actions {
   display: grid;
   gap: 0.55rem;
@@ -2252,7 +2264,10 @@ html[data-student-mode="light"] .theme-panel-menu .theme-special-swatches button
     display: none;
   }
 
-  html[data-sidebar="collapsed"] .nav-link-short,
+  html[data-sidebar="collapsed"] .nav-link-short {
+    display: inline-flex;
+  }
+
   html[data-sidebar="collapsed"] .sidebar-action-short {
     display: inline;
   }
@@ -2306,30 +2321,31 @@ html[data-student-mode="light"] .theme-panel-menu .theme-special-swatches button
   }
 }
 
-.dashboard-avatar-card {
+.dashboard-avatar-card,
+.avatar-current-card {
   border: 2px solid var(--student-line);
   color: var(--student-ink);
-  background: rgba(7, 24, 29, 0.84);
-}
-
-html[data-student-mode="light"] .dashboard-avatar-card {
-  background: rgba(233, 247, 255, 0.86);
+  background: linear-gradient(135deg, var(--student-bg-mid), var(--student-bg-low));
 }
 
 .dashboard-avatar-card h2,
-.dashboard-avatar-card p {
+.dashboard-avatar-card p,
+.avatar-current-card h2,
+.avatar-current-card p {
   color: var(--student-ink);
 }
 
-.dashboard-avatar-card > .avatar-stack {
+.dashboard-avatar-card > .avatar-stack,
+.avatar-current-image {
   border-color: var(--student-line);
-  background: var(--student-surface-soft);
+  background: color-mix(in srgb, var(--student-bg-top) 38%, transparent);
 }
 
-.dashboard-avatar-card .avatar-summary-list span {
+.dashboard-avatar-card .avatar-summary-list span,
+.avatar-current-card .avatar-summary-list span {
   border-color: var(--student-line);
   color: var(--student-ink);
-  background: rgba(28, 176, 246, 0.14);
+  background: color-mix(in srgb, var(--student-bg-top) 30%, transparent);
 }
 
 html[data-student-mode="dark"] .navbar .nav-link,
