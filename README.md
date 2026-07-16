@@ -7,7 +7,8 @@ items, and customize an avatar with unlocked cosmetics.
 ## Current Capabilities
 
 - SQL-backed login with in-memory session tokens and role-aware routing.
-- SQL-backed student dashboard with attendance status, coin balance, schedule data, and the current avatar.
+- SQL-backed student dashboard with attendance status, coin balance, the current avatar, and a Sunday-through-Saturday assignment calendar.
+- Classroom assignment templates in `dbo.WeeklyAssignmentTemplates` recur by weekday; the dashboard derives their due dates for the current server-local week on each request. This is proof-of-concept mock data, not an assignment editing or completion workflow.
 - Student shop with SQL-backed catalog, ownership, coin validation, and atomic purchases.
 - Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and SQL-backed saves.
 - Student pages include persistent light/dark controls, free background colors, and unlocked special background themes.
@@ -118,7 +119,7 @@ If the command succeeds, it should return `AttendanceHackday` and `(1 rows affec
     docker run --rm -v "$(pwd)/Seed_DataBase.sql:/tmp/Seed_DataBase.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase.sql
     ```
 
-3. Apply the idempotent delta seed for the latest student records and image path metadata. This includes the final records migrated from the retired JSON store.
+3. Apply the idempotent delta seed for the latest student records, image path metadata, and recurring weekly assignment templates. This includes the final records migrated from the retired JSON store.
 
     ```powershell
     docker run --rm -v "${PWD}\Seed_DataBase2.sql:/tmp/Seed_DataBase2.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase2.sql

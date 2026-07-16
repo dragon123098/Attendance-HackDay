@@ -20,24 +20,39 @@
         </div>
     </section>
 
-    <div class="schedule-banner">
-        <h3>📅 Weekly Schedule</h3>
+    <section class="schedule-banner weekly-assignment-schedule" aria-labelledby="weekly-assignment-title">
+        <div class="weekly-schedule-header">
+            <h3 id="weekly-assignment-title">Weekly Assignments</h3>
+            <p>{{.CurrentWeekLabel}}</p>
+        </div>
 
-        {{if .WeeklySchedule}}
-            {{range .WeeklySchedule}}
-            <div class="schedule-row">
-                <strong>{{.DayOfWeek}}</strong>
-                <span>{{.StartTime}} - {{.EndTime}}</span>
+        <div class="weekly-schedule-scroll">
+            <div class="weekly-schedule-grid">
+                {{range .WeeklyAssignmentDays}}
+                <article class="weekly-day {{if .IsToday}}is-today{{end}}">
+                    <header>
+                        <strong>{{.DayName}}</strong>
+                        <time datetime="{{.DateISO}}">{{.DateLabel}}</time>
+                    </header>
 
-                {{if .DoubleDay}}
-                <span class="double-day-badge">Double Day</span>
+                    {{if .Assignments}}
+                    <div class="weekly-assignment-list">
+                        {{range .Assignments}}
+                        <div class="weekly-assignment">
+                            <span>{{.Subject}}</span>
+                            <strong>{{.Title}}</strong>
+                            <small>Due {{.DueTime}}</small>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{else}}
+                    <p class="weekly-day-empty">No assignments</p>
+                    {{end}}
+                </article>
                 {{end}}
             </div>
-            {{end}}
-        {{else}}
-            <p>No schedule has been added yet.</p>
-        {{end}}
-    </div>
+        </div>
+    </section>
 
 </div>
 {{end}}

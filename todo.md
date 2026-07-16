@@ -110,7 +110,8 @@ These must be agreed on before either person starts their track. Commit the resu
 
 ### Student Dashboard
 - [x] Display current coin balance
-- [x] Display weekly schedule / week view
+- [x] Display a Sunday-Saturday weekly assignment calendar with current-week due dates
+- [x] Load recurring classroom assignment templates from SQL Server
 - [x] Display attendance status
 - [x] Display avatar
 - [x] Show upcoming double days

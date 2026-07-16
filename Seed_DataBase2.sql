@@ -51,6 +51,22 @@ BEGIN
 END;
 GO
 
+IF OBJECT_ID(N'dbo.WeeklyAssignmentTemplates', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.WeeklyAssignmentTemplates (
+        WeeklyAssignmentTemplateID int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ClassroomID nvarchar(100) NOT NULL,
+        DueWeekday tinyint NOT NULL,
+        Subject nvarchar(100) NOT NULL,
+        Title nvarchar(200) NOT NULL,
+        DueTime time(0) NOT NULL,
+        DisplayOrder int NOT NULL CONSTRAINT DF_WeeklyAssignmentTemplates_DisplayOrder DEFAULT (0),
+        CONSTRAINT CK_WeeklyAssignmentTemplates_DueWeekday CHECK (DueWeekday BETWEEN 0 AND 6),
+        CONSTRAINT UQ_WeeklyAssignmentTemplates_ClassroomAssignment UNIQUE (ClassroomID, DueWeekday, Subject, Title)
+    );
+END;
+GO
+
 MERGE dbo.Users AS target
 USING (VALUES
     (N'21', N'Peter', N'student', N'peter@example.com', N'$2a$10$JKh.VBpQzjvFdc9.SAvCUOm3/D95PqA/HjvQ3ixuwp7ySPspb4htO', N'classroom1')
@@ -77,6 +93,37 @@ ON target.ClassroomID = source.ClassroomID
 WHEN NOT MATCHED THEN
     INSERT (ClassroomID, StudentID)
     VALUES (source.ClassroomID, source.StudentID);
+GO
+
+MERGE dbo.WeeklyAssignmentTemplates AS target
+USING (VALUES
+    (N'classroom1', 0, N'Reading', N'Weekend Reading Log', CONVERT(time(0), N'19:00'), 10),
+    (N'classroom1', 1, N'Math', N'Addition Practice', CONVERT(time(0), N'15:30'), 10),
+    (N'classroom1', 2, N'Reading', N'Story Response', CONVERT(time(0), N'16:00'), 10),
+    (N'classroom1', 3, N'Science', N'Weather Journal', CONVERT(time(0), N'16:30'), 10),
+    (N'classroom1', 5, N'Spelling', N'Weekly Word Check', CONVERT(time(0), N'15:00'), 10),
+    (N'classroom2', 0, N'Reading', N'Novel Reading Log', CONVERT(time(0), N'19:00'), 10),
+    (N'classroom2', 1, N'Math', N'Fraction Review', CONVERT(time(0), N'16:00'), 10),
+    (N'classroom2', 3, N'Science', N'Ecosystem Notes', CONVERT(time(0), N'16:30'), 10),
+    (N'classroom2', 4, N'Writing', N'Persuasive Paragraph', CONVERT(time(0), N'17:00'), 10),
+    (N'classroom2', 6, N'Social Studies', N'Map Skills Review', CONVERT(time(0), N'14:00'), 10),
+    (N'classroom3', 0, N'Reading', N'Picture Book Response', CONVERT(time(0), N'18:30'), 10),
+    (N'classroom3', 2, N'Math', N'Place Value Practice', CONVERT(time(0), N'15:30'), 10),
+    (N'classroom3', 3, N'Science', N'Animal Habitat Sketch', CONVERT(time(0), N'16:00'), 10),
+    (N'classroom3', 5, N'Spelling', N'Weekly Word Sort', CONVERT(time(0), N'15:00'), 10),
+    (N'classroom3', 6, N'Art', N'Color Wheel Practice', CONVERT(time(0), N'13:00'), 10)
+) AS source (ClassroomID, DueWeekday, Subject, Title, DueTime, DisplayOrder)
+ON target.ClassroomID = source.ClassroomID
+    AND target.DueWeekday = source.DueWeekday
+    AND target.Subject = source.Subject
+    AND target.Title = source.Title
+WHEN MATCHED THEN
+    UPDATE SET
+        DueTime = source.DueTime,
+        DisplayOrder = source.DisplayOrder
+WHEN NOT MATCHED THEN
+    INSERT (ClassroomID, DueWeekday, Subject, Title, DueTime, DisplayOrder)
+    VALUES (source.ClassroomID, source.DueWeekday, source.Subject, source.Title, source.DueTime, source.DisplayOrder);
 GO
 
 MERGE dbo.ShopItems AS target

@@ -22,9 +22,22 @@ var (
 	ErrInsufficientCoins       = errors.New("insufficient coins")
 )
 
-// LoadStudentDashboardState loads the shared student data plus the classroom
-// schedule needed only by the dashboard and attendance workflow.
+// LoadStudentDashboardState loads the shared student data, classroom schedule,
+// and recurring assignment templates needed by the dashboard.
 func (s *SQLStore) LoadStudentDashboardState(ctx context.Context, user domain.User) (domain.StudentState, error) {
+	state, err := s.loadStudentPageState(ctx, user, true, false)
+	if err != nil {
+		return domain.StudentState{}, err
+	}
+	if err := s.loadWeeklyAssignmentTemplates(ctx, &state); err != nil {
+		return domain.StudentState{}, err
+	}
+	return state, nil
+}
+
+// LoadStudentAttendanceState loads schedule data needed to calculate an
+// attendance reward without fetching dashboard-only assignment templates.
+func (s *SQLStore) LoadStudentAttendanceState(ctx context.Context, user domain.User) (domain.StudentState, error) {
 	return s.loadStudentPageState(ctx, user, true, false)
 }
 
@@ -141,6 +154,38 @@ func (s *SQLStore) loadSchedules(ctx context.Context, state *domain.StudentState
 			return err
 		}
 		state.Schedules = append(state.Schedules, schedule)
+	}
+	return rows.Err()
+}
+
+// loadWeeklyAssignmentTemplates reads the recurring classroom assignments used
+// to build the student's current Sunday-through-Saturday dashboard calendar.
+func (s *SQLStore) loadWeeklyAssignmentTemplates(ctx context.Context, state *domain.StudentState) error {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT ClassroomID, DueWeekday, Subject, Title,
+			CONVERT(varchar(5), DueTime, 108), DisplayOrder
+		FROM dbo.WeeklyAssignmentTemplates
+		WHERE ClassroomID = @p1
+		ORDER BY DueWeekday, DisplayOrder, DueTime, Title;
+	`, state.User.ClassroomID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var assignment domain.WeeklyAssignmentTemplate
+		if err := rows.Scan(
+			&assignment.ClassroomID,
+			&assignment.DueWeekday,
+			&assignment.Subject,
+			&assignment.Title,
+			&assignment.DueTime,
+			&assignment.DisplayOrder,
+		); err != nil {
+			return err
+		}
+		state.WeeklyAssignments = append(state.WeeklyAssignments, assignment)
 	}
 	return rows.Err()
 }
