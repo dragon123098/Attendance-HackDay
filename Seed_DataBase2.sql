@@ -51,6 +51,22 @@ BEGIN
 END;
 GO
 
+IF OBJECT_ID(N'dbo.WeeklyAssignmentTemplates', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.WeeklyAssignmentTemplates (
+        WeeklyAssignmentTemplateID int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ClassroomID nvarchar(100) NOT NULL,
+        DueWeekday tinyint NOT NULL,
+        Subject nvarchar(100) NOT NULL,
+        Title nvarchar(200) NOT NULL,
+        DueTime time(0) NOT NULL,
+        DisplayOrder int NOT NULL CONSTRAINT DF_WeeklyAssignmentTemplates_DisplayOrder DEFAULT (0),
+        CONSTRAINT CK_WeeklyAssignmentTemplates_DueWeekday CHECK (DueWeekday BETWEEN 0 AND 6),
+        CONSTRAINT UQ_WeeklyAssignmentTemplates_ClassroomAssignment UNIQUE (ClassroomID, DueWeekday, Subject, Title)
+    );
+END;
+GO
+
 MERGE dbo.Users AS target
 USING (VALUES
     (N'21', N'Peter', N'student', N'peter@example.com', N'$2a$10$JKh.VBpQzjvFdc9.SAvCUOm3/D95PqA/HjvQ3ixuwp7ySPspb4htO', N'classroom1')
@@ -77,6 +93,37 @@ ON target.ClassroomID = source.ClassroomID
 WHEN NOT MATCHED THEN
     INSERT (ClassroomID, StudentID)
     VALUES (source.ClassroomID, source.StudentID);
+GO
+
+MERGE dbo.WeeklyAssignmentTemplates AS target
+USING (VALUES
+    (N'classroom1', 0, N'Reading', N'Weekend Reading Log', CONVERT(time(0), N'19:00'), 10),
+    (N'classroom1', 1, N'Math', N'Addition Practice', CONVERT(time(0), N'15:30'), 10),
+    (N'classroom1', 2, N'Reading', N'Story Response', CONVERT(time(0), N'16:00'), 10),
+    (N'classroom1', 3, N'Science', N'Weather Journal', CONVERT(time(0), N'16:30'), 10),
+    (N'classroom1', 5, N'Spelling', N'Weekly Word Check', CONVERT(time(0), N'15:00'), 10),
+    (N'classroom2', 0, N'Reading', N'Novel Reading Log', CONVERT(time(0), N'19:00'), 10),
+    (N'classroom2', 1, N'Math', N'Fraction Review', CONVERT(time(0), N'16:00'), 10),
+    (N'classroom2', 3, N'Science', N'Ecosystem Notes', CONVERT(time(0), N'16:30'), 10),
+    (N'classroom2', 4, N'Writing', N'Persuasive Paragraph', CONVERT(time(0), N'17:00'), 10),
+    (N'classroom2', 6, N'Social Studies', N'Map Skills Review', CONVERT(time(0), N'14:00'), 10),
+    (N'classroom3', 0, N'Reading', N'Picture Book Response', CONVERT(time(0), N'18:30'), 10),
+    (N'classroom3', 2, N'Math', N'Place Value Practice', CONVERT(time(0), N'15:30'), 10),
+    (N'classroom3', 3, N'Science', N'Animal Habitat Sketch', CONVERT(time(0), N'16:00'), 10),
+    (N'classroom3', 5, N'Spelling', N'Weekly Word Sort', CONVERT(time(0), N'15:00'), 10),
+    (N'classroom3', 6, N'Art', N'Color Wheel Practice', CONVERT(time(0), N'13:00'), 10)
+) AS source (ClassroomID, DueWeekday, Subject, Title, DueTime, DisplayOrder)
+ON target.ClassroomID = source.ClassroomID
+    AND target.DueWeekday = source.DueWeekday
+    AND target.Subject = source.Subject
+    AND target.Title = source.Title
+WHEN MATCHED THEN
+    UPDATE SET
+        DueTime = source.DueTime,
+        DisplayOrder = source.DisplayOrder
+WHEN NOT MATCHED THEN
+    INSERT (ClassroomID, DueWeekday, Subject, Title, DueTime, DisplayOrder)
+    VALUES (source.ClassroomID, source.DueWeekday, source.Subject, source.Title, source.DueTime, source.DisplayOrder);
 GO
 
 MERGE dbo.ShopItems AS target
@@ -139,7 +186,8 @@ MERGE dbo.OwnedShopItems AS target
 USING (VALUES
     (N'21', N'headphones_gem'),
     (N'student1', N'glasses_rocket'),
-    (N'student1', N'background_beach')
+    (N'student1', N'background_beach'),
+    (N'student1', N'aura_sparkle')
 ) AS source (UserID, ShopItemID)
 ON target.UserID = source.UserID
     AND target.ShopItemID = source.ShopItemID
@@ -151,7 +199,7 @@ GO
 MERGE dbo.AvatarConfigs AS target
 USING (VALUES
     (N'21', N'peter', N'', N'', N'headphones_gem', N''),
-    (N'student1', N'gerald', N'hat_star', N'', N'glasses_rocket', N'')
+    (N'student1', N'funk_rapper', N'', N'', N'', N'aura_sparkle')
 ) AS source (UserID, Base, HairStyle, Clothing, Accessory, Effect)
 ON target.UserID = source.UserID
 WHEN MATCHED THEN
@@ -185,7 +233,12 @@ USING (VALUES
     (N'21', 1, CONVERT(datetimeoffset(7), N'2026-06-30T16:23:12-06:00'), N'Attendance reward for 2026-06-30'),
     (N'21', -9, CONVERT(datetimeoffset(7), N'2026-06-30T16:23:21-06:00'), N'Purchased Gem Headphones'),
     (N'student1', 1, CONVERT(datetimeoffset(7), N'2026-07-01T16:08:04-06:00'), N'Attendance reward for 2026-07-01'),
-    (N'student1', -15, CONVERT(datetimeoffset(7), N'2026-07-01T16:08:12-06:00'), N'Purchased Beach Background')
+    (N'student1', -15, CONVERT(datetimeoffset(7), N'2026-07-01T16:08:12-06:00'), N'Purchased Beach Background'),
+    (N'student1', 1, CONVERT(datetimeoffset(7), N'2026-07-02T14:39:02-06:00'), N'Attendance reward for 2026-07-02'),
+    (N'student1', 1, CONVERT(datetimeoffset(7), N'2026-07-02T09:07:28-06:00'), N'Attendance reward for 2026-07-02'),
+    (N'student1', -9, CONVERT(datetimeoffset(7), N'2026-07-02T16:37:17-06:00'), N'Purchased Sparkle Aura'),
+    (N'student1', 1, CONVERT(datetimeoffset(7), N'2026-07-08T17:33:20-06:00'), N'Attendance reward for 2026-07-08'),
+    (N'student1', 1, CONVERT(datetimeoffset(7), N'2026-07-13T15:10:46-06:00'), N'Attendance reward for 2026-07-13')
 ) AS source (UserID, Amount, Timestamp, Description)
 ON target.UserID = source.UserID
     AND target.Amount = source.Amount
@@ -198,7 +251,7 @@ GO
 
 MERGE dbo.AttendanceRecords AS target
 USING (VALUES
-    (N'student1', N'classroom1', N'["2026-06-09","2026-06-10","2026-06-15","2026-06-22","2026-06-24","2026-06-30","2026-07-01"]', NULL),
+    (N'student1', N'classroom1', N'["2026-06-09","2026-06-10","2026-06-15","2026-06-22","2026-06-24","2026-06-30","2026-07-01","2026-07-02","2026-07-08","2026-07-13"]', NULL),
     (N'21', N'classroom1', N'["2026-06-30"]', N'[]')
 ) AS source (UserID, ClassroomID, PresentDates, AbsentDates)
 ON target.UserID = source.UserID

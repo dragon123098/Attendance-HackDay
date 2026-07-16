@@ -48,7 +48,7 @@ func createSession(w http.ResponseWriter, userID string) error {
 	return nil
 }
 
-func getSessionUser(r *http.Request) (string, error) {
+func getSessionUserID(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		return "", errors.New("no session cookie found")
@@ -67,10 +67,6 @@ func getSessionUser(r *http.Request) (string, error) {
 		delete(sessionStore, cookie.Value)
 		sessionMu.Unlock()
 		return "", errors.New("session expired")
-	}
-
-	if _, exists := app.Users[sess.UserID]; !exists {
-		return "", errors.New("invalid session user")
 	}
 
 	return sess.UserID, nil

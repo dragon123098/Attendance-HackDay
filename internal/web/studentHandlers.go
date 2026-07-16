@@ -1,215 +1,165 @@
 package web
 
 import (
-	"fmt"
+	"context"
+	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	datastore "github.com/dragon123098/Attendance-HackDay.git/internal/store"
 )
 
-const startingStudentCoins = 10
 const attendanceRewardCoins = 1
 
 func studentView(w http.ResponseWriter, r *http.Request) {
-	user, ok := currentSessionUser(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentDashboardState)
 	if !ok {
 		return
 	}
-
-	attendanceStatus, attendanceMessage, canMark := getTodayAttendanceState(user)
-	weeklySchedule := getWeeklySchedule(user)
-	upcomingDoubleDays := getUpcomingDoubleDays(user)
-
+	now := time.Now()
+	status, message, canMark := getTodayAttendanceState(state.Attendance, now)
+	avatar := savedAvatarConfig(state.AvatarConfig, state.OwnedShopItemIDs)
+	weekLabel, assignmentDays := buildWeeklyAssignmentSchedule(state.WeeklyAssignments, now)
 	data := PageData{
-		Title:                  "Student Dashboard",
-		Username:               user.Name,
-		AvatarImage:            getAvatarImage(user),
-		AvatarSummary:          avatarSummary(savedAvatarConfig(user.UserID)),
-		AvatarPreview:          buildAvatarPreview(savedAvatarConfig(user.UserID)),
-		Coins:                  getCoinBalance(user.UserID),
-		AttendanceStatus:       attendanceStatus,
-		AttendanceMessage:      attendanceMessage,
-		CanMarkAttendance:      canMark,
-		WeeklySchedule:         weeklySchedule,
-		UpcomingDoubleDays:     upcomingDoubleDays,
-		ActiveNav:              "home",
-		UseStudentCSS:          true,
-		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
+		Title: "Student Dashboard", Username: state.User.Name, AvatarImage: getAvatarImage(avatar),
+		AvatarSummary: avatarSummary(avatar), AvatarPreview: buildAvatarPreview(avatar), Coins: state.CoinBalance,
+		AttendanceStatus: status, AttendanceMessage: message, CanMarkAttendance: canMark,
+		CurrentWeekLabel: weekLabel, WeeklyAssignmentDays: assignmentDays, UpcomingDoubleDays: getUpcomingDoubleDays(state.Schedules),
+		ActiveNav: "home", UseStudentCSS: true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(state.OwnedShopItemIDs),
 	}
-
 	renderStudent(w, "studentDash.html", data)
 }
 
 func attendanceView(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	user, ok := currentSessionUser(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentAttendanceState)
 	if !ok {
 		return
 	}
-
 	now := time.Now()
-	today := now.Format("2006-01-02")
-
 	reward := attendanceRewardCoins
-	if isDoubleDay(user.ClassroomID, now) {
+	if isDoubleDay(state.Schedules, now) {
 		reward *= 2
 	}
-
-	awarded, err := markAttendanceAndAwardCoins(user, today, reward)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	err := studentStore.MarkAttendanceAndAwardCoins(r.Context(), state.User.UserID, state.User.ClassroomID, now.Format("2006-01-02"), reward, now)
+	if errors.Is(err, datastore.ErrAttendanceAlreadyMarked) {
+		http.Redirect(w, r, "/studentDashboard", http.StatusSeeOther)
 		return
 	}
-
-	if awarded {
-		saveData()
+	if err != nil {
+		http.Error(w, "could not mark attendance", http.StatusInternalServerError)
+		return
 	}
-
 	http.Redirect(w, r, "/studentDashboard", http.StatusSeeOther)
 }
 
-func currentSessionUser(w http.ResponseWriter, r *http.Request) (*User, bool) {
-	userID, err := getSessionUser(r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return nil, false
-	}
+type studentStateLoader func(StudentStore, context.Context, domain.User) (domain.StudentState, error)
 
-	user, ok := app.Users[userID]
+// currentStudentState loads the page-specific SQL state selected by its handler
+// and logs internal failures without exposing database details in the response.
+func currentStudentState(w http.ResponseWriter, r *http.Request, load studentStateLoader) (domain.StudentState, bool) {
+	user, ok := authenticatedUser(r)
 	if !ok {
-		clearSessionUser(w, r)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return nil, false
+		return domain.StudentState{}, false
 	}
-
-	return user, true
+	if studentStore == nil {
+		http.Error(w, "student store is not configured", http.StatusInternalServerError)
+		return domain.StudentState{}, false
+	}
+	state, err := load(studentStore, r.Context(), user)
+	if err != nil {
+		log.Printf("load student state for %q: %v", user.UserID, err)
+		http.Error(w, "could not load student data", http.StatusInternalServerError)
+		return domain.StudentState{}, false
+	}
+	return state, true
 }
 
-func getCoinBalance(userID string) int {
-	total := startingStudentCoins + app.ManualCoinAdjustments[userID]
-	for _, tx := range app.Transactions {
-		if tx.UserID == userID {
-			total += tx.Amount
-		}
-	}
-	return total
-}
-
-func markAttendanceAndAwardCoins(user *User, date string, reward int) (bool, error) {
-	for i := range app.Attendance {
-		rec := &app.Attendance[i]
-		if rec.UserID == user.UserID && rec.ClassroomID == user.ClassroomID {
-			for _, presentDate := range rec.Present {
-				if presentDate == date {
-					return false, nil
-				}
-			}
-
-			rec.Present = append(rec.Present, date)
-			app.Transactions = append(app.Transactions, CoinTransaction{
-				UserID:      user.UserID,
-				Amount:      reward,
-				Timestamp:   time.Now().Format(time.RFC3339),
-				Description: fmt.Sprintf("Attendance reward for %s", date),
-			})
-			return true, nil
-		}
-	}
-
-	app.Attendance = append(app.Attendance, AttendanceRecord{
-		UserID:      user.UserID,
-		ClassroomID: user.ClassroomID,
-		Present:     []string{date},
-		Absent:      []string{},
-	})
-
-	app.Transactions = append(app.Transactions, CoinTransaction{
-		UserID:      user.UserID,
-		Amount:      reward,
-		Timestamp:   time.Now().Format(time.RFC3339),
-		Description: fmt.Sprintf("Attendance reward for %s", date),
-	})
-
-	return true, nil
-}
-
-func isDoubleDay(classroomID string, now time.Time) bool {
+func isDoubleDay(schedules []Schedule, now time.Time) bool {
 	weekday := now.Weekday().String()
-
-	for _, sched := range app.Schedule {
-		if sched.ClassroomID == classroomID && sched.DoubleDay && sched.DayOfWeek == weekday {
+	for _, schedule := range schedules {
+		if schedule.DoubleDay && schedule.DayOfWeek == weekday {
 			return true
 		}
 	}
-
 	return false
 }
 
-func getTodayAttendanceState(user *User) (status string, message string, canMark bool) {
-	today := time.Now().Format("2006-01-02")
-
-	for _, rec := range app.Attendance {
-		if rec.UserID == user.UserID && rec.ClassroomID == user.ClassroomID {
-			for _, presentDate := range rec.Present {
-				if presentDate == today {
-					return "Present today", "Attendance already marked for today.", false
-				}
-			}
-			return "Not marked yet", "Tap Mark Attendance to earn coins.", true
+func getTodayAttendanceState(attendance AttendanceRecord, now time.Time) (status, message string, canMark bool) {
+	today := now.Format("2006-01-02")
+	for _, presentDate := range attendance.Present {
+		if presentDate == today {
+			return "Present today", "Attendance already marked for today.", false
 		}
 	}
-
 	return "Not marked yet", "Tap Mark Attendance to earn coins.", true
 }
 
-func getWeeklySchedule(user *User) []ScheduleItemView {
-	items := make([]ScheduleItemView, 0)
+// buildWeeklyAssignmentSchedule anchors the calendar to Sunday in the server's
+// local timezone, then places recurring SQL templates on this week's dates.
+func buildWeeklyAssignmentSchedule(assignments []domain.WeeklyAssignmentTemplate, now time.Time) (string, []WeeklyScheduleDayView) {
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	weekStart := today.AddDate(0, 0, -int(today.Weekday()))
+	weekEnd := weekStart.AddDate(0, 0, 6)
+	days := make([]WeeklyScheduleDayView, 7)
 
-	today := time.Now().Weekday().String()
-	for _, sched := range app.Schedule {
-		if sched.ClassroomID != user.ClassroomID {
+	for index := range days {
+		date := weekStart.AddDate(0, 0, index)
+		days[index] = WeeklyScheduleDayView{
+			DayName:   date.Weekday().String(),
+			DateLabel: date.Format("Jan 2"),
+			DateISO:   date.Format("2006-01-02"),
+			IsToday:   date.Equal(today),
+		}
+	}
+
+	for _, assignment := range assignments {
+		if assignment.DueWeekday < 0 || assignment.DueWeekday >= len(days) {
 			continue
 		}
-		items = append(items, ScheduleItemView{
-			DayOfWeek: sched.DayOfWeek,
-			StartTime: sched.StartTime,
-			EndTime:   sched.EndTime,
-			DoubleDay: sched.DoubleDay,
-			IsToday:   sched.DayOfWeek == today,
+		days[assignment.DueWeekday].Assignments = append(days[assignment.DueWeekday].Assignments, WeeklyAssignmentView{
+			Subject: assignment.Subject,
+			Title:   assignment.Title,
+			DueTime: formatAssignmentDueTime(assignment.DueTime),
 		})
 	}
 
-	sort.Slice(items, func(i, j int) bool {
-		return weekdayIndex(items[i].DayOfWeek) < weekdayIndex(items[j].DayOfWeek)
-	})
-
-	return items
+	return formatCurrentWeekLabel(weekStart, weekEnd), days
 }
 
-func getUpcomingDoubleDays(user *User) []DoubleDayView {
-	items := make([]DoubleDayView, 0)
-
-	for _, sched := range app.Schedule {
-		if sched.ClassroomID != user.ClassroomID || !sched.DoubleDay {
-			continue
-		}
-		items = append(items, DoubleDayView{
-			DayOfWeek: sched.DayOfWeek,
-			StartTime: sched.StartTime,
-			EndTime:   sched.EndTime,
-		})
+func formatCurrentWeekLabel(start, end time.Time) string {
+	switch {
+	case start.Year() != end.Year():
+		return start.Format("January 2, 2006") + "–" + end.Format("January 2, 2006")
+	case start.Month() != end.Month():
+		return start.Format("January 2") + "–" + end.Format("January 2, 2006")
+	default:
+		return start.Format("January 2") + "–" + end.Format("2, 2006")
 	}
+}
 
-	sort.Slice(items, func(i, j int) bool {
-		return weekdayIndex(items[i].DayOfWeek) < weekdayIndex(items[j].DayOfWeek)
-	})
+func formatAssignmentDueTime(value string) string {
+	dueTime, err := time.Parse("15:04", value)
+	if err != nil {
+		return value
+	}
+	return dueTime.Format("3:04 PM")
+}
 
+func getUpcomingDoubleDays(schedules []Schedule) []DoubleDayView {
+	items := make([]DoubleDayView, 0)
+	for _, schedule := range schedules {
+		if schedule.DoubleDay {
+			items = append(items, DoubleDayView{DayOfWeek: schedule.DayOfWeek, StartTime: schedule.StartTime, EndTime: schedule.EndTime})
+		}
+	}
+	sort.Slice(items, func(i, j int) bool { return weekdayIndex(items[i].DayOfWeek) < weekdayIndex(items[j].DayOfWeek) })
 	return items
 }
 
@@ -235,161 +185,60 @@ func weekdayIndex(day string) int {
 }
 
 func shopView(w http.ResponseWriter, r *http.Request) {
-	user, ok := currentSessionUser(w, r)
+	state, ok := currentStudentState(w, r, StudentStore.LoadStudentShopState)
 	if !ok {
 		return
 	}
-
-	ensureShopState()
-	seedShopItems()
-
-	avatarItems, backgroundItems, ownedItems := getShopItemViews(user.UserID)
-	attendanceStatus, attendanceMessage, canMark := getTodayAttendanceState(user)
-
+	avatarItems, backgroundItems, ownedItems := getShopItemViews(state.ShopItems, state.OwnedShopItemIDs)
+	status, message, canMark := getTodayAttendanceState(state.Attendance, time.Now())
+	avatar := savedAvatarConfig(state.AvatarConfig, state.OwnedShopItemIDs)
 	data := PageData{
-		Title:                  "Shop",
-		Username:               user.Name,
-		AvatarImage:            getAvatarImage(user),
-		AvatarPreview:          buildAvatarPreview(savedAvatarConfig(user.UserID)),
-		Coins:                  getCoinBalance(user.UserID),
-		AttendanceStatus:       attendanceStatus,
-		AttendanceMessage:      attendanceMessage,
-		CanMarkAttendance:      canMark,
-		AvatarShopItems:        avatarItems,
-		BackgroundShopItems:    backgroundItems,
-		OwnedShopItems:         ownedItems,
-		ShopMessage:            r.URL.Query().Get("msg"),
-		ActiveNav:              "shop",
-		UseStudentCSS:          true,
-		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(user.UserID),
+		Title: "Shop", Username: state.User.Name, AvatarImage: getAvatarImage(avatar), AvatarPreview: buildAvatarPreview(avatar), Coins: state.CoinBalance,
+		AttendanceStatus: status, AttendanceMessage: message, CanMarkAttendance: canMark,
+		AvatarShopItems: avatarItems, BackgroundShopItems: backgroundItems, OwnedShopItems: ownedItems,
+		ShopMessage: r.URL.Query().Get("msg"), ActiveNav: "shop", UseStudentCSS: true,
+		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(state.OwnedShopItemIDs),
 	}
-
 	renderStudent(w, "shopView.html", data)
 }
 
 func shopBuyView(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	user, ok := currentSessionUser(w, r)
+	user, ok := authenticatedUser(r)
 	if !ok {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-
-	ensureShopState()
-	seedShopItems()
-
 	if err := r.ParseForm(); err != nil {
-		http.Redirect(w, r, "/shop?msg="+url.QueryEscape("Invalid form submission."), http.StatusSeeOther)
+		redirectShopMessage(w, r, "Invalid form submission.")
 		return
 	}
-
-	itemID := strings.TrimSpace(r.FormValue("item_id"))
-	item, ok := app.ShopItems[itemID]
-	if !ok {
-		http.Redirect(w, r, "/shop?msg="+url.QueryEscape("That item does not exist."), http.StatusSeeOther)
-		return
-	}
-
-	if userOwnsShopItem(user.UserID, itemID) {
-		http.Redirect(w, r, "/shop?msg="+url.QueryEscape("You already own that item."), http.StatusSeeOther)
-		return
-	}
-
-	balance := getCoinBalance(user.UserID)
-	if balance < item.Price {
-		http.Redirect(w, r, "/shop?msg="+url.QueryEscape("You do not have enough coins."), http.StatusSeeOther)
-		return
-	}
-
-	app.Transactions = append(app.Transactions, CoinTransaction{
-		UserID:      user.UserID,
-		Amount:      -item.Price,
-		Timestamp:   time.Now().Format(time.RFC3339),
-		Description: fmt.Sprintf("Purchased %s", item.Name),
-	})
-
-	app.OwnedShopItems[user.UserID] = appendUniqueString(app.OwnedShopItems[user.UserID], itemID)
-	saveData()
-
-	http.Redirect(w, r, "/shop?msg="+url.QueryEscape("Purchase complete."), http.StatusSeeOther)
-}
-
-func ensureShopState() {
-	if app.ShopItems == nil {
-		app.ShopItems = map[string]*ShopItem{}
-	}
-	if app.OwnedShopItems == nil {
-		app.OwnedShopItems = map[string][]string{}
+	err := studentStore.PurchaseShopItem(r.Context(), user.UserID, strings.TrimSpace(r.FormValue("item_id")), time.Now())
+	switch {
+	case errors.Is(err, datastore.ErrShopItemNotFound):
+		redirectShopMessage(w, r, "That item does not exist.")
+	case errors.Is(err, datastore.ErrShopItemAlreadyOwned):
+		redirectShopMessage(w, r, "You already own that item.")
+	case errors.Is(err, datastore.ErrInsufficientCoins):
+		redirectShopMessage(w, r, "You do not have enough coins.")
+	case err != nil:
+		http.Error(w, "could not complete purchase", http.StatusInternalServerError)
+	default:
+		redirectShopMessage(w, r, "Purchase complete.")
 	}
 }
 
-func seedShopItems() {
-	added := false
-	for _, item := range seededShopItems() {
-		added = seedShopItem(item) || added
-	}
-
-	if added {
-		saveData()
-	}
+func redirectShopMessage(w http.ResponseWriter, r *http.Request, message string) {
+	http.Redirect(w, r, "/shop?msg="+url.QueryEscape(message), http.StatusSeeOther)
 }
 
-func seedShopItem(item *ShopItem) bool {
-	if _, exists := app.ShopItems[item.ID]; exists {
-		return false
-	}
-
-	app.ShopItems[item.ID] = item
-	return true
-}
-
-func seededShopItems() []*ShopItem {
-	items := []*ShopItem{
-		{ID: "hat_star", Name: "Star Hat", Price: 5, Description: "A bright hat for a standout student."},
-		{ID: "hat_wizard", Name: "Wizard Hat", Price: 7, Description: "A tall purple hat for magical attendance streaks."},
-		{ID: "crown_flower", Name: "Flower Crown", Price: 6, Description: "A leafy crown with bright classroom blooms."},
-		{ID: "trail_rainbow", Name: "Rainbow Trail", Price: 8, Description: "A colorful trail effect for your avatar."},
-		{ID: "aura_sparkle", Name: "Sparkle Aura", Price: 9, Description: "A bright aura for a student who keeps showing up."},
-		{ID: "trail_comet", Name: "Comet Trail", Price: 11, Description: "A comet streak that follows your avatar."},
-		{ID: "cape_gold", Name: "Golden Cape", Price: 12, Description: "A shiny cape for extra style."},
-		{ID: "hoodie_blue", Name: "Blue Hoodie", Price: 7, Description: "A cozy hoodie for everyday questing."},
-		{ID: "scarf_red", Name: "Red Scarf", Price: 6, Description: "A bold scarf for chilly morning check-ins."},
-		{ID: "glasses_rocket", Name: "Rocket Glasses", Price: 10, Description: "A bold accessory for your avatar."},
-		{ID: "shades_pixel", Name: "Pixel Shades", Price: 8, Description: "Blocky shades with old-school cool."},
-		{ID: "headphones_gem", Name: "Gem Headphones", Price: 9, Description: "Bright headphones with a gem on top."},
-	}
-	return append(items, seededThemeBackgroundItems()...)
-}
-
-func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView, []ShopItemView) {
-	avatarItems := make([]ShopItemView, 0, len(app.ShopItems))
-	backgroundItems := make([]ShopItemView, 0, len(specialThemeBackgroundCatalog))
-	owned := make([]ShopItemView, 0)
-
-	ids := make([]string, 0, len(app.ShopItems))
-	for id := range app.ShopItems {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
-
-	for _, id := range ids {
-		item := app.ShopItems[id]
-		view := ShopItemView{
-			ID:          item.ID,
-			Name:        item.Name,
-			Description: item.Description,
-			Price:       item.Price,
-			Owned:       userOwnsShopItem(userID, item.ID),
-		}
+func getShopItemViews(items []ShopItem, ownedIDs []string) ([]ShopItemView, []ShopItemView, []ShopItemView) {
+	avatarItems, backgroundItems, ownedItems := []ShopItemView{}, []ShopItemView{}, []ShopItemView{}
+	for _, item := range items {
+		view := ShopItemView{ID: item.ID, Name: item.Name, Description: item.Description, Price: item.Price, Owned: ownsShopItem(ownedIDs, item.ID)}
 		if cosmetic, ok := avatarCosmeticByID(item.ID); ok {
-			view.Image = cosmetic.Image
-			view.Slot = cosmetic.Slot
+			view.Image, view.Slot = cosmetic.Image, cosmetic.Slot
 		} else if background, ok := themeBackgroundByShopItemID(item.ID); ok {
-			view.Slot = shopItemSlotTheme
-			view.ThemeBackgroundID = background.ID
+			view.Slot, view.ThemeBackgroundID = shopItemSlotTheme, background.ID
 		}
 		if view.Slot == shopItemSlotTheme {
 			backgroundItems = append(backgroundItems, view)
@@ -397,27 +246,17 @@ func getShopItemViews(userID string) ([]ShopItemView, []ShopItemView, []ShopItem
 			avatarItems = append(avatarItems, view)
 		}
 		if view.Owned {
-			owned = append(owned, view)
+			ownedItems = append(ownedItems, view)
 		}
 	}
-
-	return avatarItems, backgroundItems, owned
+	return avatarItems, backgroundItems, ownedItems
 }
 
-func userOwnsShopItem(userID, itemID string) bool {
-	for _, ownedID := range app.OwnedShopItems[userID] {
+func ownsShopItem(ownedIDs []string, itemID string) bool {
+	for _, ownedID := range ownedIDs {
 		if ownedID == itemID {
 			return true
 		}
 	}
 	return false
-}
-
-func appendUniqueString(values []string, value string) []string {
-	for _, existing := range values {
-		if existing == value {
-			return values
-		}
-	}
-	return append(values, value)
 }

@@ -1,10 +1,87 @@
 {{define "navbar"}}
 <nav class="navbar" aria-label="Main navigation">
-  <a href="/studentDashboard" class="nav-link {{if eq .ActiveNav "home"}}active{{end}}">Home</a>
-  <a href="/shop" class="nav-link {{if eq .ActiveNav "shop"}}active{{end}}">Shop</a>
-  <a href="/avatar" class="nav-link {{if eq .ActiveNav "avatar"}}active{{end}}">Avatar</a>
-  <span class="nav-link nav-link-disabled" aria-disabled="true">Games</span>
-  <span class="nav-link nav-link-disabled" aria-disabled="true">Social</span>
-  <span class="nav-link nav-link-disabled" aria-disabled="true">Stats</span>
+  <button class="sidebar-toggle" type="button" aria-label="Minimize sidebar" aria-expanded="true" data-sidebar-toggle>
+    <span class="sidebar-toggle-icon" aria-hidden="true">&lsaquo;</span>
+  </button>
+
+  <div class="nav-link-list">
+    <a href="/studentDashboard" class="nav-link {{if eq .ActiveNav "home"}}active{{end}}" aria-label="Home">
+      <span class="nav-link-short" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11.5 12 4l9 7.5"></path>
+          <path d="M5.5 10v10h13V10M9.5 20v-6h5v6"></path>
+        </svg>
+      </span>
+      <span class="nav-link-label">Home</span>
+    </a>
+    <a href="/shop" class="nav-link {{if eq .ActiveNav "shop"}}active{{end}}" aria-label="Shop">
+      <span class="nav-link-short" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 4h2l2.2 10.2h10.9l2-7.2H6"></path>
+          <circle cx="9" cy="19" r="1.4"></circle>
+          <circle cx="17" cy="19" r="1.4"></circle>
+        </svg>
+      </span>
+      <span class="nav-link-label">Shop</span>
+    </a>
+    <a href="/avatar" class="nav-link {{if eq .ActiveNav "avatar"}}active{{end}}" aria-label="Avatar">
+      <span class="nav-link-short" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="12" cy="12" r="9"></circle>
+          <circle cx="12" cy="9" r="3"></circle>
+          <path d="M6.8 19c.8-3 2.5-4.5 5.2-4.5s4.4 1.5 5.2 4.5"></path>
+        </svg>
+      </span>
+      <span class="nav-link-label">Avatar</span>
+    </a>
+    <span class="nav-link nav-link-disabled" aria-disabled="true" aria-label="Games">
+      <span class="nav-link-short" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 3h3v2h4V3h3v2h2v2h2v8h-2v3h-3v-3H8v3H5v-3H3V7h2V5h2V3Zm0 5v2h2V8H7Zm8 0v2h2V8h-2Z"></path>
+        </svg>
+      </span>
+      <span class="nav-link-label">Games</span>
+    </span>
+    <span class="nav-link nav-link-disabled" aria-disabled="true" aria-label="Social">
+      <span class="nav-link-short" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="8" cy="9" r="3"></circle>
+          <circle cx="16.5" cy="10" r="2.5"></circle>
+          <path d="M2.8 19c.7-3.3 2.4-5 5.2-5s4.5 1.7 5.2 5M13.2 15.3c1-.8 2-1.2 3.3-1.2 2.4 0 3.9 1.5 4.5 4.4"></path>
+        </svg>
+      </span>
+      <span class="nav-link-label">Social</span>
+    </span>
+    <span class="nav-link nav-link-disabled" aria-disabled="true" aria-label="Stats">
+      <span class="nav-link-short" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 13h4v7H4zM10 8h4v12h-4zM16 4h4v16h-4z"></path>
+        </svg>
+      </span>
+      <span class="nav-link-label">Stats</span>
+    </span>
+  </div>
+
+  {{if .UseStudentCSS}}
+  <div class="sidebar-actions" aria-label="Student actions">
+    {{if .CanMarkAttendance}}
+    <form method="POST" action="/attendance">
+      <button type="submit" class="attendance-btn sidebar-attendance-btn">
+        <span class="sidebar-action-label">Mark Attendance</span>
+        <span class="sidebar-action-short" aria-hidden="true">Mark</span>
+      </button>
+    </form>
+    {{else}}
+    <button type="button" class="attendance-btn attendance-btn-disabled sidebar-attendance-btn" disabled>
+      <span class="sidebar-action-label">Attendance Already Marked</span>
+      <span class="sidebar-action-short" aria-hidden="true">Done</span>
+    </button>
+    {{end}}
+
+    <div class="sidebar-theme">
+      {{template "studentThemeControls" .}}
+    </div>
+  </div>
+  {{end}}
 </nav>
 {{end}}

@@ -1,8 +1,12 @@
 (function () {
   const root = document.documentElement;
   const storageKey = "attendanceQuestTheme";
+  const sidebarStorageKey = "attendanceQuestSidebar";
   const defaults = { mode: "dark", background: "green" };
   const freeBackgrounds = new Set(["red", "blue", "green", "yellow", "orange", "pink", "purple"]);
+  const savedSidebarState = localStorage.getItem(sidebarStorageKey) === "collapsed" ? "collapsed" : "expanded";
+
+  root.dataset.sidebar = savedSidebarState;
 
   function availableBackgrounds() {
     const backgrounds = new Set(freeBackgrounds);
@@ -44,6 +48,35 @@
   applySettings(settings);
 
   document.addEventListener("DOMContentLoaded", () => {
+    const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+    const sidebarToggleIcon = sidebarToggle ? sidebarToggle.querySelector(".sidebar-toggle-icon") : null;
+
+    function applySidebarState(state) {
+      const isCollapsed = state === "collapsed";
+      root.dataset.sidebar = state;
+
+      if (!sidebarToggle) {
+        return;
+      }
+
+      sidebarToggle.setAttribute("aria-expanded", String(!isCollapsed));
+      sidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand sidebar" : "Minimize sidebar");
+
+      if (sidebarToggleIcon) {
+        sidebarToggleIcon.textContent = isCollapsed ? "\u203a" : "\u2039";
+      }
+    }
+
+    applySidebarState(savedSidebarState);
+
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener("click", () => {
+        const nextState = root.dataset.sidebar === "collapsed" ? "expanded" : "collapsed";
+        localStorage.setItem(sidebarStorageKey, nextState);
+        applySidebarState(nextState);
+      });
+    }
+
     const panel = document.querySelector(".student-theme-panel");
     if (!panel) {
       return;

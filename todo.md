@@ -24,11 +24,12 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] `main.go` with a basic HTTP server and static file serving
 
 ### Persistence
-- [x] Load application state from `data/data.json`
-- [x] Save application state to `data/data.json`
-- [x] Initialize nil maps after loading
-- [x] Ensure `saveData()` is called after state changes
-- [x] Create `data/` directory automatically if missing
+- [x] Use SQL Server as the sole runtime data source
+- [x] Load application state through SQL store methods
+- [x] Persist application state through SQL store methods
+- [x] Remove `data.json` and filesystem persistence
+- [x] Keep authentication session tokens in memory
+- [x] Load the authenticated SQL user into request context by user ID
 
 ### User Storage
 - [x] Seed test users (student, teacher, admin)
@@ -101,13 +102,16 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] `POST /attendance`
 - [x] Award coins when attendance is submitted
 - [x] Persist coin awards as `CoinTransaction` entries
+- [x] Save attendance and its coin reward in one SQL transaction
 - [x] Compute coin balance from transaction history
-- [x] Support manual coin adjustments from `data/data.json`
+- [x] Prevent displayed and spendable coin balances from going negative
+- [x] Support manual coin adjustments from `dbo.ManualCoinAdjustments`
 - [x] Double day multiplier support
 
 ### Student Dashboard
 - [x] Display current coin balance
-- [x] Display weekly schedule / week view
+- [x] Display a Sunday-Saturday weekly assignment calendar with current-week due dates
+- [x] Load recurring classroom assignment templates from SQL Server
 - [x] Display attendance status
 - [x] Display avatar
 - [x] Show upcoming double days
@@ -119,7 +123,7 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Split shop into Avatar Items and Backgrounds sections
 - [x] `POST /shop/buy`
 - [x] Validate sufficient coins
-- [x] Persist purchases
+- [x] Persist ownership and coin debits in one SQL transaction
 - [x] Show owned items
 - [x] Update balance after purchases
 - [x] Seed visual avatar cosmetics with shop previews
@@ -128,7 +132,7 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Unlock purchased backgrounds in the theme picker
 
 ### Avatar System
-- [x] Persist avatar selections
+- [x] Persist avatar selections with an SQL upsert
 - [x] Display available avatar options
 - [x] Display owned/unlocked cosmetics
 - [x] Preview avatar changes
@@ -164,14 +168,22 @@ These must be agreed on before either person starts their track. Commit the resu
 ### Classroom Management
 - [x] `POST /classrooms`
 - [x] `GET /classrooms`
-- [x] `POST /classrooms/:id/assign-teacher`
-- [x] `POST /classrooms/:id/assign-student`
+- [x] Create classrooms with teacher and student assignments
+- [x] Edit classrooms and replace teacher/student assignments
+- [x] Display classroom assignments on the admin dashboard
 - [ ] Validate assignments
 
 ### Teacher Management
-- [ ] Admin creates teachers
+- [x] Admin creates teachers
 - [ ] Teachers create students in assigned classroom
 - [ ] Admin inherits teacher permissions
+
+### Student / User Management
+- [x] Admin creates students in a selected classroom
+- [x] Validate the selected classroom when creating a student
+- [x] Search and display users in user settings
+- [x] Update user roles
+- [x] Prevent removal of the current or last admin account
 
 ### Schedule / Double Days
 - [ ] `POST /schedule/doubleday`
@@ -195,16 +207,20 @@ These must be agreed on before either person starts their track. Commit the resu
 - [ ] Schedule management UI
 
 ### Admin Dashboard
-- [ ] Create classroom UI
-- [ ] Create teacher UI
-- [ ] Assign teacher UI
-- [ ] Assign student UI
+- [x] Display classroom, student, and teacher summaries
+- [x] Create classroom UI
+- [x] Edit classroom UI
+- [x] Create teacher UI
+- [x] Create student UI
+- [x] Assign teacher UI
+- [x] Assign student UI
+- [x] User settings and role management UI
 - [ ] School-wide reports UI
 
 ### Shared Navigation
 - [ ] Role-aware navbar behavior
 - [ ] Teacher navigation
-- [ ] Admin navigation
+- [x] Admin navigation
 
 **Track B Deliverable:** Teachers and admins can manage classes, students, schedules, attendance, and reports entirely from their dashboards.
 

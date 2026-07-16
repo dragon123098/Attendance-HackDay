@@ -10,12 +10,18 @@ type TemplateData struct {
 	Schedules      map[string]*domain.Schedule
 }
 
-type ScheduleItemView struct {
-	DayOfWeek string
-	StartTime string
-	EndTime   string
-	DoubleDay bool
-	IsToday   bool
+type WeeklyAssignmentView struct {
+	Subject string
+	Title   string
+	DueTime string
+}
+
+type WeeklyScheduleDayView struct {
+	DayName     string
+	DateLabel   string
+	DateISO     string
+	IsToday     bool
+	Assignments []WeeklyAssignmentView
 }
 
 type DoubleDayView struct {
@@ -87,7 +93,8 @@ type PageData struct {
 	AttendanceStatus       string
 	AttendanceMessage      string
 	CanMarkAttendance      bool
-	WeeklySchedule         []ScheduleItemView
+	CurrentWeekLabel       string
+	WeeklyAssignmentDays   []WeeklyScheduleDayView
 	UpcomingDoubleDays     []DoubleDayView
 	ActiveNav              string
 	UseStudentCSS          bool

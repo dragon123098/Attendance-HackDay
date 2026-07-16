@@ -13,8 +13,6 @@ import (
 )
 
 func main() {
-	web.LoadData()
-
 	db, err := sql.Open("sqlserver", databaseURL())
 	if err != nil {
 		log.Fatal(err)

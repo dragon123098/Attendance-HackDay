@@ -147,7 +147,7 @@ func TestTemplatesReferenceExistingStaticAssets(t *testing.T) {
 	}
 }
 
-func TestStudentShellRendersFooterControlsAndProofNav(t *testing.T) {
+func TestStudentShellRendersSidebarControlsAndProofNav(t *testing.T) {
 	tmpl, err := loadStudentTemplates("studentDash.html")
 	if err != nil {
 		t.Fatalf("load student template: %v", err)
@@ -175,9 +175,13 @@ func TestStudentShellRendersFooterControlsAndProofNav(t *testing.T) {
 	if count := strings.Count(body, `action="/attendance"`); count != 1 {
 		t.Fatalf("attendance form count = %d, want 1", count)
 	}
+	if strings.Contains(body, `class="bottombar"`) {
+		t.Fatal("rendered student shell still includes footer")
+	}
 
 	for _, want := range []string{
 		`class="student-theme-panel"`,
+		`data-sidebar-toggle`,
 		`data-bg-value="beach"`,
 		`Games`,
 		`Social`,

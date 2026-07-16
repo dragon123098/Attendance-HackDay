@@ -58,8 +58,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		rememberAuthenticatedUser(user)
-
 		if err := createSession(w, user.UserID); err != nil {
 			http.Error(w, "failed to create session", http.StatusInternalServerError)
 			return
@@ -81,16 +79,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
-}
-
-// rememberAuthenticatedUser bridges SQL login into the existing JSON-backed session checks.
-func rememberAuthenticatedUser(user User) {
-	if app.Users == nil {
-		app.Users = make(map[string]*User)
-	}
-
-	copied := user
-	app.Users[user.UserID] = &copied
 }
 
 func logoutView(w http.ResponseWriter, r *http.Request) {

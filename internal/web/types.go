@@ -5,7 +5,6 @@ import (
 	"github.com/dragon123098/Attendance-HackDay.git/internal/viewmodel"
 )
 
-type AppState = domain.AppState
 type User = domain.User
 type Classroom = domain.Classroom
 type Schedule = domain.Schedule
@@ -15,7 +14,8 @@ type CoinTransaction = domain.CoinTransaction
 type AttendanceRecord = domain.AttendanceRecord
 
 type PageData = viewmodel.PageData
-type ScheduleItemView = viewmodel.ScheduleItemView
+type WeeklyAssignmentView = viewmodel.WeeklyAssignmentView
+type WeeklyScheduleDayView = viewmodel.WeeklyScheduleDayView
 type DoubleDayView = viewmodel.DoubleDayView
 type ShopItemView = viewmodel.ShopItemView
 type ThemeBackgroundOptionView = viewmodel.ThemeBackgroundOptionView

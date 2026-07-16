@@ -1,37 +1,69 @@
 package web
 
-import "net/http"
+import (
+	"context"
+	"errors"
+	"net/http"
+
+	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	datastore "github.com/dragon123098/Attendance-HackDay.git/internal/store"
+)
+
+type authenticatedUserContextKey struct{}
 
 func RequireRole(role string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		username, err := getSessionUser(r)
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusFound)
-			return
-		}
-
-		user, ok := app.Users[username]
+		user, ok := loadAuthenticatedUser(w, r)
 		if !ok {
-			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
-
 		if user.Role != role {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
-
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, withAuthenticatedUser(r, user))
 	})
 }
 
 func RequireLogin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, err := getSessionUser(r); err != nil {
-			http.Redirect(w, r, "/login", http.StatusFound)
+		user, ok := loadAuthenticatedUser(w, r)
+		if !ok {
 			return
 		}
-
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, withAuthenticatedUser(r, user))
 	})
+}
+
+func loadAuthenticatedUser(w http.ResponseWriter, r *http.Request) (domain.User, bool) {
+	userID, err := getSessionUserID(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return domain.User{}, false
+	}
+	if authStore == nil {
+		http.Error(w, "auth store is not configured", http.StatusInternalServerError)
+		return domain.User{}, false
+	}
+	user, err := authStore.FindUserByID(r.Context(), userID)
+	if errors.Is(err, datastore.ErrUserNotFound) {
+		clearSessionUser(w, r)
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return domain.User{}, false
+	}
+	if err != nil {
+		http.Error(w, "could not load authenticated user", http.StatusInternalServerError)
+		return domain.User{}, false
+	}
+	return user, true
+}
+
+func withAuthenticatedUser(r *http.Request, user domain.User) *http.Request {
+	ctx := context.WithValue(r.Context(), authenticatedUserContextKey{}, user)
+	return r.WithContext(ctx)
+}
+
+func authenticatedUser(r *http.Request) (domain.User, bool) {
+	user, ok := r.Context().Value(authenticatedUserContextKey{}).(domain.User)
+	return user, ok
 }

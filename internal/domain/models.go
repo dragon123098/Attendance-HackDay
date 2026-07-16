@@ -1,18 +1,5 @@
 package domain
 
-type AppState struct {
-	Users          map[string]*User         `json:"users"`
-	Classrooms     map[string]*Classroom    `json:"classrooms"`
-	ShopItems      map[string]*ShopItem     `json:"shop_items"`
-	OwnedShopItems map[string][]string      `json:"owned_shop_items"` // userID -> item IDs
-	AvatarConfigs  map[string]*AvatarConfig `json:"avatar_configs"`
-	// ManualCoinAdjustments lets data.json add or subtract coins without creating transaction records.
-	ManualCoinAdjustments map[string]int     `json:"manual_coin_adjustments"`
-	Transactions          []CoinTransaction  `json:"transactions"`
-	Attendance            []AttendanceRecord `json:"attendance"`
-	Schedule              []Schedule         `json:"schedule"`
-}
-
 type User struct {
 	Name         string `json:"name"`
 	Role         string `json:"role"` // "student", "teacher", "admin"
@@ -37,11 +24,24 @@ type Schedule struct {
 	DoubleDay   bool   `json:"double_day"`  // true if this schedule is a double day
 }
 
+// WeeklyAssignmentTemplate describes a classroom assignment that recurs on the
+// same weekday while the dashboard derives its concrete date for each week.
+type WeeklyAssignmentTemplate struct {
+	ClassroomID  string
+	DueWeekday   int
+	Subject      string
+	Title        string
+	DueTime      string
+	DisplayOrder int
+}
+
 type ShopItem struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Price       int    `json:"price"` // price in coins
 	Description string `json:"description"`
+	ImagePath   string `json:"image_path"`
+	Slot        string `json:"slot"`
 }
 
 type AvatarConfig struct {
@@ -64,4 +64,17 @@ type AttendanceRecord struct {
 	ClassroomID string   `json:"classroom_id"`
 	Present     []string `json:"present"` // list of dates when the student was present
 	Absent      []string `json:"absent"`  // list of dates when the student was absent
+}
+
+// StudentState contains the SQL-backed data shared by the student dashboard,
+// shop, and avatar pages for one authenticated student.
+type StudentState struct {
+	User              User
+	CoinBalance       int
+	Attendance        AttendanceRecord
+	Schedules         []Schedule
+	WeeklyAssignments []WeeklyAssignmentTemplate
+	ShopItems         []ShopItem
+	OwnedShopItemIDs  []string
+	AvatarConfig      *AvatarConfig
 }

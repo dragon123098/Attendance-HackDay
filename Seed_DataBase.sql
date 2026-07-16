@@ -13,6 +13,7 @@ IF OBJECT_ID(N'dbo.OwnedShopItems', N'U') IS NOT NULL DROP TABLE dbo.OwnedShopIt
 IF OBJECT_ID(N'dbo.AvatarConfigs', N'U') IS NOT NULL DROP TABLE dbo.AvatarConfigs;
 IF OBJECT_ID(N'dbo.Transactions', N'U') IS NOT NULL DROP TABLE dbo.Transactions;
 IF OBJECT_ID(N'dbo.AttendanceRecords', N'U') IS NOT NULL DROP TABLE dbo.AttendanceRecords;
+IF OBJECT_ID(N'dbo.WeeklyAssignmentTemplates', N'U') IS NOT NULL DROP TABLE dbo.WeeklyAssignmentTemplates;
 IF OBJECT_ID(N'dbo.Schedule', N'U') IS NOT NULL DROP TABLE dbo.Schedule;
 IF OBJECT_ID(N'dbo.ShopItems', N'U') IS NOT NULL DROP TABLE dbo.ShopItems;
 IF OBJECT_ID(N'dbo.Users', N'U') IS NOT NULL DROP TABLE dbo.Users;
@@ -85,6 +86,18 @@ CREATE TABLE dbo.Schedule (
     EndTime nvarchar(20) NOT NULL,
     DoubleDay bit NOT NULL
 );
+
+CREATE TABLE dbo.WeeklyAssignmentTemplates (
+    WeeklyAssignmentTemplateID int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    ClassroomID nvarchar(100) NOT NULL,
+    DueWeekday tinyint NOT NULL,
+    Subject nvarchar(100) NOT NULL,
+    Title nvarchar(200) NOT NULL,
+    DueTime time(0) NOT NULL,
+    DisplayOrder int NOT NULL CONSTRAINT DF_WeeklyAssignmentTemplates_DisplayOrder DEFAULT (0),
+    CONSTRAINT CK_WeeklyAssignmentTemplates_DueWeekday CHECK (DueWeekday BETWEEN 0 AND 6),
+    CONSTRAINT UQ_WeeklyAssignmentTemplates_ClassroomAssignment UNIQUE (ClassroomID, DueWeekday, Subject, Title)
+);
 GO
 
 INSERT INTO dbo.Users (UserID, Name, Role, Email, PasswordHash, ClassroomID) VALUES
@@ -103,6 +116,23 @@ INSERT INTO dbo.Classrooms (ID, Name, TeacherID) VALUES
 ('classroom1', '1st Grade', 'sconner1'),
 ('classroom2', '5th Grade', 'JRGRUNIG'),
 ('classroom3', '2nd Grade', 'DHoney');
+
+INSERT INTO dbo.WeeklyAssignmentTemplates (ClassroomID, DueWeekday, Subject, Title, DueTime, DisplayOrder) VALUES
+('classroom1', 0, 'Reading', 'Weekend Reading Log', '19:00', 10),
+('classroom1', 1, 'Math', 'Addition Practice', '15:30', 10),
+('classroom1', 2, 'Reading', 'Story Response', '16:00', 10),
+('classroom1', 3, 'Science', 'Weather Journal', '16:30', 10),
+('classroom1', 5, 'Spelling', 'Weekly Word Check', '15:00', 10),
+('classroom2', 0, 'Reading', 'Novel Reading Log', '19:00', 10),
+('classroom2', 1, 'Math', 'Fraction Review', '16:00', 10),
+('classroom2', 3, 'Science', 'Ecosystem Notes', '16:30', 10),
+('classroom2', 4, 'Writing', 'Persuasive Paragraph', '17:00', 10),
+('classroom2', 6, 'Social Studies', 'Map Skills Review', '14:00', 10),
+('classroom3', 0, 'Reading', 'Picture Book Response', '18:30', 10),
+('classroom3', 2, 'Math', 'Place Value Practice', '15:30', 10),
+('classroom3', 3, 'Science', 'Animal Habitat Sketch', '16:00', 10),
+('classroom3', 5, 'Spelling', 'Weekly Word Sort', '15:00', 10),
+('classroom3', 6, 'Art', 'Color Wheel Practice', '13:00', 10);
 
 INSERT INTO dbo.ClassroomStudents (ClassroomID, StudentID) VALUES
 ('classroom1', 'student1'),
