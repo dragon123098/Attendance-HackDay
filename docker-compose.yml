@@ -1,17 +1,18 @@
 version: '3.8'
 
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqldatabase
+  postgres:
+    image: postgres:17
+    container_name: attendance-postgres
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Password123!"
+      POSTGRES_USER: attendance
+      POSTGRES_PASSWORD: "Password123!"
+      POSTGRES_DB: attendancehackday
     ports:
-      - "1433:1433"
+      - "5433:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - sqlserver-data:/var/opt/mssql
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  sqlserver-data:
+  postgres-data:

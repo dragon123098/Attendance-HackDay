@@ -21,8 +21,8 @@ func (s *SQLStore) CreateTeacher(ctx context.Context, teacher domain.User) error
 	}
 
 	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO dbo.Users (UserID, Name, Role, Email, PasswordHash, ClassroomID)
-		VALUES (@p1, @p2, @p3, @p4, @p5, @p6);
+		INSERT INTO Users (UserID, Name, Role, Email, PasswordHash, ClassroomID)
+		VALUES ($1, $2, $3, $4, $5, $6);
 	`, teacher.UserID, teacher.Name, teacher.Role, teacher.Email, teacher.PasswordHash, teacher.ClassroomID); err != nil {
 		return err
 	}
@@ -40,8 +40,8 @@ func (s *SQLStore) CreateClassroom(ctx context.Context, classroom domain.Classro
 	defer tx.Rollback()
 
 	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO dbo.Classrooms (ID, Name, TeacherID)
-		VALUES (@p1, @p2, @p3);
+		INSERT INTO Classrooms (ID, Name, TeacherID)
+		VALUES ($1, $2, $3);
 	`, classroom.ID, classroom.Name, classroom.TeacherID); err != nil {
 		log.Println("Error inserting classroom:", err)
 		return err
@@ -64,9 +64,9 @@ func (s *SQLStore) UpdateClassroom(ctx context.Context, originalID string, class
 	defer tx.Rollback()
 
 	result, err := tx.ExecContext(ctx, `
-		UPDATE dbo.Classrooms
-		SET ID = @p2, Name = @p3, TeacherID = @p4
-		WHERE ID = @p1;
+		UPDATE Classrooms
+		SET ID = $2, Name = $3, TeacherID = $4
+		WHERE ID = $1;
 	`, originalID, classroom.ID, classroom.Name, classroom.TeacherID)
 	if err != nil {
 		log.Println("Error updating classroom:", err)
@@ -82,8 +82,8 @@ func (s *SQLStore) UpdateClassroom(ctx context.Context, originalID string, class
 	}
 
 	if _, err := tx.ExecContext(ctx, `
-		DELETE FROM dbo.ClassroomStudents
-		WHERE ClassroomID = @p1 OR ClassroomID = @p2;
+		DELETE FROM ClassroomStudents
+		WHERE ClassroomID = $1 OR ClassroomID = $2;
 	`, originalID, classroom.ID); err != nil {
 		log.Println("Error clearing classroom students:", err)
 		return err
@@ -99,15 +99,9 @@ func (s *SQLStore) UpdateClassroom(ctx context.Context, originalID string, class
 func insertClassroomStudents(ctx context.Context, tx *sql.Tx, classroomID string, studentIDs []string) error {
 	for _, studentID := range studentIDs {
 		if _, err := tx.ExecContext(ctx, `
-			IF NOT EXISTS (
-				SELECT 1
-				FROM dbo.ClassroomStudents
-				WHERE ClassroomID = @p1 AND StudentID = @p2
-			)
-			BEGIN
-				INSERT INTO dbo.ClassroomStudents (ClassroomID, StudentID)
-				VALUES (@p1, @p2);
-			END;
+			INSERT INTO ClassroomStudents (ClassroomID, StudentID)
+			VALUES ($1, $2)
+			ON CONFLICT (ClassroomID, StudentID) DO NOTHING;
 		`, classroomID, studentID); err != nil {
 			log.Println("Error inserting classroom student:", err)
 			return err

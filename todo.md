@@ -24,7 +24,7 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] `main.go` with a basic HTTP server and static file serving
 
 ### Persistence
-- [x] Use SQL Server as the sole runtime data source
+- [x] Use PostgreSQL as the sole runtime data source
 - [x] Load application state through SQL store methods
 - [x] Persist application state through SQL store methods
 - [x] Remove `data.json` and filesystem persistence
@@ -105,13 +105,13 @@ These must be agreed on before either person starts their track. Commit the resu
 - [x] Save attendance and its coin reward in one SQL transaction
 - [x] Compute coin balance from transaction history
 - [x] Prevent displayed and spendable coin balances from going negative
-- [x] Support manual coin adjustments from `dbo.ManualCoinAdjustments`
+- [x] Support manual coin adjustments from `ManualCoinAdjustments`
 - [x] Double day multiplier support
 
 ### Student Dashboard
 - [x] Display current coin balance
 - [x] Display a Sunday-Saturday weekly assignment calendar with current-week due dates
-- [x] Load recurring classroom assignment templates from SQL Server
+- [x] Load recurring classroom assignment templates from PostgreSQL
 - [x] Display attendance status
 - [x] Display avatar
 - [x] Show upcoming double days

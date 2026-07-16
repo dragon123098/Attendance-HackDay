@@ -24,16 +24,17 @@ func (s *SQLStore) FindUserByID(ctx context.Context, userID string) (domain.User
 func (s *SQLStore) findUser(ctx context.Context, column, value string) (domain.User, error) {
 	var user domain.User
 	query := `
-		SELECT TOP (1)
+		SELECT
 			UserID,
 			Name,
 			Role,
 			Email,
 			PasswordHash,
-			COALESCE(ClassroomID, N'')
-		FROM dbo.Users
-		WHERE ` + column + ` = @p1
-		ORDER BY UserID;
+			COALESCE(ClassroomID, '')
+		FROM Users
+		WHERE ` + column + ` = $1
+		ORDER BY UserID
+		LIMIT 1;
 	`
 	err := s.db.QueryRowContext(ctx, query, value).Scan(
 		&user.UserID,

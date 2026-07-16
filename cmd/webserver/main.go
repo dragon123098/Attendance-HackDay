@@ -9,11 +9,11 @@ import (
 	"github.com/dragon123098/Attendance-HackDay.git/internal/store"
 	"github.com/dragon123098/Attendance-HackDay.git/internal/web"
 
-	_ "github.com/microsoft/go-mssqldb"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	db, err := sql.Open("sqlserver", databaseURL())
+	db, err := sql.Open("postgres", databaseURL())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,5 +28,5 @@ func databaseURL() string {
 		return value
 	}
 
-	return "server=localhost;user id=sa;password=Password123!;database=AttendanceHackday;encrypt=disable"
+	return "postgres://attendance:Password123!@localhost:5433/attendancehackday?sslmode=disable"
 }

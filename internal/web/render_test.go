@@ -109,7 +109,7 @@ func TestRenderedPagesReferenceExistingCSS(t *testing.T) {
 					t.Fatalf("stylesheet %q is not served from /static", href)
 				}
 
-				assetPath := strings.TrimPrefix(href, "/")
+				assetPath, _, _ := strings.Cut(strings.TrimPrefix(href, "/"), "?")
 				if _, err := fs.Stat(view.FS, assetPath); err != nil {
 					t.Fatalf("stylesheet %q does not exist in embedded FS: %v", href, err)
 				}
@@ -135,7 +135,7 @@ func TestTemplatesReferenceExistingStaticAssets(t *testing.T) {
 		}
 
 		for _, match := range staticRef.FindAllStringSubmatch(string(contents), -1) {
-			assetPath := strings.TrimPrefix(match[1], "/")
+			assetPath, _, _ := strings.Cut(strings.TrimPrefix(match[1], "/"), "?")
 			if _, err := fs.Stat(view.FS, assetPath); err != nil {
 				t.Errorf("%s references missing static asset %q: %v", filePath, match[1], err)
 			}

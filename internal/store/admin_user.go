@@ -14,8 +14,8 @@ func (s *SQLStore) ListUsers(ctx context.Context) ([]domain.User, error) {
 			Name,
 			Role,
 			Email,
-			COALESCE(ClassroomID, N'')
-		FROM dbo.Users
+			COALESCE(ClassroomID, '')
+		FROM Users
 		ORDER BY Name, UserID;
 	`)
 	if err != nil {
@@ -41,9 +41,9 @@ func (s *SQLStore) ListUsers(ctx context.Context) ([]domain.User, error) {
 // UpdateUserRole changes one user's role from the admin user settings page.
 func (s *SQLStore) UpdateUserRole(ctx context.Context, userID string, role string) error {
 	result, err := s.db.ExecContext(ctx, `
-		UPDATE dbo.Users
-		SET Role = @p2
-		WHERE UserID = @p1;
+		UPDATE Users
+		SET Role = $2
+		WHERE UserID = $1;
 	`, userID, role)
 	if err != nil {
 		return err

@@ -8,12 +8,12 @@ items, and customize an avatar with unlocked cosmetics.
 
 - SQL-backed login with in-memory session tokens and role-aware routing.
 - SQL-backed student dashboard with attendance status, coin balance, the current avatar, and a Sunday-through-Saturday assignment calendar.
-- Classroom assignment templates in `dbo.WeeklyAssignmentTemplates` recur by weekday; the dashboard derives their due dates for the current server-local week on each request. This is proof-of-concept mock data, not an assignment editing or completion workflow.
+- Classroom assignment templates in `WeeklyAssignmentTemplates` recur by weekday; the dashboard derives their due dates for the current server-local week on each request. This is proof-of-concept mock data, not an assignment editing or completion workflow.
 - Student shop with SQL-backed catalog, ownership, coin validation, and atomic purchases.
 - Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and SQL-backed saves.
 - Student pages include persistent light/dark controls, free background colors, and unlocked special background themes.
-- Manual coin adjustments are stored in `dbo.ManualCoinAdjustments` without creating transaction records.
-- The admin dashboard, User Settings, Add Student, Add Teacher, and classroom create/edit flows use SQL Server; dashboard and edit classroom pages load rosters from `ClassroomStudents`.
+- Manual coin adjustments are stored in `ManualCoinAdjustments` without creating transaction records.
+- The admin dashboard, User Settings, Add Student, Add Teacher, and classroom create/edit flows use PostgreSQL; dashboard and edit classroom pages load rosters from `ClassroomStudents`.
 - Teacher and admin dashboard scaffolding plus classroom management routes.
 
 Some teacher/admin reporting and schedule-management flows are still in progress;
@@ -23,11 +23,11 @@ see `todo.md` for the remaining project checklist.
 
 - `cmd/webserver/main.go` starts the HTTP server on `localhost:4000`.
 - `internal/web` contains routes, handlers, in-memory session helpers, and server-rendered student/admin flows.
-- `internal/store` contains all SQL Server data access, including atomic attendance rewards and shop purchases.
+- `internal/store` contains all PostgreSQL data access, including atomic attendance rewards and shop purchases.
 - `internal/domain` contains persisted application models.
 - `internal/view` contains embedded templates, static CSS, and images.
 
-SQL Server is the application's only runtime data store. The browser cookie contains an opaque token; its short-lived session record remains in application memory and references the SQL `Users.UserID`.
+PostgreSQL is the application's only runtime data store. The browser cookie contains an opaque token; its short-lived session record remains in application memory and references the SQL `Users.UserID`.
 
 ## Local Development
 
@@ -44,56 +44,44 @@ go run ./cmd/webserver
 ```
 
 To manually add or subtract coins, insert or update the student's amount in
-`dbo.ManualCoinAdjustments`. That amount is added to the starting balance and
-the sum of `dbo.Transactions`.
+`ManualCoinAdjustments`. That amount is added to the starting balance and
+the sum of `Transactions`.
 
 Added CodeQL
 
 
 ## Database setup
 
-1. Start the SQL Server container:
+1. Start the PostgreSQL container. The Compose environment creates the
+   `attendancehackday` database and runs `init.sql` automatically on the first
+   start of a new database volume:
 
 ```powershell
 docker compose up -d
 ```
 
-2. Run the initialization script from the repository root. Use the relative path to `init.sql`, not a local user path.
-
-PowerShell:
+2. Verify PostgreSQL and the application database are ready:
 
 ```powershell
-docker run --rm -v "${PWD}\init.sql:/tmp/init.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/init.sql
+docker compose exec postgres pg_isready -U attendance -d attendancehackday
 ```
 
-> Note: The SQL Server Linux image does not automatically execute files mounted into `/docker-entrypoint-initdb.d/`, so we run the script manually from a SQL tools container.
-
-Bash / WSL:
-
-```bash
-docker run --rm -v "$(pwd)/init.sql:/tmp/init.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/init.sql
-```
-
-3. Verify the database exists:
-
-```powershell
-docker run --rm --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -Q "SELECT name FROM sys.databases WHERE name='AttendanceHackday';"
-```
-
-If the command succeeds, it should return `AttendanceHackday` and `(1 rows affected)`.
+The application defaults to
+`postgres://attendance:Password123!@localhost:5433/attendancehackday?sslmode=disable`.
+Set `DATABASE_URL` to override that connection string.
 
 
 ## Check Database in DBeaver
 
 1. Open a new connection
 
-2. Select SQL Server
+2. Select PostgreSQL
 
 3. Fill in the Info
  Host: localhost
- Port: 1433
- Database: Leave blank for now, or master
- User name: sa
+ Port: 5433
+ Database: attendancehackday
+ User name: attendance
  Password: Password123!
 
 4. Click test connection. If it passes then click finish
@@ -110,23 +98,23 @@ If the command succeeds, it should return `AttendanceHackday` and `(1 rows affec
 2. Seed the base data with the following command.
 
     ```powershell
-    docker run --rm -v "${PWD}\Seed_DataBase.sql:/tmp/Seed_DataBase.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase.sql
+    Get-Content -Raw .\Seed_DataBase.sql | docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday
     ```
 
     Bash / WSL:
 
     ```bash
-    docker run --rm -v "$(pwd)/Seed_DataBase.sql:/tmp/Seed_DataBase.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase.sql
+    docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday < Seed_DataBase.sql
     ```
 
 3. Apply the idempotent delta seed for the latest student records, image path metadata, and recurring weekly assignment templates. This includes the final records migrated from the retired JSON store.
 
     ```powershell
-    docker run --rm -v "${PWD}\Seed_DataBase2.sql:/tmp/Seed_DataBase2.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase2.sql
+    Get-Content -Raw .\Seed_DataBase2.sql | docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday
     ```
 
     Bash / WSL:
 
     ```bash
-    docker run --rm -v "$(pwd)/Seed_DataBase2.sql:/tmp/Seed_DataBase2.sql" --entrypoint "/opt/mssql-tools/bin/sqlcmd" mcr.microsoft.com/mssql-tools -S host.docker.internal,1433 -U SA -P "Password123!" -i /tmp/Seed_DataBase2.sql
+    docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday < Seed_DataBase2.sql
     ```

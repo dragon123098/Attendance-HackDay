@@ -27,7 +27,7 @@ var (
 // TestFindUserByEmailAndListUsersUseStoredUsers protects the read side of the
 // user store: login lookup by email, missing-user behavior, and the admin user
 // list. The fake driver stores rows in memory so the assertions should still
-// hold after the SQL text changes from SQL Server to Postgres.
+// hold while production queries use PostgreSQL syntax.
 func TestFindUserByEmailAndListUsersUseStoredUsers(t *testing.T) {
 	state := newStoreTestState()
 	state.addUser(domain.User{
@@ -190,8 +190,7 @@ func TestCreateAndUpdateClassroomMaintainRoster(t *testing.T) {
 
 // TestListClassroomsAggregatesRosterRows makes sure ListClassrooms rebuilds the
 // domain Classroom values from classroom rows plus ClassroomStudents join rows.
-// That behavior matters more than whether SQL Server or Postgres produced the
-// joined row set.
+// That behavior matters more than the exact PostgreSQL query formatting.
 func TestListClassroomsAggregatesRosterRows(t *testing.T) {
 	state := newStoreTestState()
 	state.addClassroom(domain.Classroom{ID: "classroom2", Name: "Second Grade", TeacherID: "teacher2"})
@@ -604,15 +603,11 @@ func (r *storeTestRowsData) Next(dest []driver.Value) error {
 	return nil
 }
 
-// normalizeStoreTestQuery removes vendor-specific decoration and formatting so
-// the fake driver can keep recognizing store operations after SQL Server syntax
-// is replaced with Postgres syntax.
+// normalizeStoreTestQuery removes formatting so the fake driver recognizes
+// PostgreSQL store operations by intent rather than exact whitespace.
 func normalizeStoreTestQuery(query string) string {
 	normalized := strings.ToLower(query)
-	normalized = strings.ReplaceAll(normalized, "dbo.", "")
 	normalized = strings.ReplaceAll(normalized, `"`, "")
-	normalized = strings.ReplaceAll(normalized, "[", "")
-	normalized = strings.ReplaceAll(normalized, "]", "")
 	normalized = strings.ReplaceAll(normalized, "_", "")
 	normalized = strings.Join(strings.Fields(normalized), " ")
 	return normalized

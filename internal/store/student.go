@@ -91,25 +91,25 @@ func (s *SQLStore) loadStudentCore(ctx context.Context, state *domain.StudentSta
 	)
 	err := s.db.QueryRowContext(ctx, `
 		SELECT
-			CASE WHEN balance.Total < 0 THEN 0 ELSE balance.Total END,
-			COALESCE(attendance.PresentDates, N'[]'),
-			COALESCE(attendance.AbsentDates, N'[]'),
+			GREATEST(
+				$3
+				+ COALESCE((SELECT Amount FROM ManualCoinAdjustments WHERE UserID = $1), 0)
+				+ COALESCE((SELECT SUM(Amount) FROM Transactions WHERE UserID = $1), 0),
+				0
+			),
+			COALESCE(attendance.PresentDates, '[]'),
+			COALESCE(attendance.AbsentDates, '[]'),
 			CASE WHEN avatar.UserID IS NULL THEN 0 ELSE 1 END,
-			COALESCE(avatar.Base, N''),
-			COALESCE(avatar.HairStyle, N''),
-			COALESCE(avatar.Clothing, N''),
-			COALESCE(avatar.Accessory, N''),
-			COALESCE(avatar.Effect, N'')
-		FROM dbo.Users AS student
-		CROSS APPLY (
-			SELECT @p3
-				+ COALESCE((SELECT Amount FROM dbo.ManualCoinAdjustments WHERE UserID = @p1), 0)
-				+ COALESCE((SELECT SUM(Amount) FROM dbo.Transactions WHERE UserID = @p1), 0) AS Total
-		) AS balance
-		LEFT JOIN dbo.AttendanceRecords AS attendance
-			ON attendance.UserID = student.UserID AND attendance.ClassroomID = @p2
-		LEFT JOIN dbo.AvatarConfigs AS avatar ON avatar.UserID = student.UserID
-		WHERE student.UserID = @p1;
+			COALESCE(avatar.Base, ''),
+			COALESCE(avatar.HairStyle, ''),
+			COALESCE(avatar.Clothing, ''),
+			COALESCE(avatar.Accessory, ''),
+			COALESCE(avatar.Effect, '')
+		FROM Users AS student
+		LEFT JOIN AttendanceRecords AS attendance
+			ON attendance.UserID = student.UserID AND attendance.ClassroomID = $2
+		LEFT JOIN AvatarConfigs AS avatar ON avatar.UserID = student.UserID
+		WHERE student.UserID = $1;
 	`, state.User.UserID, state.User.ClassroomID, startingStudentCoins).Scan(
 		&state.CoinBalance,
 		&presentJSON,
@@ -142,7 +142,7 @@ func (s *SQLStore) loadStudentCore(ctx context.Context, state *domain.StudentSta
 func (s *SQLStore) loadSchedules(ctx context.Context, state *domain.StudentState) error {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT ClassroomID, DayOfWeek, StartTime, EndTime, DoubleDay
-		FROM dbo.Schedule WHERE ClassroomID = @p1 ORDER BY ScheduleID;
+		FROM Schedule WHERE ClassroomID = $1 ORDER BY ScheduleID;
 	`, state.User.ClassroomID)
 	if err != nil {
 		return err
@@ -163,9 +163,9 @@ func (s *SQLStore) loadSchedules(ctx context.Context, state *domain.StudentState
 func (s *SQLStore) loadWeeklyAssignmentTemplates(ctx context.Context, state *domain.StudentState) error {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT ClassroomID, DueWeekday, Subject, Title,
-			CONVERT(varchar(5), DueTime, 108), DisplayOrder
-		FROM dbo.WeeklyAssignmentTemplates
-		WHERE ClassroomID = @p1
+			TO_CHAR(DueTime, 'HH24:MI'), DisplayOrder
+		FROM WeeklyAssignmentTemplates
+		WHERE ClassroomID = $1
 		ORDER BY DueWeekday, DisplayOrder, DueTime, Title;
 	`, state.User.ClassroomID)
 	if err != nil {
@@ -192,8 +192,8 @@ func (s *SQLStore) loadWeeklyAssignmentTemplates(ctx context.Context, state *dom
 
 func (s *SQLStore) loadShopItems(ctx context.Context, state *domain.StudentState) error {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT ID, Name, Price, Description, COALESCE(ImagePath, N''), COALESCE(Slot, N'')
-		FROM dbo.ShopItems ORDER BY ID;
+		SELECT ID, Name, Price, Description, COALESCE(ImagePath, ''), COALESCE(Slot, '')
+		FROM ShopItems ORDER BY ID;
 	`)
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (s *SQLStore) loadShopItems(ctx context.Context, state *domain.StudentState
 
 func (s *SQLStore) loadOwnedShopItems(ctx context.Context, state *domain.StudentState) error {
 	ownedRows, err := s.db.QueryContext(ctx, `
-		SELECT ShopItemID FROM dbo.OwnedShopItems WHERE UserID = @p1 ORDER BY ShopItemID;
+		SELECT ShopItemID FROM OwnedShopItems WHERE UserID = $1 ORDER BY ShopItemID;
 	`, state.User.UserID)
 	if err != nil {
 		return err
@@ -245,7 +245,7 @@ func (s *SQLStore) MarkAttendanceAndAwardCoins(ctx context.Context, userID, clas
 
 	var storedClassroomID, role string
 	err = tx.QueryRowContext(ctx, `
-		SELECT COALESCE(ClassroomID, N''), Role FROM dbo.Users WITH (UPDLOCK, HOLDLOCK) WHERE UserID = @p1;
+		SELECT COALESCE(ClassroomID, ''), Role FROM Users WHERE UserID = $1 FOR UPDATE;
 	`, userID).Scan(&storedClassroomID, &role)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrInvalidStudent
@@ -262,8 +262,9 @@ func (s *SQLStore) MarkAttendanceAndAwardCoins(ctx context.Context, userID, clas
 
 	var presentJSON string
 	err = tx.QueryRowContext(ctx, `
-		SELECT COALESCE(PresentDates, N'[]') FROM dbo.AttendanceRecords WITH (UPDLOCK, HOLDLOCK)
-		WHERE UserID = @p1 AND ClassroomID = @p2;
+		SELECT COALESCE(PresentDates, '[]') FROM AttendanceRecords
+		WHERE UserID = $1 AND ClassroomID = $2
+		FOR UPDATE;
 	`, userID, classroomID).Scan(&presentJSON)
 	recordExists := err == nil
 	present := []string{}
@@ -288,20 +289,20 @@ func (s *SQLStore) MarkAttendanceAndAwardCoins(ctx context.Context, userID, clas
 
 	if !recordExists {
 		_, err = tx.ExecContext(ctx, `
-			INSERT INTO dbo.AttendanceRecords (UserID, ClassroomID, PresentDates, AbsentDates)
-			VALUES (@p1, @p2, @p3, N'[]');
+			INSERT INTO AttendanceRecords (UserID, ClassroomID, PresentDates, AbsentDates)
+			VALUES ($1, $2, $3, '[]');
 		`, userID, classroomID, string(encodedPresent))
 	} else {
 		_, err = tx.ExecContext(ctx, `
-			UPDATE dbo.AttendanceRecords SET PresentDates = @p3 WHERE UserID = @p1 AND ClassroomID = @p2;
+			UPDATE AttendanceRecords SET PresentDates = $3 WHERE UserID = $1 AND ClassroomID = $2;
 		`, userID, classroomID, string(encodedPresent))
 	}
 	if err != nil {
 		return err
 	}
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO dbo.Transactions (UserID, Amount, Timestamp, Description)
-		VALUES (@p1, @p2, @p3, @p4);
+		INSERT INTO Transactions (UserID, Amount, Timestamp, Description)
+		VALUES ($1, $2, $3, $4);
 	`, userID, reward, occurredAt, fmt.Sprintf("Attendance reward for %s", date))
 	if err != nil {
 		return err
@@ -320,7 +321,7 @@ func (s *SQLStore) PurchaseShopItem(ctx context.Context, userID, itemID string, 
 
 	var itemName string
 	var price int
-	err = tx.QueryRowContext(ctx, `SELECT Name, Price FROM dbo.ShopItems WITH (HOLDLOCK) WHERE ID = @p1;`, itemID).Scan(&itemName, &price)
+	err = tx.QueryRowContext(ctx, `SELECT Name, Price FROM ShopItems WHERE ID = $1 FOR UPDATE;`, itemID).Scan(&itemName, &price)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrShopItemNotFound
 	}
@@ -329,20 +330,20 @@ func (s *SQLStore) PurchaseShopItem(ctx context.Context, userID, itemID string, 
 	}
 	var owned int
 	err = tx.QueryRowContext(ctx, `
-		SELECT COUNT(1) FROM dbo.OwnedShopItems WITH (UPDLOCK, HOLDLOCK) WHERE UserID = @p1 AND ShopItemID = @p2;
+		SELECT 1 FROM OwnedShopItems WHERE UserID = $1 AND ShopItemID = $2 FOR UPDATE;
 	`, userID, itemID).Scan(&owned)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err
 	}
-	if owned > 0 {
+	if err == nil {
 		return ErrShopItemAlreadyOwned
 	}
 
 	var balance int
 	err = tx.QueryRowContext(ctx, `
-		SELECT @p2
-			+ COALESCE((SELECT Amount FROM dbo.ManualCoinAdjustments WITH (HOLDLOCK) WHERE UserID = @p1), 0)
-			+ COALESCE((SELECT SUM(Amount) FROM dbo.Transactions WITH (UPDLOCK, HOLDLOCK) WHERE UserID = @p1), 0);
+		SELECT $2
+			+ COALESCE((SELECT Amount FROM ManualCoinAdjustments WHERE UserID = $1), 0)
+			+ COALESCE((SELECT SUM(Amount) FROM Transactions WHERE UserID = $1), 0);
 	`, userID, startingStudentCoins).Scan(&balance)
 	if err != nil {
 		return err
@@ -352,13 +353,13 @@ func (s *SQLStore) PurchaseShopItem(ctx context.Context, userID, itemID string, 
 	}
 
 	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO dbo.Transactions (UserID, Amount, Timestamp, Description)
-		VALUES (@p1, @p2, @p3, @p4);
+		INSERT INTO Transactions (UserID, Amount, Timestamp, Description)
+		VALUES ($1, $2, $3, $4);
 	`, userID, -price, occurredAt, fmt.Sprintf("Purchased %s", itemName)); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, `
-		INSERT INTO dbo.OwnedShopItems (UserID, ShopItemID) VALUES (@p1, @p2);
+		INSERT INTO OwnedShopItems (UserID, ShopItemID) VALUES ($1, $2);
 	`, userID, itemID); err != nil {
 		return err
 	}
@@ -368,11 +369,14 @@ func (s *SQLStore) PurchaseShopItem(ctx context.Context, userID, itemID string, 
 // SaveAvatarConfig replaces the student's saved avatar while preserving one row per user.
 func (s *SQLStore) SaveAvatarConfig(ctx context.Context, userID string, config domain.AvatarConfig) error {
 	_, err := s.db.ExecContext(ctx, `
-		MERGE dbo.AvatarConfigs AS target
-		USING (SELECT @p1 AS UserID) AS source ON target.UserID = source.UserID
-		WHEN MATCHED THEN UPDATE SET Base = @p2, HairStyle = @p3, Clothing = @p4, Accessory = @p5, Effect = @p6
-		WHEN NOT MATCHED THEN INSERT (UserID, Base, HairStyle, Clothing, Accessory, Effect)
-		VALUES (@p1, @p2, @p3, @p4, @p5, @p6);
+		INSERT INTO AvatarConfigs (UserID, Base, HairStyle, Clothing, Accessory, Effect)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (UserID) DO UPDATE SET
+			Base = EXCLUDED.Base,
+			HairStyle = EXCLUDED.HairStyle,
+			Clothing = EXCLUDED.Clothing,
+			Accessory = EXCLUDED.Accessory,
+			Effect = EXCLUDED.Effect;
 	`, userID, config.Base, config.HairStyle, config.Clothing, config.Accessory, config.Effect)
 	return err
 }
