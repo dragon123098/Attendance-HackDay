@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/store"
-	"github.com/dragon123098/Attendance-HackDay.git/internal/web"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/store"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/web"
 
 	_ "github.com/lib/pq"
 )

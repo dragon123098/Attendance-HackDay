@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
 )
 
 // ErrClassroomNotFound means a write referenced a classroom ID that is not in PostgreSQL.

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
 )
 
 // ErrUserNotFound means no SQL user matched the requested credential lookup.

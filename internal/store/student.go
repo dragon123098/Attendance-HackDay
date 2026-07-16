@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
 )
 
 const startingStudentCoins = 10

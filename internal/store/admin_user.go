@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
 )
 
 // ListUsers returns the users shown on the admin user settings page.

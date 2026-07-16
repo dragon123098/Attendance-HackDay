@@ -1,8 +1,8 @@
 package web
 
 import (
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
-	"github.com/dragon123098/Attendance-HackDay.git/internal/viewmodel"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/viewmodel"
 )
 
 type User = domain.User

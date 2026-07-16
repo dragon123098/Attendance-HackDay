@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	datastore "github.com/dragon123098/Attendance-HackDay.git/internal/store"
+	datastore "github.com/PeterGrunig/Attendance-HackDay/internal/store"
 	"golang.org/x/crypto/bcrypt"
 )
 

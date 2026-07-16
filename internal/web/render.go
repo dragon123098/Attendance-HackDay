@@ -7,7 +7,7 @@ import (
 	"path"
 	"sync"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/view"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/view"
 )
 
 var templateCache sync.Map

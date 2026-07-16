@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/view"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/view"
 )
 
 func TestRenderedPagesReferenceExistingCSS(t *testing.T) {

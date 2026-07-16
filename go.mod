@@ -1,4 +1,4 @@
-module github.com/dragon123098/Attendance-HackDay.git
+module github.com/PeterGrunig/Attendance-HackDay
 
 go 1.26.3
 

@@ -3,7 +3,7 @@ package web
 import (
 	"context"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
 )
 
 type AuthStore interface {

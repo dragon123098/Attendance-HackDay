@@ -1,6 +1,6 @@
 package viewmodel
 
-import "github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+import "github.com/PeterGrunig/Attendance-HackDay/internal/domain"
 
 type TemplateData struct {
 	User           *domain.User

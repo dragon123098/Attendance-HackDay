@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
 )
 
 // CreateTeacher inserts a teacher account created from the admin tools.

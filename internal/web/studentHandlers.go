@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dragon123098/Attendance-HackDay.git/internal/domain"
-	datastore "github.com/dragon123098/Attendance-HackDay.git/internal/store"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
+	datastore "github.com/PeterGrunig/Attendance-HackDay/internal/store"
 )
 
 const attendanceRewardCoins = 1
