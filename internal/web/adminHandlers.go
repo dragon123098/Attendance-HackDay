@@ -15,6 +15,7 @@ var adminStudentStore AdminStudentStore
 var adminTeacherStore AdminTeacherStore
 var adminClassroomStore AdminClassroomStore
 var adminUserStore AdminUserStore
+var teacherStudentStore TeacherStudentStore
 
 type ClassroomPageData struct {
 	Title          string
@@ -664,6 +665,39 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
 }
 
+func teacherAddStudent(w http.ResponseWriter, r *http.Request) {
+	if teacherStudentStore == nil {
+		http.Error(w, "teacher student store is not configured", http.StatusInternalServerError)
+		return
+	}
+	
+	user, ok := authenticatedUser(r)
+	if !ok {
+		http.Error(w, "user not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	classrooms, err := teacherStudentStore.TeacherListClassrooms(r.Context(), user.UserID)
+	if err != nil {
+		http.Error(w, "could not load classrooms", http.StatusInternalServerError)
+		return
+	}
+
+	data := StudentCreatePageData{
+		Title:          "Add Student",
+		HeaderTitle:    "Teacher Tools",
+		HeaderSubtitle: "Create a new student account.",
+		HeaderBadge:    "Teacher View",
+		Classrooms:     classroomOptionsFromStore(classrooms),
+	}
+
+	renderAdmin(w, "createStudent.html", data)
+
+}
+
+
+
+//This creates a student accoutn from the admin dash
 func createStudent(w http.ResponseWriter, r *http.Request) {
 	if adminStudentStore == nil {
 		http.Error(w, "student store is not configured", http.StatusInternalServerError)
@@ -738,6 +772,16 @@ func studentCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 		default:
 			http.Error(w, "could not create student", http.StatusInternalServerError)
 		}
+		return
+	}
+	user, ok := authenticatedUser(r)
+	if !ok {
+		http.Error(w, "user not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	if user.Role == "teacher" {
+		http.Redirect(w, r, "/teacherDashboard", http.StatusSeeOther)
 		return
 	}
 
