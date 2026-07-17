@@ -665,6 +665,7 @@ func teacherCreateSubmitView(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/adminDashboard", http.StatusSeeOther)
 }
 
+//This creates a student form the teacher dash
 func teacherAddStudent(w http.ResponseWriter, r *http.Request) {
 	if teacherStudentStore == nil {
 		http.Error(w, "teacher student store is not configured", http.StatusInternalServerError)
@@ -691,7 +692,7 @@ func teacherAddStudent(w http.ResponseWriter, r *http.Request) {
 		Classrooms:     classroomOptionsFromStore(classrooms),
 	}
 
-	renderAdmin(w, "createStudent.html", data)
+	renderTeacher(w, "createStudent.html", data)
 
 }
 
