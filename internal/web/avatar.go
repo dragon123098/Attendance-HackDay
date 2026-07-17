@@ -95,7 +95,8 @@ func avatarPreviewView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := buildAvatarPageData(state, cfg, "Previewing unsaved avatar changes.", "")
+	data := buildAvatarPageData(state, cfg, "", "")
+	data.ShowAvatarPreview = true
 	renderStudent(w, "avatarView.html", data)
 }
 
