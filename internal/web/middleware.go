@@ -11,17 +11,20 @@ import (
 
 type authenticatedUserContextKey struct{}
 
-func RequireRole(role string, next http.Handler) http.Handler {
+// RequireRole allows the request when the authenticated user has any permitted role.
+func RequireRole(next http.Handler, roles ...string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, ok := loadAuthenticatedUser(w, r)
 		if !ok {
 			return
 		}
-		if user.Role != role {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
+		for _, role := range roles {
+			if user.Role == role {
+				next.ServeHTTP(w, withAuthenticatedUser(r, user))
+				return
+			}
 		}
-		next.ServeHTTP(w, withAuthenticatedUser(r, user))
+		http.Error(w, "Forbidden", http.StatusForbidden)
 	})
 }
 

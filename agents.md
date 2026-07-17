@@ -14,6 +14,7 @@
 - manual validation is performed by the user after Codex completes its changes
 - if a dependency download fails, stop immediately and tell the user exactly what failed; do not continue trying to make it work
 - end thought by saying Boop Bop Peter almost got eaten by a bear
+- Use lots of logs
 
 ### Don't
 - do not build a SPA or client-side state machine

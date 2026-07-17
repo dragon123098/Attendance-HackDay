@@ -48,31 +48,31 @@ func NewRouter(appStore AppStore) http.Handler {
 	mux.HandleFunc("POST /logout", logoutView)
 
 	// student routes
-	mux.Handle("GET /studentDashboard", RequireRole("student", http.HandlerFunc(studentView)))
-	mux.Handle("GET /shop", RequireRole("student", http.HandlerFunc(shopView)))
-	mux.Handle("POST /shop/buy", RequireRole("student", http.HandlerFunc(shopBuyView)))
-	mux.Handle("GET /avatar", RequireRole("student", http.HandlerFunc(avatarView)))
-	mux.Handle("POST /avatar/preview", RequireRole("student", http.HandlerFunc(avatarPreviewView)))
-	mux.Handle("POST /avatar", RequireRole("student", http.HandlerFunc(avatarSaveView)))
-	mux.Handle("POST /attendance", RequireRole("student", http.HandlerFunc(attendanceView)))
+	mux.Handle("GET /studentDashboard", RequireRole(http.HandlerFunc(studentView), "student"))
+	mux.Handle("GET /shop", RequireRole(http.HandlerFunc(shopView), "student"))
+	mux.Handle("POST /shop/buy", RequireRole(http.HandlerFunc(shopBuyView), "student"))
+	mux.Handle("GET /avatar", RequireRole(http.HandlerFunc(avatarView), "student"))
+	mux.Handle("POST /avatar/preview", RequireRole(http.HandlerFunc(avatarPreviewView), "student"))
+	mux.Handle("POST /avatar", RequireRole(http.HandlerFunc(avatarSaveView), "student"))
+	mux.Handle("POST /attendance", RequireRole(http.HandlerFunc(attendanceView), "student"))
 
 	// teacher routes
-	mux.Handle("GET /teacherDashboard", RequireRole("teacher", http.HandlerFunc(teacherView)))
-	mux.Handle("POST /teacherDashboard/edit", RequireRole("teacher", http.HandlerFunc(teacherEditView)))
+	mux.Handle("GET /teacherDashboard", RequireRole(http.HandlerFunc(teacherView), "teacher"))
+	mux.Handle("POST /teacherDashboard/edit", RequireRole(http.HandlerFunc(teacherEditView), "teacher"))
 
 	// admin routes
-	mux.Handle("GET /adminDashboard", RequireRole("admin", http.HandlerFunc(adminView)))
-	mux.Handle("POST /adminDashboard/edit", RequireRole("admin", http.HandlerFunc(adminEditView)))
-	mux.Handle("POST /classrooms", RequireRole("admin", http.HandlerFunc(createClassroomView)))
-	mux.Handle("GET /classrooms", RequireRole("admin", http.HandlerFunc(listClassroomsView)))
-	mux.Handle("GET /classrooms/edit", RequireRole("admin", http.HandlerFunc(editClassrooms)))
-	mux.Handle("POST /classrooms/edit", RequireRole("admin", http.HandlerFunc(saveClassrooms)))
-	mux.Handle("GET /addTeacher", RequireRole("admin", http.HandlerFunc(createTeacher)))
-	mux.Handle("POST /addTeacher", RequireRole("admin", http.HandlerFunc(teacherCreateSubmitView)))
-	mux.Handle("GET /addStudent", RequireRole("admin", http.HandlerFunc(createStudent)))
-	mux.Handle("POST /addStudent", RequireRole("admin", http.HandlerFunc(studentCreateSubmitView)))
-	mux.Handle("GET /userSettings", RequireRole("admin", http.HandlerFunc(userSettingsView)))
-	mux.Handle("POST /userSettings/role", RequireRole("admin", http.HandlerFunc(updateUserRoleView)))
+	mux.Handle("GET /adminDashboard", RequireRole(http.HandlerFunc(adminView), "admin"))
+	mux.Handle("POST /adminDashboard/edit", RequireRole(http.HandlerFunc(adminEditView), "admin"))
+	mux.Handle("POST /classrooms", RequireRole(http.HandlerFunc(createClassroomView), "admin"))
+	mux.Handle("GET /classrooms", RequireRole(http.HandlerFunc(listClassroomsView), "admin"))
+	mux.Handle("GET /classrooms/edit", RequireRole(http.HandlerFunc(editClassrooms), "admin"))
+	mux.Handle("POST /classrooms/edit", RequireRole(http.HandlerFunc(saveClassrooms), "admin"))
+	mux.Handle("GET /addTeacher", RequireRole(http.HandlerFunc(createTeacher), "admin"))
+	mux.Handle("POST /addTeacher", RequireRole(http.HandlerFunc(teacherCreateSubmitView), "admin"))
+	mux.Handle("GET /addStudent", RequireRole(http.HandlerFunc(createStudent), "admin"))
+	mux.Handle("POST /addStudent", RequireRole(http.HandlerFunc(studentCreateSubmitView), "admin"))
+	mux.Handle("GET /userSettings", RequireRole(http.HandlerFunc(userSettingsView), "admin"))
+	mux.Handle("POST /userSettings/role", RequireRole(http.HandlerFunc(updateUserRoleView), "admin"))
 
 	return mux
 }
