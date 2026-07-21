@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/PeterGrunig/Attendance-HackDay/internal/store"
 	"github.com/PeterGrunig/Attendance-HackDay/internal/web"
 
@@ -13,6 +14,7 @@ import (
 )
 
 func main() {
+	_ = godotenv.Load()
 	db, err := sql.Open("postgres", databaseURL())
 	if err != nil {
 		log.Fatal(err)

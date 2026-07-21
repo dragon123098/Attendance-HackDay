@@ -31,6 +31,16 @@ PostgreSQL is the application's only runtime data store. The browser cookie cont
 
 ## Local Development
 
+Copy the local environment template before starting PostgreSQL or the app:
+
+```powershell
+Copy-Item .env.example .env
+```
+You should change the password to whatever password you want to connect with. 
+The checked-in `.env.example` connects a Go process running on the host to
+PostgreSQL through `localhost:5433`. The application loads `.env` when present,
+but it does not replace environment variables that are already set.
+
 Run automated validation with:
 
 ```sh
@@ -57,18 +67,24 @@ Added CodeQL
    start of a new database volume:
 
 ```powershell
-docker compose up -d
+docker-compose up -d
 ```
 
 2. Verify PostgreSQL and the application database are ready:
 
 ```powershell
-docker compose exec postgres pg_isready -U attendance -d attendancehackday
+docker-compose exec db pg_isready -U attendance -d attendancehackday
 ```
 
 The application defaults to
 `postgres://attendance:Password123!@localhost:5433/attendancehackday?sslmode=disable`.
-Set `DATABASE_URL` to override that connection string.
+For a hosted deployment, configure `DATABASE_URL` in the hosting provider with
+the complete managed PostgreSQL connection string. That injected value takes
+precedence over `.env`; do not deploy the local `.env` file. If the application
+is added to this Compose network later, use `db:5432` as its database host and
+port instead of `localhost:5433`.
+
+So basically, we will set up the database with supabase. They will give the database URL to us, which we will store in a secrate manager. Then when we host it, we will configure the environement variables to point to our secrate.
 
 
 ## Check Database in DBeaver
@@ -92,29 +108,29 @@ Set `DATABASE_URL` to override that connection string.
 1. Make sure the database is up
 
     ```powershell
-    docker compose up -d
+    docker-compose up -d
     ```
 
 2. Seed the base data with the following command.
 
     ```powershell
-    Get-Content -Raw .\Seed_DataBase.sql | docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday
+    Get-Content -Raw .\Seed_DataBase.sql | docker-compose exec -T db psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday
     ```
 
     Bash / WSL:
 
     ```bash
-    docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday < Seed_DataBase.sql
+    docker-compose exec -T db psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday < Seed_DataBase.sql
     ```
 
 3. Apply the idempotent delta seed for the latest student records, image path metadata, and recurring weekly assignment templates. This includes the final records migrated from the retired JSON store.
 
     ```powershell
-    Get-Content -Raw .\Seed_DataBase2.sql | docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday
+    Get-Content -Raw .\Seed_DataBase2.sql | docker-compose exec -T db psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday
     ```
 
     Bash / WSL:
 
     ```bash
-    docker exec -i attendance-postgres psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday < Seed_DataBase2.sql
+    docker-compose exec -T db psql --set=ON_ERROR_STOP=1 --username=attendance --dbname=attendancehackday < Seed_DataBase2.sql
     ```
