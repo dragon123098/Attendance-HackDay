@@ -61,58 +61,129 @@
             <div class="avatar-cosmetic-groups">
                 <fieldset class="avatar-cosmetic-group">
                     <legend>Hair</legend>
-                    {{range .AvatarHairOptions}}
-                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
-                        <input type="radio" name="hair_style" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
-                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
-                        <span>{{.Label}}</span>
-                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
-                    </label>
-                    {{end}}
+                    <div class="avatar-owned-options">
+                        {{range .AvatarHairOptions}}{{if .Owned}}
+                        <label class="avatar-owned-option {{if .Selected}}selected{{end}}">
+                            <input type="radio" name="hair_style" value="{{.ID}}" {{if .Selected}}checked{{end}}>
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{else}}<span class="avatar-none-icon" aria-hidden="true">&times;</span>{{end}}
+                            <span class="avatar-cosmetic-name">{{.Label}}</span>
+                            <span class="avatar-owned-badge">{{if .Selected}}Equipped{{else if .ID}}Owned{{else}}No item{{end}}</span>
+                        </label>
+                        {{end}}{{end}}
+                    </div>
+                    <details class="avatar-locked-options">
+                        <summary>View locked options</summary>
+                        {{range .AvatarHairOptions}}{{if not .Owned}}
+                        <div class="avatar-cosmetic-option locked">
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{end}}
+                            <span>{{.Label}}</span><span class="avatar-lock">Locked</span>
+                        </div>
+                        {{end}}{{end}}
+                    </details>
                 </fieldset>
 
                 <fieldset class="avatar-cosmetic-group">
                     <legend>Clothing</legend>
-                    {{range .AvatarClothOptions}}
-                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
-                        <input type="radio" name="clothing" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
-                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
-                        <span>{{.Label}}</span>
-                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
-                    </label>
-                    {{end}}
+                    <div class="avatar-owned-options">
+                        {{range .AvatarClothOptions}}{{if .Owned}}
+                        <label class="avatar-owned-option {{if .Selected}}selected{{end}}">
+                            <input type="radio" name="clothing" value="{{.ID}}" {{if .Selected}}checked{{end}}>
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{else}}<span class="avatar-none-icon" aria-hidden="true">&times;</span>{{end}}
+                            <span class="avatar-cosmetic-name">{{.Label}}</span>
+                            <span class="avatar-owned-badge">{{if .Selected}}Equipped{{else if .ID}}Owned{{else}}No item{{end}}</span>
+                        </label>
+                        {{end}}{{end}}
+                    </div>
+                    <details class="avatar-locked-options">
+                        <summary>View locked options</summary>
+                        {{range .AvatarClothOptions}}{{if not .Owned}}
+                        <div class="avatar-cosmetic-option locked">
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{end}}
+                            <span>{{.Label}}</span><span class="avatar-lock">Locked</span>
+                        </div>
+                        {{end}}{{end}}
+                    </details>
                 </fieldset>
 
                 <fieldset class="avatar-cosmetic-group">
                     <legend>Accessory</legend>
-                    {{range .AvatarAccessOptions}}
-                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
-                        <input type="radio" name="accessory" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
-                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
-                        <span>{{.Label}}</span>
-                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
-                    </label>
-                    {{end}}
+                    <div class="avatar-owned-options">
+                        {{range .AvatarAccessOptions}}{{if .Owned}}
+                        <label class="avatar-owned-option {{if .Selected}}selected{{end}}">
+                            <input type="radio" name="accessory" value="{{.ID}}" {{if .Selected}}checked{{end}}>
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{else}}<span class="avatar-none-icon" aria-hidden="true">&times;</span>{{end}}
+                            <span class="avatar-cosmetic-name">{{.Label}}</span>
+                            <span class="avatar-owned-badge">{{if .Selected}}Equipped{{else if .ID}}Owned{{else}}No item{{end}}</span>
+                        </label>
+                        {{end}}{{end}}
+                    </div>
+                    <details class="avatar-locked-options">
+                        <summary>View locked options</summary>
+                        {{range .AvatarAccessOptions}}{{if not .Owned}}
+                        <div class="avatar-cosmetic-option locked">
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{end}}
+                            <span>{{.Label}}</span><span class="avatar-lock">Locked</span>
+                        </div>
+                        {{end}}{{end}}
+                    </details>
                 </fieldset>
 
                 <fieldset class="avatar-cosmetic-group">
                     <legend>Effect</legend>
-                    {{range .AvatarEffectOptions}}
-                    <label class="avatar-cosmetic-option {{if not .Owned}}locked{{end}}">
-                        <input type="radio" name="effect" value="{{.ID}}" {{if .Selected}}checked{{end}} {{if not .Owned}}disabled{{end}}>
-                        {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="{{.Label}}">{{end}}
-                        <span>{{.Label}}</span>
-                        {{if not .Owned}}<span class="avatar-lock">Locked</span>{{end}}
-                    </label>
-                    {{end}}
+                    <div class="avatar-owned-options">
+                        {{range .AvatarEffectOptions}}{{if .Owned}}
+                        <label class="avatar-owned-option {{if .Selected}}selected{{end}}">
+                            <input type="radio" name="effect" value="{{.ID}}" {{if .Selected}}checked{{end}}>
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{else}}<span class="avatar-none-icon" aria-hidden="true">&times;</span>{{end}}
+                            <span class="avatar-cosmetic-name">{{.Label}}</span>
+                            <span class="avatar-owned-badge">{{if .Selected}}Equipped{{else if .ID}}Owned{{else}}No item{{end}}</span>
+                        </label>
+                        {{end}}{{end}}
+                    </div>
+                    <details class="avatar-locked-options">
+                        <summary>View locked options</summary>
+                        {{range .AvatarEffectOptions}}{{if not .Owned}}
+                        <div class="avatar-cosmetic-option locked">
+                            {{if .Image}}<img class="avatar-cosmetic-image" src="{{.Image}}" alt="">{{end}}
+                            <span>{{.Label}}</span><span class="avatar-lock">Locked</span>
+                        </div>
+                        {{end}}{{end}}
+                    </details>
                 </fieldset>
             </div>
         </div>
 
         <div class="avatar-actions">
             <button type="submit" formaction="/avatar/preview" class="avatar-select-btn">Preview</button>
-            <button type="submit" formaction="/avatar" class="avatar-save-btn">Save Avatar</button>
         </div>
+
+        <dialog class="avatar-preview-dialog" data-avatar-preview-dialog {{if .ShowAvatarPreview}}data-open-on-load{{end}}>
+            <div class="avatar-preview-dialog-header">
+                <h2>Avatar Preview</h2>
+                <button type="button" class="avatar-preview-close" aria-label="Close avatar preview" data-avatar-preview-close>&times;</button>
+            </div>
+
+            <div class="avatar-preview-dialog-content">
+                <div class="avatar-preview-dialog-image">
+                    {{template "avatarStack" .AvatarPreview}}
+                </div>
+                <div>
+                    <h3>{{.AvatarPreview.BaseLabel}}</h3>
+                    {{if .AvatarPreview.HasCosmetics}}
+                    <div class="avatar-summary-list">
+                        {{if .AvatarPreview.HairStyleLabel}}<span>{{.AvatarPreview.HairStyleLabel}}</span>{{end}}
+                        {{if .AvatarPreview.ClothingLabel}}<span>{{.AvatarPreview.ClothingLabel}}</span>{{end}}
+                        {{if .AvatarPreview.AccessoryLabel}}<span>{{.AvatarPreview.AccessoryLabel}}</span>{{end}}
+                        {{if .AvatarPreview.EffectLabel}}<span>{{.AvatarPreview.EffectLabel}}</span>{{end}}
+                    </div>
+                    {{else}}
+                    <p>No cosmetics equipped.</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <button type="submit" formaction="/avatar" class="avatar-save-btn">Save Avatar</button>
+        </dialog>
     </form>
 </div>
 
