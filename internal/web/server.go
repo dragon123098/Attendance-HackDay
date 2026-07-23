@@ -15,6 +15,7 @@ type AppStore interface {
 	AdminUserStore
 	AuthStore
 	StudentStore
+	TeacherStudentStore
 }
 
 func NewRouter(appStore AppStore) http.Handler {
@@ -24,6 +25,7 @@ func NewRouter(appStore AppStore) http.Handler {
 	adminUserStore = appStore
 	authStore = appStore
 	studentStore = appStore
+	teacherStudentStore = appStore
 	mux := http.NewServeMux()
 
 	staticFS, err := fs.Sub(view.FS, "static")
@@ -59,6 +61,7 @@ func NewRouter(appStore AppStore) http.Handler {
 	// teacher routes
 	mux.Handle("GET /teacherDashboard", RequireRole(http.HandlerFunc(teacherView), "teacher"))
 	mux.Handle("POST /teacherDashboard/edit", RequireRole(http.HandlerFunc(teacherEditView), "teacher"))
+	mux.Handle("GET /teacherDashboard/addStudent", RequireRole(http.HandlerFunc(teacherAddStudent), "teacher"))
 
 	// admin routes
 	mux.Handle("GET /adminDashboard", RequireRole(http.HandlerFunc(adminView), "admin"))
@@ -69,8 +72,8 @@ func NewRouter(appStore AppStore) http.Handler {
 	mux.Handle("POST /classrooms/edit", RequireRole(http.HandlerFunc(saveClassrooms), "admin"))
 	mux.Handle("GET /addTeacher", RequireRole(http.HandlerFunc(createTeacher), "admin"))
 	mux.Handle("POST /addTeacher", RequireRole(http.HandlerFunc(teacherCreateSubmitView), "admin"))
-	mux.Handle("GET /addStudent", RequireRole(http.HandlerFunc(createStudent), "admin"))
-	mux.Handle("POST /addStudent", RequireRole(http.HandlerFunc(studentCreateSubmitView), "admin"))
+	mux.Handle("GET /addStudent", RequireRole(http.HandlerFunc(createStudent), "admin", "teacher"))
+	mux.Handle("POST /addStudent", RequireRole(http.HandlerFunc(studentCreateSubmitView), "admin", "teacher"))
 	mux.Handle("GET /userSettings", RequireRole(http.HandlerFunc(userSettingsView), "admin"))
 	mux.Handle("POST /userSettings/role", RequireRole(http.HandlerFunc(updateUserRoleView), "admin"))
 

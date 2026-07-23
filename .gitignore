@@ -1,0 +1,18 @@
+# Go build and test artifacts
+.tmp/
+bin/
+*.exe
+*.test
+*.out
+coverage.out
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
