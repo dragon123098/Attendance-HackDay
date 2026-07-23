@@ -300,6 +300,20 @@ func (s *SQLStore) MarkAttendanceAndAwardCoins(ctx context.Context, userID, clas
 	if err != nil {
 		return err
 	}
+	// Keep the normalized mark in the same serializable transaction as the
+	// legacy JSON record and reward so partial check-ins cannot be observed.
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO AttendanceMarks
+			(UserID, ClassroomID, AttendanceDate, Status, Source, CheckInAt, UpdatedAt)
+		VALUES ($1, $2, $3, 'present', 'student_checkin', $4, CURRENT_TIMESTAMP)
+		ON CONFLICT (UserID, ClassroomID, AttendanceDate) DO UPDATE SET
+			Status = 'present',
+			Source = 'student_checkin',
+			CheckInAt = EXCLUDED.CheckInAt,
+			UpdatedAt = CURRENT_TIMESTAMP;
+	`, userID, classroomID, date, occurredAt); err != nil {
+		return err
+	}
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO Transactions (UserID, Amount, Timestamp, Description)
 		VALUES ($1, $2, $3, $4);

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/PeterGrunig/Attendance-HackDay/internal/integrations"
 	"github.com/PeterGrunig/Attendance-HackDay/internal/store"
 	"github.com/PeterGrunig/Attendance-HackDay/internal/web"
 
@@ -19,8 +20,16 @@ func main() {
 	}
 	defer db.Close()
 
+	storeOptions := []store.SQLStoreOption{}
+	credentialCipher, err := integrations.NewAESGCMCredentialCipher(os.Getenv("INTEGRATION_CREDENTIAL_KEY"))
+	if err != nil {
+		log.Printf("integration credential storage disabled: %v", err)
+	} else {
+		storeOptions = append(storeOptions, store.WithCredentialCipher(credentialCipher))
+	}
+
 	log.Print("starting server on http://localhost:4000")
-	log.Fatal(http.ListenAndServe(":4000", web.NewRouter(store.NewSQLStore(db))))
+	log.Fatal(http.ListenAndServe(":4000", web.NewRouter(store.NewSQLStore(db, storeOptions...))))
 }
 
 func databaseURL() string {

@@ -13,6 +13,7 @@ type Classroom struct {
 	Name       string   `json:"name"`
 	ID         string   `json:"id"`
 	TeacherID  string   `json:"teacher_id"`
+	TeacherIDs []string `json:"teacher_ids,omitempty"`
 	StudentIDs []string `json:"student_ids"`
 }
 

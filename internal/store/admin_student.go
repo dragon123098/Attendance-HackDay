@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/PeterGrunig/Attendance-HackDay/internal/domain"
+	"github.com/PeterGrunig/Attendance-HackDay/internal/integrations"
 )
 
 // ErrClassroomNotFound means a write referenced a classroom ID that is not in PostgreSQL.
@@ -16,22 +17,36 @@ var ErrUserAlreadyExists = errors.New("user already exists")
 
 // SQLStore owns PostgreSQL data access for the application's persistent flows.
 type SQLStore struct {
-	db *sql.DB
+	db               *sql.DB
+	credentialCipher integrations.CredentialCipher
 }
 
-// NewSQLStore wraps an existing database handle without taking ownership of closing it.
-func NewSQLStore(db *sql.DB) *SQLStore {
-	return &SQLStore{db: db}
+type SQLStoreOption func(*SQLStore)
+
+func WithCredentialCipher(cipher integrations.CredentialCipher) SQLStoreOption {
+	return func(store *SQLStore) { store.credentialCipher = cipher }
 }
 
-// ListClassrooms returns classroom details and roster IDs used by admin forms.
+// NewSQLStore wraps an existing database handle without taking ownership of
+// closing it and accepts optional integration security configuration.
+func NewSQLStore(db *sql.DB, options ...SQLStoreOption) *SQLStore {
+	store := &SQLStore{db: db}
+	for _, option := range options {
+		option(store)
+	}
+	return store
+}
+
+// ListClassrooms rebuilds classroom rosters from normalized active memberships
+// while retaining one primary teacher for compatibility with existing pages.
 func (s *SQLStore) ListClassrooms(ctx context.Context) ([]domain.Classroom, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT c.ID, c.Name, COALESCE(c.TeacherID, ''), COALESCE(cs.StudentID, '')
+		SELECT c.ID, c.Name, COALESCE(cm.UserID, ''), COALESCE(cm.MembershipRole, ''),
+			COALESCE(cm.IsPrimary, false)
 		FROM Classrooms AS c
-		LEFT JOIN ClassroomStudents AS cs
-			ON cs.ClassroomID = c.ID
-		ORDER BY c.ID, cs.StudentID;
+		LEFT JOIN ClassroomMemberships AS cm
+			ON cm.ClassroomID = c.ID AND cm.Active = true
+		ORDER BY c.ID, cm.MembershipRole, cm.IsPrimary DESC, cm.UserID;
 	`)
 	if err != nil {
 		return nil, err
@@ -44,26 +59,36 @@ func (s *SQLStore) ListClassrooms(ctx context.Context) ([]domain.Classroom, erro
 		var (
 			classroomID string
 			name        string
-			teacherID   string
-			studentID   string
+			userID      string
+			role        string
+			isPrimary   bool
 		)
-		if err := rows.Scan(&classroomID, &name, &teacherID, &studentID); err != nil {
+		if err := rows.Scan(&classroomID, &name, &userID, &role, &isPrimary); err != nil {
 			return nil, err
 		}
 
 		index, ok := classroomIndexes[classroomID]
 		if !ok {
 			classrooms = append(classrooms, domain.Classroom{
-				ID:        classroomID,
-				Name:      name,
-				TeacherID: teacherID,
+				ID:   classroomID,
+				Name: name,
 			})
 			index = len(classrooms) - 1
 			classroomIndexes[classroomID] = index
 		}
 
-		if studentID != "" {
-			classrooms[index].StudentIDs = append(classrooms[index].StudentIDs, studentID)
+		switch role {
+		case "student":
+			if userID != "" {
+				classrooms[index].StudentIDs = append(classrooms[index].StudentIDs, userID)
+			}
+		case "teacher":
+			if userID != "" {
+				classrooms[index].TeacherIDs = append(classrooms[index].TeacherIDs, userID)
+				if classrooms[index].TeacherID == "" || isPrimary {
+					classrooms[index].TeacherID = userID
+				}
+			}
 		}
 	}
 	if err := rows.Err(); err != nil {
@@ -131,6 +156,17 @@ func (s *SQLStore) CreateStudent(ctx context.Context, student domain.User) error
 		INSERT INTO ClassroomStudents (ClassroomID, StudentID)
 		VALUES ($1, $2)
 		ON CONFLICT (ClassroomID, StudentID) DO NOTHING;
+	`, student.ClassroomID, student.UserID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO ClassroomMemberships
+			(ClassroomID, UserID, MembershipRole, IsPrimary, Active, Source, UpdatedAt)
+		VALUES ($1, $2, 'student', true, true, 'local', CURRENT_TIMESTAMP)
+		ON CONFLICT (ClassroomID, UserID, MembershipRole) DO UPDATE SET
+			IsPrimary = EXCLUDED.IsPrimary,
+			Active = true,
+			UpdatedAt = CURRENT_TIMESTAMP;
 	`, student.ClassroomID, student.UserID); err != nil {
 		return err
 	}

@@ -1,0 +1,82 @@
+package domain
+
+import (
+	"encoding/json"
+	"time"
+)
+
+type ClassroomMembership struct {
+	ClassroomID string
+	UserID      string
+	Role        string
+	Primary     bool
+	Active      bool
+	Source      string
+}
+
+type ExternalEntityMapping struct {
+	ID           int64
+	ConnectionID int64
+	EntityKind   string
+	ExternalID   string
+	LocalID      string
+	SISID        string
+	Active       bool
+	LastSeenAt   *time.Time
+}
+
+type AttendanceMark struct {
+	ID             int64
+	UserID         string
+	ClassroomID    string
+	AttendanceDate time.Time
+	Status         string
+	Source         string
+	CheckInAt      *time.Time
+}
+
+type AttendanceBatch struct {
+	ID                      int64
+	ClassroomID             string
+	AttendanceDate          time.Time
+	Version                 int
+	WorkflowState           string
+	ApprovedBy              string
+	ApprovedAt              *time.Time
+	DestinationConnectionID *int64
+	Entries                 []AttendanceBatchEntry
+}
+
+type AttendanceBatchEntry struct {
+	ID               int64
+	BatchID          int64
+	UserID           string
+	Status           string
+	AttendanceMarkID *int64
+	DeliveryState    string
+	ExternalRecordID string
+	LastError        string
+}
+
+type AttendanceDeliveryAttempt struct {
+	ID             int64
+	BatchID        int64
+	ConnectionID   int64
+	IdempotencyKey string
+	AttemptNumber  int
+	State          string
+	ResponseCode   *int
+	ErrorMessage   string
+	StartedAt      time.Time
+	CompletedAt    *time.Time
+}
+
+type IntegrationAuditEvent struct {
+	ID          int64
+	ActorUserID string
+	EventType   string
+	EntityType  string
+	EntityID    string
+	Metadata    json.RawMessage
+	OccurredAt  time.Time
+}
