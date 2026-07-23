@@ -95,6 +95,8 @@ type PageData struct {
 	CanMarkAttendance      bool
 	CurrentWeekLabel       string
 	WeeklyAssignmentDays   []WeeklyScheduleDayView
+	PreviousWeekURL        string
+	NextWeekURL            string
 	UpcomingDoubleDays     []DoubleDayView
 	ActiveNav              string
 	UseStudentCSS          bool
@@ -111,4 +113,5 @@ type PageData struct {
 	AvatarPreview          AvatarPreviewView
 	AvatarMessage          string
 	AvatarError            string
+	ShowAvatarPreview      bool
 }
