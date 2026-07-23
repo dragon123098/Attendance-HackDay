@@ -2,7 +2,7 @@
 
 Attendance Quest is a Go server-rendered attendance rewards app for students,
 teachers, and admins. Students can log in, mark attendance, earn coins, buy shop
-items, and customize an avatar with unlocked cosmetics.
+items, unlock base avatars, and customize a character with owned cosmetics.
 
 ## Current Capabilities
 
@@ -10,8 +10,9 @@ items, and customize an avatar with unlocked cosmetics.
 - SQL-backed student dashboard with attendance status, coin balance, the current avatar, and a Sunday-through-Saturday assignment calendar.
 - Classroom assignment templates in `WeeklyAssignmentTemplates` recur by weekday; the dashboard derives their due dates for the current server-local week on each request. This is proof-of-concept mock data, not an assignment editing or completion workflow.
 - Student shop with SQL-backed catalog, ownership, coin validation, and atomic purchases.
-- Avatar customization with free base avatars, owned cosmetic unlocks, layered visual preview, and SQL-backed saves.
-- Student pages include persistent light/dark controls, free background colors, and unlocked special background themes.
+- Avatar customization with Gerald as the free base, purchased character and cosmetic unlocks, layered visual preview, and SQL-backed saves.
+- Student pages include persistent light/dark controls, free background colors, unlocked special background themes, and a coin shop where every base avatar except Gerald costs 10 coins.
+- Gerald is the free default avatar. Locked characters remain visible on the avatar page but cannot be equipped until purchased; hats, clothing, accessories, and effects use slot- and character-aware placement.
 - Manual coin adjustments are stored in `ManualCoinAdjustments` without creating transaction records.
 - The admin dashboard, User Settings, Add Student, Add Teacher, and classroom create/edit flows use PostgreSQL. `ClassroomMemberships` is the normalized roster source after `Seed_DataBase3.sql`; compatibility writes continue maintaining the legacy classroom columns and tables.
 - Teacher and admin dashboard scaffolding plus classroom management routes.

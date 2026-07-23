@@ -427,11 +427,89 @@ html[data-student-bg="sunset"] body::before {
 
 .avatar-base {
   object-fit: cover;
+  z-index: 1;
 }
 
 .avatar-layer {
   object-fit: contain;
   pointer-events: none;
+}
+
+/* Cosmetics share one canvas, so each slot gets a consistent anchor and each
+   unusually framed base avatar can fine-tune that anchor without new artwork. */
+.avatar-layer-effect {
+  z-index: 2;
+  transform: translate(var(--effect-x, 0), var(--effect-y, 0)) scale(var(--effect-scale, 1));
+}
+
+.avatar-layer-clothing {
+  z-index: 3;
+  transform: translate(var(--clothing-x, 0), var(--clothing-y, 8%)) scale(var(--clothing-scale, 0.88));
+}
+
+.avatar-layer-hair_style {
+  z-index: 4;
+  transform: translate(var(--hair-x, 0), var(--hair-y, -10%)) scale(var(--hair-scale, 0.78));
+}
+
+.avatar-layer-accessory {
+  z-index: 5;
+  transform: translate(var(--accessory-x, 0), var(--accessory-y, -9%)) scale(var(--accessory-scale, 0.78));
+}
+
+.avatar-base-brainrot {
+  --hair-y: -13%;
+  --accessory-y: -10%;
+  --clothing-y: 5%;
+}
+
+.avatar-base-d_money {
+  --hair-y: -13%;
+  --accessory-y: -7%;
+  --clothing-scale: 0.92;
+}
+
+.avatar-base-funk_rapper {
+  --hair-y: -13%;
+  --accessory-y: -8%;
+  --clothing-y: 7%;
+}
+
+.avatar-base-gopher {
+  --hair-y: -15%;
+  --accessory-y: -14%;
+  --clothing-y: 4%;
+  --clothing-scale: 0.84;
+}
+
+.avatar-base-mike {
+  --hair-y: -14%;
+  --accessory-y: -13%;
+  --clothing-y: 4%;
+  --clothing-scale: 0.86;
+}
+
+.avatar-base-milkman {
+  --hair-y: -15%;
+  --hair-scale: 0.88;
+  --accessory-y: -4%;
+  --accessory-scale: 0.9;
+  --clothing-y: 11%;
+  --clothing-scale: 0.94;
+}
+
+.avatar-base-peter {
+  --hair-y: -12%;
+  --accessory-y: -11%;
+  --clothing-y: 9%;
+  --clothing-scale: 0.9;
+}
+
+.avatar-base-salaryman {
+  --hair-y: -14%;
+  --accessory-y: -8%;
+  --clothing-y: 9%;
+  --clothing-scale: 0.86;
 }
 
 .brand-title {
@@ -1984,6 +2062,45 @@ html[data-student-mode="light"] .bottombar {
   width: 120px;
   height: 120px;
   border-radius: 8px;
+}
+
+.avatar-option small {
+  display: block;
+  min-height: 1.1rem;
+  margin-top: 0.35rem;
+  color: var(--student-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.avatar-option.locked {
+  position: relative;
+  border-style: dashed;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.avatar-option.locked img {
+  filter: saturate(0.55) brightness(0.82);
+}
+
+.avatar-option-image {
+  position: relative;
+}
+
+.avatar-option-lock {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.9rem;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--student-line);
+  border-radius: 999px;
+  display: grid !important;
+  place-items: center;
+  background: var(--student-surface-strong);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--student-line) 80%, transparent);
+  font-size: 0.9rem;
 }
 
 .avatar-cosmetic-group {

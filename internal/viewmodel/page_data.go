@@ -50,6 +50,8 @@ type AvatarBaseOptionView struct {
 	ID       string
 	Label    string
 	Image    string
+	Price    int
+	Owned    bool
 	Selected bool
 }
 
@@ -70,6 +72,7 @@ type AvatarLayerView struct {
 }
 
 type AvatarPreviewView struct {
+	BaseID         string
 	BaseLabel      string
 	BaseImage      string
 	HairStyleLabel string
@@ -100,6 +103,7 @@ type PageData struct {
 	UpcomingDoubleDays     []DoubleDayView
 	ActiveNav              string
 	UseStudentCSS          bool
+	LockedAvatarShopItems  []ShopItemView
 	AvatarShopItems        []ShopItemView
 	BackgroundShopItems    []ShopItemView
 	OwnedShopItems         []ShopItemView

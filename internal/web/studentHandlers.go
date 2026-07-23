@@ -213,12 +213,14 @@ func shopView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	avatarItems, backgroundItems, ownedItems := getShopItemViews(state.ShopItems, state.OwnedShopItemIDs)
+	lockedAvatars, cosmeticItems := splitAvatarShopItems(avatarItems)
 	status, message, canMark := getTodayAttendanceState(state.Attendance, time.Now())
 	avatar := savedAvatarConfig(state.AvatarConfig, state.OwnedShopItemIDs)
 	data := PageData{
 		Title: "Shop", Username: state.User.Name, AvatarImage: getAvatarImage(avatar), AvatarPreview: buildAvatarPreview(avatar), Coins: state.CoinBalance,
 		AttendanceStatus: status, AttendanceMessage: message, CanMarkAttendance: canMark,
-		AvatarShopItems: avatarItems, BackgroundShopItems: backgroundItems, OwnedShopItems: ownedItems,
+		LockedAvatarShopItems: lockedAvatars, AvatarShopItems: cosmeticItems,
+		BackgroundShopItems: backgroundItems, OwnedShopItems: ownedItems,
 		ShopMessage: r.URL.Query().Get("msg"), ActiveNav: "shop", UseStudentCSS: true,
 		ThemeBackgroundOptions: ownedThemeBackgroundOptionViews(state.OwnedShopItemIDs),
 	}
@@ -260,6 +262,8 @@ func getShopItemViews(items []ShopItem, ownedIDs []string) ([]ShopItemView, []Sh
 		view := ShopItemView{ID: item.ID, Name: item.Name, Description: item.Description, Price: item.Price, Owned: ownsShopItem(ownedIDs, item.ID)}
 		if cosmetic, ok := avatarCosmeticByID(item.ID); ok {
 			view.Image, view.Slot = cosmetic.Image, cosmetic.Slot
+		} else if avatar, ok := avatarBaseByID(item.ID); ok {
+			view.Image, view.Slot = avatar.Image, "base"
 		} else if background, ok := themeBackgroundByShopItemID(item.ID); ok {
 			view.Slot, view.ThemeBackgroundID = shopItemSlotTheme, background.ID
 		}
@@ -272,7 +276,33 @@ func getShopItemViews(items []ShopItem, ownedIDs []string) ([]ShopItemView, []Sh
 			ownedItems = append(ownedItems, view)
 		}
 	}
+
+	// Keep purchasable characters ahead of cosmetics so locked base avatars
+	// are visible without making students hunt through the full item catalog.
+	sort.SliceStable(avatarItems, func(i, j int) bool {
+		leftBase := avatarItems[i].Slot == "base"
+		rightBase := avatarItems[j].Slot == "base"
+		if leftBase != rightBase {
+			return leftBase
+		}
+		return avatarItems[i].Name < avatarItems[j].Name
+	})
+
 	return avatarItems, backgroundItems, ownedItems
+}
+
+func splitAvatarShopItems(items []ShopItemView) ([]ShopItemView, []ShopItemView) {
+	lockedAvatars, cosmetics := []ShopItemView{}, []ShopItemView{}
+	for _, item := range items {
+		if item.Slot == "base" {
+			if !item.Owned {
+				lockedAvatars = append(lockedAvatars, item)
+			}
+			continue
+		}
+		cosmetics = append(cosmetics, item)
+	}
+	return lockedAvatars, cosmetics
 }
 
 func ownsShopItem(ownedIDs []string, itemID string) bool {
